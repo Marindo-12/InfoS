@@ -23,7 +23,7 @@ Route::get('/formations/{slug}', function (string $slug) {
     return Inertia::render('Public/CourseDetail', ['slug' => $slug]);
 })->name('courses.show');
 
-Route::get('/a-propos', function () {
+Route::get('/about', function () {
     return Inertia::render('Public/About');
 })->name('about');
 

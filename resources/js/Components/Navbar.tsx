@@ -45,9 +45,9 @@ const Navbar = () => {
           <a href="#formations" className="text-sm font-medium tracking-wide text-orange-700 border-b-2 border-orange-700 pb-1 transition-colors duration-300">
             Formations
           </a>
-          <a href="#about" className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
+          <Link href={route('about')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
             À propos
-          </a>
+          </Link>
           <a href="#admissions" className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
             Inscriptions
           </a>
