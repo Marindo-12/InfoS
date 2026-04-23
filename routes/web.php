@@ -17,7 +17,7 @@ Route::get('/', function () {
 
 Route::get('/formations', function () {
     return Inertia::render('Public/Formations');
-})->name('courses');
+})->name('formations');
 
 Route::get('/formations/{slug}', function (string $slug) {
     return Inertia::render('Public/CourseDetail', ['slug' => $slug]);

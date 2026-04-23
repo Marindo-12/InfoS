@@ -42,18 +42,18 @@ const Navbar = () => {
 
         {/* Desktop navigation */}
         <div className="hidden md:flex items-center gap-8">
-          <a href="#formations" className="text-sm font-medium tracking-wide text-orange-700 border-b-2 border-orange-700 pb-1 transition-colors duration-300">
+          <Link href={route('formations')} className="text-sm font-medium tracking-wide text-orange-700 border-b-2 border-orange-700 pb-1 transition-colors duration-300">
             Formations
-          </a>
+          </Link>
           <Link href={route('about')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
             À propos
           </Link>
-          <a href="#admissions" className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
+          <Link href={route('about')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
             Inscriptions
-          </a>
-          <a href="#temoignages" className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
+          </Link>
+          <Link href={route('about')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
             Témoignages
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
@@ -79,34 +79,34 @@ const Navbar = () => {
       {isOpen && (
         <div className="fixed inset-0 top-[72px] bg-surface/80 backdrop-blur-sm z-40 md:hidden">
           <div className="flex flex-col bg-surface-bright border border-t-2 items-center py-8 gap-8 text-lg">
-            <a
-              href="#formations"
+            <Link
+              href={route('formations')}
               onClick={closeMenu}
               className="text-orange-700 font-medium border-b-2 border-orange-700 pb-1"
             >
               Formations
-            </a>
-            <a
-              href="#about"
+            </Link>
+            <Link
+              href={route('about')}
               onClick={closeMenu}
               className="text-stone-700 hover:text-orange-600 transition-colors"
             >
               À propos
-            </a>
-            <a
-              href="#admissions"
+            </Link>
+            <Link
+              href={route('about')}
               onClick={closeMenu}
               className="text-stone-700 hover:text-orange-600 transition-colors"
             >
               Inscriptions
-            </a>
-            <a
-              href="#temoignages"
+            </Link>
+            <Link
+              href={route('about')}
               onClick={closeMenu}
               className="text-stone-700 hover:text-orange-600 transition-colors"
             >
               Témoignages
-            </a>
+            </Link>
           </div>
         </div>
       )}

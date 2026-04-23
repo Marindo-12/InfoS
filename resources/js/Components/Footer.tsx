@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 py-16 max-w-7xl mx-auto">
 
         <div className="space-y-6">
-          <div className="text-xl font-serif text-orange-900">Centre Informatique</div>
+          <div className="text-xl font-serif text-orange-900">Info Saloua</div>
           <p className="text-sm font-light text-stone-600 leading-relaxed">
             Votre succès commence ici. Formation en langues, préparation aux concours et bureautique à Tanger.
           </p>
@@ -46,7 +46,7 @@ const Footer = () => {
         <div>
           <h4 className="text-lg font-serif mb-6 text-on-surface">Accréditation</h4>
           <p className="text-xs font-light text-stone-500 leading-relaxed mb-6">
-            © {new Date().getFullYear()} Centre Informatique. Tanger, Maroc.
+            © {new Date().getFullYear()} Info Saloua. Méknès, Maroc.
           </p>
           <div className="flex items-center gap-4 grayscale opacity-60">
             {[1, 2, 3].map(i => (
