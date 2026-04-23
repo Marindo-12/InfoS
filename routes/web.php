@@ -5,23 +5,112 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+/*
+|--------------------------------------------------------------------------
+| Routes Publiques
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return Inertia::render('Public/Home');
+})->name('home');
+
+Route::get('/formations', function () {
+    return Inertia::render('Public/Formations');
+})->name('formations');
+
+Route::get('/formations/{slug}', function (string $slug) {
+    return Inertia::render('Public/CourseDetail', ['slug' => $slug]);
+})->name('courses.show');
+
+Route::get('/about', function () {
+    return Inertia::render('Public/About');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('Public/Contact');
+})->name('contact');
+
+Route::get('/login', function () {
+    return Inertia::render('Auth/Login');
+})->name('apply');
+
+/*
+|--------------------------------------------------------------------------
+| Routes Auth (générées par Breeze)
+|--------------------------------------------------------------------------
+*/
+
+require __DIR__.'/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Routes Étudiant (protégées)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Student/Dashboard');
+    })->name('dashboard');
+
+    Route::get('/courses', function () {
+        return Inertia::render('Student/MyCourses');
+    })->name('courses');
+
+    Route::get('/progress', function () {
+        return Inertia::render('Student/Progress');
+    })->name('progress');
+
+    Route::get('/schedule', function () {
+        return Inertia::render('Student/Schedule');
+    })->name('schedule');
+
+    Route::get('/payment', function () {
+        return Inertia::render('Student/Payment');
+    })->name('payment');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| Routes Admin (protégées)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->name('dashboard');
+
+    Route::get('/applications', function () {
+        return Inertia::render('Admin/Applications');
+    })->name('applications');
+
+    Route::get('/students', function () {
+        return Inertia::render('Admin/Students');
+    })->name('students');
+
+    Route::get('/courses', function () {
+        return Inertia::render('Admin/Courses');
+    })->name('courses');
+
+    Route::get('/payments', function () {
+        return Inertia::render('Admin/Payments');
+    })->name('payments');
+
+    Route::get('/reports', function () {
+        return Inertia::render('Admin/Reports');
+    })->name('reports');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Profile (Breeze)
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
-require __DIR__.'/auth.php';
