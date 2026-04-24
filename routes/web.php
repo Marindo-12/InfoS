@@ -19,10 +19,6 @@ Route::get('/formations', function () {
     return Inertia::render('Public/Formations');
 })->name('formations');
 
-Route::get('/formations/{slug}', function (string $slug) {
-    return Inertia::render('Public/CourseDetail', ['slug' => $slug]);
-})->name('courses.show');
-
 Route::get('/about', function () {
     return Inertia::render('Public/About');
 })->name('about');
@@ -31,9 +27,31 @@ Route::get('/contact', function () {
     return Inertia::render('Public/Contact');
 })->name('contact');
 
+Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
+    Route::get('/langues', function () {
+        return Inertia::render('Inscriptions/Langues');
+    })->name('langues');
+
+    Route::get('/bureautique', function () {
+        return Inertia::render('Inscriptions/Bureautique');
+    })->name('bureautique');
+
+    Route::get('/concours', function () {
+        return Inertia::render('Inscriptions/Concours');
+    })->name('concours');
+
+    Route::get('/infographie', function () {
+        return Inertia::render('Inscriptions/Infographie');
+    })->name('infographie');
+});
+
 Route::get('/login', function () {
     return Inertia::render('Auth/Login');
 })->name('apply');
+
+Route::get('/inscriptions', function () {
+    return Inertia::render('Inscriptions/Index');
+})->name('inscriptions');
 
 /*
 |--------------------------------------------------------------------------
