@@ -173,7 +173,7 @@ function FaqItem({
                 onClick={onToggle}
                 className="group flex w-full items-center justify-between py-2 text-left focus:outline-none"
             >
-                <span className="pr-4 font-display text-lg text-on-surface transition-colors group-hover:text-primary">
+                <span className="pr-4 font-display text-xl text-on-surface transition-colors group-hover:text-primary">
                     {question}
                 </span>
                 <span
