@@ -51,8 +51,8 @@ const Navbar = () => {
           <Link href={route('about')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
             Inscriptions
           </Link>
-          <Link href={route('about')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
-            Témoignages
+          <Link href={route('contact')} className="text-sm font-medium tracking-wide text-stone-700 hover:text-orange-600 transition-colors duration-300">
+            Contact
           </Link>
         </div>
 
@@ -101,11 +101,11 @@ const Navbar = () => {
               Inscriptions
             </Link>
             <Link
-              href={route('about')}
+              href={route('contact')}
               onClick={closeMenu}
               className="text-stone-700 hover:text-orange-600 transition-colors"
             >
-              Témoignages
+              Contact
             </Link>
           </div>
         </div>
