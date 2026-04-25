@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  CardCvcElement,
+  CardExpiryElement,
+  CardNumberElement,
+  Elements,
+  useElements,
+  useStripe,
+} from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
-import wordIc from '../../../../public/images/word.png'
-import excelIc from '../../../../public/images/excel.png'
-import powerpointIc from '../../../../public/images/powerpoint.png'
+import wordIc from '../../../../public/images/word.png';
+import excelIc from '../../../../public/images/excel.png';
+import powerpointIc from '../../../../public/images/powerpoint.png';
+
+type ModuleKey = 'word' | 'excel' | 'powerpoint';
+type PaymentMode = '' | 'online' | 'onsite';
 
 interface FormData {
   nom: string;
@@ -12,103 +24,591 @@ interface FormData {
   niveau: string;
   email: string;
   telephone: string;
-  modules: {
-    word: boolean;
-    excel: boolean;
-    powerpoint: boolean;
-  };
+  modules: Record<ModuleKey, boolean>;
   level: string;
-  payment: string;
+  payment: PaymentMode;
   acceptTerms: boolean;
   acceptPrivacy: boolean;
 }
 
+interface FormErrors {
+  nom?: string;
+  prenom?: string;
+  age?: string;
+  email?: string;
+  telephone?: string;
+  modules?: string;
+  payment?: string;
+  card?: string;
+  acceptTerms?: string;
+  acceptPrivacy?: string;
+}
+
+interface Certificate {
+  learnerName: string;
+  reference: string;
+  processingCode: string;
+  paymentMode: string;
+  amount: string;
+  modules: string[];
+  level: string;
+  issuedAt: string;
+}
+
+interface StripeCardHandle {
+  createPaymentMethod: (billingDetails: { name: string; email: string; phone: string }) => Promise<
+    { paymentMethodId: string } | { error: string }
+  >;
+}
+
+interface StripeCardSectionProps {
+  totalAmount: number;
+  cardError?: string;
+  processing: boolean;
+  paymentDone: boolean;
+  paymentReference?: string;
+  onCardChange: (hasError: boolean) => void;
+  onPayNow: () => void;
+}
+
 const MODULE_CARDS = [
   {
-    key: 'word',
+    key: 'word' as ModuleKey,
     name: 'module_word',
     title: 'Microsoft Word',
     description: 'Edition, mise en page et documents professionnels',
-    price: '250 DH',
+    price: 250,
     accent: '#185ABD',
     icon: wordIc,
   },
   {
-    key: 'excel',
+    key: 'excel' as ModuleKey,
     name: 'module_excel',
     title: 'Microsoft Excel',
     description: 'Tableaux, calculs, formules et analyse de donnees',
-    price: '350 DH',
+    price: 350,
     accent: '#107C41',
     icon: excelIc,
   },
   {
-    key: 'powerpoint',
+    key: 'powerpoint' as ModuleKey,
     name: 'module_powerpoint',
     title: 'Microsoft PowerPoint',
     description: 'Presentations visuelles, slides et animations',
-    price: '250 DH',
+    price: 250,
     accent: '#D24726',
     icon: powerpointIc,
   },
 ] as const;
 
-const InscriptionBureautique: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+const NIVEAU_OPTIONS = ['Baccalaureat', 'Licence', 'Master', 'Autre'];
+const LEVEL_OPTIONS = [
+  { value: 'debutant', label: 'Debutant', sub: 'Bases et introduction' },
+  { value: 'intermediaire', label: 'Intermediaire', sub: 'Fonctions avancees' },
+  { value: 'avance', label: 'Avance', sub: 'Expertise metier' },
+];
+
+const fmtAmount = (n: number) => `${n.toLocaleString('fr-MA')} DH`;
+const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const okPhone = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
+const secureRef = (prefix: string) => {
+  const bytes = new Uint32Array(2);
+  crypto.getRandomValues(bytes);
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${bytes[0].toString(36).slice(0, 4).toUpperCase()}${bytes[1]
+    .toString(36)
+    .slice(0, 4)
+    .toUpperCase()}`;
+};
+
+const inputCls = (err?: string) =>
+  `w-full rounded-xl border bg-surface-container-lowest px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 ${
+    err ? 'border-red-400 bg-red-50/30 focus:ring-red-200' : 'border-outline-variant focus:border-primary focus:ring-primary/20'
+  }`;
+
+const FieldError: React.FC<{ msg?: string }> = ({ msg }) =>
+  msg ? (
+    <p className="ml-1 mt-1.5 flex items-center gap-1.5 text-xs text-red-500">
+      <span className="material-symbols-outlined text-sm leading-none">error</span>
+      {msg}
+    </p>
+  ) : null;
+
+const CARD_BRAND_STYLES: Record<string, { label: string; bg: string; text: string; border: string }> = {
+  visa: { label: 'Visa', bg: '#E8F0FE', text: '#185ABC', border: '#B6CCF6' },
+  mastercard: { label: 'Mastercard', bg: '#FFF1EB', text: '#C2410C', border: '#FED7C3' },
+  amex: { label: 'Amex', bg: '#E8F7FB', text: '#0F5E7A', border: '#B8E3F0' },
+  discover: { label: 'Discover', bg: '#FFF4E8', text: '#B45309', border: '#FBD1A2' },
+  diners: { label: 'Diners', bg: '#EEF2FF', text: '#4338CA', border: '#C7D2FE' },
+  jcb: { label: 'JCB', bg: '#ECFDF3', text: '#15803D', border: '#BBF7D0' },
+  unionpay: { label: 'UnionPay', bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA' },
+  unknown: { label: 'Carte', bg: '#F3F4F6', text: '#4B5563', border: '#D1D5DB' },
+};
+
+const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
+  ({ totalAmount, cardError, processing, paymentDone, paymentReference, onCardChange, onPayNow }, ref) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [cardNumberComplete, setCardNumberComplete] = useState(false);
+    const [cardExpiryComplete, setCardExpiryComplete] = useState(false);
+    const [cardCvcComplete, setCardCvcComplete] = useState(false);
+    const [cardBrand, setCardBrand] = useState<keyof typeof CARD_BRAND_STYLES>('unknown');
+
+    const elementOptions = {
+      style: {
+        base: {
+          fontSize: '15px',
+          fontFamily: 'inherit',
+          color: '#1c1c1e',
+          '::placeholder': { color: '#9ca3af' },
+          iconColor: '#6b7280',
+        },
+        invalid: {
+          color: '#dc2626',
+          iconColor: '#dc2626',
+        },
+      },
+    };
+
+    const syncCardState = (next: { number?: boolean; expiry?: boolean; cvc?: boolean; hasOwnError: boolean }) => {
+      const number = next.number ?? cardNumberComplete;
+      const expiry = next.expiry ?? cardExpiryComplete;
+      const cvc = next.cvc ?? cardCvcComplete;
+      onCardChange(next.hasOwnError || !number || !expiry || !cvc);
+    };
+
+    useImperativeHandle(ref, () => ({
+      async createPaymentMethod(billingDetails) {
+        if (!stripe || !elements) return { error: 'Stripe non initialise.' };
+        const cardNumber = elements.getElement(CardNumberElement);
+        if (!cardNumber) return { error: 'Element carte introuvable.' };
+
+        const { error, paymentMethod } = await stripe.createPaymentMethod({
+          type: 'card',
+          card: cardNumber,
+          billing_details: billingDetails,
+        });
+
+        if (error) return { error: error.message ?? 'Erreur carte.' };
+        return { paymentMethodId: paymentMethod.id };
+      },
+    }));
+
+    const fieldCls = `rounded-xl border px-4 py-3 transition-all ${
+      cardError
+        ? 'border-red-400 bg-red-50/30'
+        : 'border-outline-variant bg-surface-container-lowest focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'
+    }`;
+
+    const cardComplete = cardNumberComplete && cardExpiryComplete && cardCvcComplete;
+    const cardBrandStyle = CARD_BRAND_STYLES[cardBrand] ?? CARD_BRAND_STYLES.unknown;
+
+    return (
+      <div className="mt-6 rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Paiement securise</p>
+            <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Carte bancaire</h4>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container px-4 py-2">
+            <span className="material-symbols-outlined text-base text-emerald-600">lock</span>
+            <span className="text-sm font-bold text-on-surface">{fmtAmount(totalAmount)}</span>
+          </div>
+        </div>
+
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-on-surface-variant">Accepte :</span>
+          {['Visa', 'Mastercard', 'CMI', 'CIH', 'Attijariwafa'].map((m) => (
+            <span
+              key={m}
+              className="rounded-md border border-outline-variant/40 bg-surface-container px-2.5 py-0.5 text-xs font-semibold text-on-surface-variant"
+            >
+              {m}
+            </span>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <label className="ml-1 text-sm font-semibold text-on-surface-variant">Numero de carte</label>
+              <div
+                className="inline-flex min-w-[104px] items-center justify-center rounded-full border px-3 py-1 text-xs font-bold tracking-[0.14em] uppercase"
+                style={{
+                  backgroundColor: cardBrandStyle.bg,
+                  color: cardBrandStyle.text,
+                  borderColor: cardBrandStyle.border,
+                }}
+              >
+                {cardBrandStyle.label}
+              </div>
+            </div>
+            <div className={fieldCls}>
+              <CardNumberElement
+                options={elementOptions}
+                onChange={(ev) => {
+                  setCardNumberComplete(ev.complete);
+                  setCardBrand((ev.brand as keyof typeof CARD_BRAND_STYLES) || 'unknown');
+                  syncCardState({ number: ev.complete, hasOwnError: !!ev.error });
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="ml-1 text-sm font-semibold text-on-surface-variant">Date d'expiration</label>
+              <div className={fieldCls}>
+                <CardExpiryElement
+                  options={elementOptions}
+                  onChange={(ev) => {
+                    setCardExpiryComplete(ev.complete);
+                    syncCardState({ expiry: ev.complete, hasOwnError: !!ev.error });
+                  }}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="ml-1 text-sm font-semibold text-on-surface-variant">CVC</label>
+              <div className={fieldCls}>
+                <CardCvcElement
+                  options={elementOptions}
+                  onChange={(ev) => {
+                    setCardCvcComplete(ev.complete);
+                    syncCardState({ cvc: ev.complete, hasOwnError: !!ev.error });
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {cardError && <FieldError msg={cardError} />}
+          {cardComplete && !cardError && (
+            <p className="ml-1 mt-1.5 flex items-center gap-1.5 text-xs text-emerald-600">
+              <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>
+                check_circle
+              </span>
+              Informations de carte valides
+            </p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={onPayNow}
+          disabled={processing || paymentDone || !stripe}
+          className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-600 py-4 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 hover:bg-emerald-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {processing ? (
+            <>
+              <span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>
+              Paiement en cours...
+            </>
+          ) : paymentDone ? (
+            <>
+              <span className="material-symbols-outlined text-xl leading-none">task_alt</span>
+              Paiement effectue
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-xl leading-none">lock</span>
+              Payer {fmtAmount(totalAmount)}
+            </>
+          )}
+        </button>
+
+        {paymentDone && paymentReference && (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-sm font-semibold text-emerald-800">Paiement effectue avec succes</p>
+            <p className="mt-1 text-sm text-emerald-700">
+              Reference de paiement : <span className="font-mono font-semibold">{paymentReference}</span>
+            </p>
+          </div>
+        )}
+
+        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
+          <span className="material-symbols-outlined text-base text-emerald-600">security</span>
+          <p className="text-xs leading-relaxed text-emerald-800">
+            Vos donnees sont chiffrees et traitees directement par <strong>Stripe</strong> (certifie PCI-DSS niveau 1).
+            Aucune information bancaire ne transite par nos serveurs.
+          </p>
+        </div>
+      </div>
+    );
+  },
+);
+
+StripeCardSection.displayName = 'StripeCardSection';
+
+const CertificateModal: React.FC<{ cert: Certificate; onClose: () => void }> = ({ cert, onClose }) => {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', esc);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', esc);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-2xl"
+        style={{ maxHeight: '92vh', overflowY: 'auto' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 shadow-sm text-on-surface-variant transition-colors hover:bg-surface-container"
+        >
+          <span className="material-symbols-outlined text-xl">close</span>
+        </button>
+
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 px-8 py-8 text-white">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+              <span className="material-symbols-outlined text-2xl text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+                verified
+              </span>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-200">Pre-inscription confirmee</p>
+              <h3 className="font-display text-2xl font-bold">Certificat genere</h3>
+            </div>
+          </div>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-emerald-100">
+            Conservez ce document. La reference et le code de traitement sont lies a votre dossier pour le suivi avec le centre.
+          </p>
+        </div>
+
+        <div className="space-y-4 p-8">
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Apprenant</p>
+                <p className="mt-1 text-base font-bold text-on-surface">{cert.learnerName}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Niveau</p>
+                <p className="mt-1 text-base font-bold text-on-surface">{cert.level}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Modules inscrits</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {cert.modules.map((m) => (
+                    <span key={m} className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Reference unique</p>
+              <p className="mt-2 break-all font-mono text-sm font-bold text-on-surface">{cert.reference}</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Code de traitement</p>
+              <p className="mt-2 break-all font-mono text-sm font-bold text-emerald-800">{cert.processingCode}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                {cert.paymentMode === 'Paiement en ligne' ? 'credit_card' : 'storefront'}
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Mode</p>
+                <p className="text-sm font-bold text-on-surface">{cert.paymentMode}</p>
+              </div>
+            </div>
+            <div className="sm:text-right">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Montant</p>
+              <p className="font-display text-2xl font-bold text-on-surface">{cert.amount}</p>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-on-surface-variant">Emis le {cert.issuedAt}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface Props {
+  stripePublishableKey?: string;
+}
+
+const InscriptionBureautique: React.FC<Props> = ({
+  stripePublishableKey = (import.meta as any).env?.VITE_STRIPE_PK ?? '',
+}) => {
+  const stripePromise = useMemo(() => (stripePublishableKey ? loadStripe(stripePublishableKey) : null), [stripePublishableKey]);
+  const stripeOptions = useMemo(
+    () => ({
+      mode: 'payment' as const,
+      amount: 100,
+      currency: 'mad',
+      appearance: {
+        theme: 'stripe' as const,
+        variables: { fontFamily: 'inherit', borderRadius: '12px' },
+      },
+    }),
+    [],
+  );
+
+  const stripeCardRef = useRef<StripeCardHandle>(null);
+
+  const [form, setForm] = useState<FormData>({
     nom: '',
     prenom: '',
     age: '',
     niveau: 'Baccalaureat',
     email: '',
     telephone: '',
-    modules: {
-      word: false,
-      excel: false,
-      powerpoint: false,
-    },
+    modules: { word: false, excel: false, powerpoint: false },
     level: 'debutant',
-    payment: 'online',
+    payment: '',
     acceptTerms: false,
     acceptPrivacy: false,
   });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [cardHasError, setCardHasError] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
+  const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
+  const [certificate, setCertificate] = useState<Certificate | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const selectedModules = useMemo(() => MODULE_CARDS.filter((m) => form.modules[m.key]), [form.modules]);
+  const totalAmount = useMemo(() => selectedModules.reduce((sum, m) => sum + m.price, 0), [selectedModules]);
+
+  const clearErr = (field: keyof FormErrors) => setErrors((prev) => ({ ...prev, [field]: undefined }));
+
+  const validateFinalConfirmation = (): FormErrors => {
+    const e: FormErrors = {};
+    if (!form.nom.trim()) e.nom = 'Le nom est requis.';
+    if (!form.prenom.trim()) e.prenom = 'Le prenom est requis.';
+    if (!form.age || Number(form.age) < 15 || Number(form.age) > 80) e.age = 'Saisissez un age valide (15 - 80).';
+    if (!okEmail(form.email)) e.email = 'Adresse email invalide.';
+    if (!okPhone(form.telephone)) e.telephone = 'Numero de telephone invalide.';
+    if (!selectedModules.length) e.modules = 'Selectionnez au moins un module.';
+    if (!form.payment) e.payment = 'Choisissez un mode de paiement.';
+    if (form.payment === 'online' && !onlinePaymentCompleted) e.card = 'Effectuez le paiement en ligne avant la confirmation finale.';
+    if (!form.acceptTerms) e.acceptTerms = 'Acceptez les conditions generales.';
+    if (!form.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
+    return e;
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+
     if (type === 'checkbox') {
-      const target = e.target as HTMLInputElement;
+      const checked = (e.target as HTMLInputElement).checked;
       if (name.startsWith('module_')) {
-        const moduleName = name.replace('module_', '') as keyof typeof formData.modules;
-        setFormData((prev) => ({
-          ...prev,
-          modules: { ...prev.modules, [moduleName]: target.checked },
-        }));
-      } else if (name === 'acceptTerms') {
-        setFormData((prev) => ({ ...prev, acceptTerms: target.checked }));
-      } else if (name === 'acceptPrivacy') {
-        setFormData((prev) => ({ ...prev, acceptPrivacy: target.checked }));
+        const key = name.replace('module_', '') as ModuleKey;
+        setForm((prev) => ({ ...prev, modules: { ...prev.modules, [key]: checked } }));
+        clearErr('modules');
+        setOnlinePaymentCompleted(false);
+        setOnlinePaymentReference('');
+      } else {
+        setForm((prev) => ({ ...prev, [name]: checked }));
+        clearErr(name as keyof FormErrors);
       }
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, [name]: value }));
+    clearErr(name as keyof FormErrors);
+  };
+
+  const handleRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    clearErr(e.target.name as keyof FormErrors);
+    if (e.target.name === 'payment') {
+      setOnlinePaymentCompleted(false);
+      setOnlinePaymentReference('');
+      clearErr('card');
     }
   };
 
-  const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleOnlinePayment = async () => {
+    const paymentErrors: FormErrors = {};
+    if (!form.nom.trim()) paymentErrors.nom = 'Le nom est requis avant le paiement.';
+    if (!form.prenom.trim()) paymentErrors.prenom = 'Le prenom est requis avant le paiement.';
+    if (!okEmail(form.email)) paymentErrors.email = 'Adresse email invalide.';
+    if (!okPhone(form.telephone)) paymentErrors.telephone = 'Numero de telephone invalide.';
+    if (!selectedModules.length) paymentErrors.modules = 'Selectionnez au moins un module avant le paiement.';
+    if (cardHasError) paymentErrors.card = 'Completez correctement les informations de carte.';
+
+    if (Object.keys(paymentErrors).length) {
+      setErrors((prev) => ({ ...prev, ...paymentErrors }));
+      document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (!stripeCardRef.current) {
+        setErrors((prev) => ({ ...prev, card: 'Le formulaire de carte est introuvable.' }));
+        return;
+      }
+
+      const result = await stripeCardRef.current.createPaymentMethod({
+        name: `${form.prenom} ${form.nom}`,
+        email: form.email,
+        phone: form.telephone,
+      });
+
+      if ('error' in result) {
+        setErrors((prev) => ({ ...prev, card: result.error }));
+        return;
+      }
+
+      console.log('[Stripe] PaymentMethod:', result.paymentMethodId);
+      setOnlinePaymentCompleted(true);
+      setOnlinePaymentReference(secureRef('PAY'));
+      clearErr('card');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!Object.values(formData.modules).some(Boolean)) {
-      alert('Veuillez selectionner au moins un module de formation.');
+    const finalErrors = validateFinalConfirmation();
+    if (Object.keys(finalErrors).length) {
+      setErrors(finalErrors);
+      document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    if (!formData.acceptTerms || !formData.acceptPrivacy) {
-      alert('Veuillez accepter les conditions generales et la politique de confidentialite.');
-      return;
+
+    setSubmitting(true);
+    try {
+      setCertificate({
+        learnerName: `${form.prenom.trim()} ${form.nom.trim()}`,
+        reference: secureRef('INS'),
+        processingCode: secureRef('TRT'),
+        paymentMode: form.payment === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
+        amount: fmtAmount(totalAmount),
+        modules: selectedModules.map((m) => m.title),
+        level: LEVEL_OPTIONS.find((l) => l.value === form.level)?.label ?? form.level,
+        issuedAt: new Date().toLocaleString('fr-MA'),
+      });
+      setShowModal(true);
+    } finally {
+      setSubmitting(false);
     }
-    console.log('Formulaire soumis :', formData);
-    alert('Inscription enregistree ! Un conseiller vous contactera sous 48h.');
   };
 
   return (
@@ -118,66 +618,47 @@ const InscriptionBureautique: React.FC = () => {
         <main className="relative">
           <div className="geometric-bg pointer-events-none absolute inset-0 opacity-30" />
 
-          <section className="relative mx-auto max-w-7xl px-8 pb-12 pt-16">
+          {showModal && certificate && <CertificateModal cert={certificate} onClose={() => setShowModal(false)} />}
+
+          {certificate && !showModal && (
+            <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                className="flex items-center gap-3 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95"
+              >
+                <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  verified
+                </span>
+                Voir mon certificat d'inscription
+              </button>
+            </div>
+          )}
+
+          <section className="relative mx-auto max-w-7xl px-6 pb-12 pt-16 lg:px-8">
             <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
               <div>
-                <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-primary">
-                  Formation Certifiante
-                </span>
+                <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-primary">Formation Certifiante</span>
                 <h1 className="mb-6 font-display text-5xl font-bold leading-tight md:text-6xl">
-                  <span className="text-primary">Inscriptions :</span>{' '}
-                  <span className="text-on-surface">Pole Bureautique</span>
+                  <span className="text-primary">Inscriptions :</span> <span className="text-on-surface">Pole Bureautique</span>
                 </h1>
                 <p className="mb-8 max-w-xl text-lg leading-relaxed text-on-surface-variant">
                   Maitrisez les outils indispensables du monde professionnel. Une formation intensive de{' '}
-                  <span className="font-bold text-on-surface">2 mois</span> couvrant Excel, Word et PowerPoint pour
-                  transformer votre productivite.
+                  <span className="font-bold text-on-surface">2 mois</span> couvrant Excel, Word et PowerPoint pour transformer votre productivite.
                 </p>
-                <div className="mb-8 flex flex-wrap gap-6">
-                  <div className="flex items-center gap-3 rounded-xl border border-outline-variant/50 bg-surface-container px-5 py-3">
-                    <span className="material-symbols-outlined text-primary">schedule</span>
-                    <span className="font-medium">Duree: 2 mois</span>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-xl border border-outline-variant/50 bg-surface-container px-5 py-3">
-                    <span className="material-symbols-outlined text-primary">payments</span>
-                    <span className="text-lg font-bold">800 DH</span>
-                  </div>
+                <div className="mb-8 flex flex-wrap gap-4">
+                  {[{ icon: 'schedule', text: 'Duree : 2 mois' }, { icon: 'payments', text: 'A partir de 250 DH' }].map(({ icon, text }) => (
+                    <div key={text} className="flex items-center gap-3 rounded-xl border border-outline-variant/50 bg-surface-container px-5 py-3">
+                      <span className="material-symbols-outlined text-primary">{icon}</span>
+                      <span className="font-medium">{text}</span>
+                    </div>
+                  ))}
                 </div>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <span
-                      className="material-symbols-outlined mt-0.5 text-primary"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      check_circle
-                    </span>
-                    <div>
-                      <h4 className="font-semibold">Hands-on training</h4>
-                      <p className="text-sm leading-tight text-on-surface-variant">
-                        Projets reels et exercices pratiques immediats.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span
-                      className="material-symbols-outlined mt-0.5 text-primary"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      check_circle
-                    </span>
-                    <div>
-                      <h4 className="font-semibold">Professional tools</h4>
-                      <p className="text-sm leading-tight text-on-surface-variant">
-                        Dernieres versions de la suite Microsoft Office.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
               </div>
               <div className="group relative">
                 <div className="absolute -inset-4 rounded-[2rem] bg-primary/10 blur-2xl transition-all duration-500 group-hover:bg-primary/20" />
                 <img
-                  alt="Modern Professional Workspace"
+                  alt="Espace de travail"
                   className="hover-color-transition relative aspect-video w-full rounded-2xl border border-outline-variant/30 object-cover shadow-2xl"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGeQTJWU5lf74rdGfm5Tnl5u6PdpyjIQt_3eZcKeqARYaDMRVtvOcZdJ3nUxsHVTJwFMeaYnc9-P1utuUeOPBxaA0Ah8FnTwTZxXUEdMUp0yOoDcSrnwLW2MCsHDymv8iWMqzcDPycAT6EpjoRqX6ATJdC33yHze1NeEDwH_UdfsmG30RfIFFRjkfiJOS3wNF3tS5szyG_7IktuBbZw5fDLha6cxRvEq4jifilpiHrm2AWjwDmw5ceF02zMOu_Bjm1CfMHLX0d9Ibc"
                 />
@@ -185,317 +666,342 @@ const InscriptionBureautique: React.FC = () => {
             </div>
           </section>
 
-          <div className="relative z-10 mx-auto max-w-7xl px-8 pb-8 pt-12 text-center">
+          <div className="relative z-10 mx-auto max-w-7xl px-6 pb-8 pt-12 text-center lg:px-8">
             <div className="mb-6 inline-block h-1 w-12 bg-primary" />
-            <h2 className="mb-4 font-display text-4xl font-bold text-on-surface md:text-5xl">
-              Finaliser votre Inscription
-            </h2>
+            <h2 className="mb-4 font-display text-4xl font-bold text-on-surface md:text-5xl">Finaliser votre Inscription</h2>
             <p className="mx-auto max-w-2xl text-lg text-on-surface-variant">
-              Veuillez remplir le formulaire ci-dessous pour reserver votre place au sein de notre promotion de
-              Bureautique Professionnelle.
+              Remplissez le formulaire ci-dessous pour reserver votre place au sein de notre promotion de Bureautique Professionnelle.
             </p>
           </div>
 
-          <section className="relative mx-auto max-w-4xl overflow-visible px-8 pb-24">
-            <div className="pointer-events-none absolute left-0 top-0 -z-10 h-full w-full opacity-20">
-              <div className="absolute top-10 -left-20 h-[1px] w-40 rotate-45 bg-on-surface" />
-              <div className="absolute bottom-40 -right-20 h-[1px] w-60 -rotate-12 bg-primary" />
-              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary" />
-              <div className="absolute bottom-20 -left-16 h-24 w-24 rounded-full border border-on-surface" />
-              <div className="absolute left-full top-1/2 h-8 w-8 -translate-x-1/2 rounded-full bg-primary/20" />
-            </div>
-            <div className="relative z-10 rounded-3xl border border-outline-variant/30 bg-surface-container-low p-8 shadow-sm md:p-12">
-              <form onSubmit={handleSubmit} className="space-y-12">
-                <div>
+          <section className="relative mx-auto max-w-4xl px-6 pb-24 lg:px-8">
+            <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-low p-8 shadow-sm md:p-12">
+              {!stripePublishableKey && (
+                <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <strong>Stripe non configure</strong> — Ajoutez <code className="rounded bg-amber-100 px-1">VITE_STRIPE_PK</code> dans votre{' '}
+                  <code className="rounded bg-amber-100 px-1">.env</code> pour activer le paiement en ligne.
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} noValidate className="space-y-12">
+                <section>
                   <div className="mb-8 flex items-center gap-4">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">
-                      1
-                    </span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">1</span>
                     <h3 className="font-display text-2xl font-bold">Informations Personnelles</h3>
                   </div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="ml-1 text-sm font-semibold text-on-surface-variant">Nom</label>
-                      <input
-                        type="text"
-                        name="nom"
-                        value={formData.nom}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border-outline-variant bg-surface-container-lowest px-4 py-3 transition-all focus:border-primary focus:ring-primary"
-                        placeholder="Votre nom"
-                        required
-                      />
+                    <div data-has-error={errors.nom ? 'true' : undefined}>
+                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Nom</label>
+                      <input type="text" name="nom" value={form.nom} onChange={handleInput} placeholder="Votre nom" className={inputCls(errors.nom)} />
+                      <FieldError msg={errors.nom} />
                     </div>
-                    <div className="space-y-2">
-                      <label className="ml-1 text-sm font-semibold text-on-surface-variant">Prenom</label>
-                      <input
-                        type="text"
-                        name="prenom"
-                        value={formData.prenom}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border-outline-variant bg-surface-container-lowest px-4 py-3 transition-all focus:border-primary focus:ring-primary"
-                        placeholder="Votre prenom"
-                        required
-                      />
+                    <div data-has-error={errors.prenom ? 'true' : undefined}>
+                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Prenom</label>
+                      <input type="text" name="prenom" value={form.prenom} onChange={handleInput} placeholder="Votre prenom" className={inputCls(errors.prenom)} />
+                      <FieldError msg={errors.prenom} />
                     </div>
-                    <div className="space-y-2">
-                      <label className="ml-1 text-sm font-semibold text-on-surface-variant">Age</label>
-                      <input
-                        type="number"
-                        name="age"
-                        value={formData.age}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border-outline-variant bg-surface-container-lowest px-4 py-3 transition-all focus:border-primary focus:ring-primary"
-                        placeholder="Ex: 20"
-                        required
-                      />
+                    <div data-has-error={errors.age ? 'true' : undefined}>
+                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Age</label>
+                      <input type="number" name="age" value={form.age} onChange={handleInput} placeholder="Ex : 22" min={15} max={80} className={inputCls(errors.age)} />
+                      <FieldError msg={errors.age} />
                     </div>
-                    <div className="space-y-2">
-                      <label className="ml-1 text-sm font-semibold text-on-surface-variant">Niveau Academique</label>
-                      <select
-                        name="niveau"
-                        value={formData.niveau}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border-outline-variant bg-surface-container-lowest px-4 py-3 transition-all focus:border-primary focus:ring-primary"
-                      >
-                        <option>Baccalaureat</option>
-                        <option>Licence</option>
-                        <option>Master</option>
-                        <option>Autre</option>
+                    <div>
+                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Niveau academique</label>
+                      <select name="niveau" value={form.niveau} onChange={handleInput} className={inputCls()}>
+                        {NIVEAU_OPTIONS.map((o) => (
+                          <option key={o}>{o}</option>
+                        ))}
                       </select>
                     </div>
-                    <div className="space-y-2">
-                      <label className="ml-1 text-sm font-semibold text-on-surface-variant">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border-outline-variant bg-surface-container-lowest px-4 py-3 transition-all focus:border-primary focus:ring-primary"
-                        placeholder="email@exemple.com"
-                        required
-                      />
+                    <div data-has-error={errors.email ? 'true' : undefined}>
+                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Email</label>
+                      <input type="email" name="email" value={form.email} onChange={handleInput} placeholder="email@exemple.com" className={inputCls(errors.email)} />
+                      <FieldError msg={errors.email} />
                     </div>
-                    <div className="space-y-2">
-                      <label className="ml-1 text-sm font-semibold text-on-surface-variant">Telephone</label>
-                      <input
-                        type="tel"
-                        name="telephone"
-                        value={formData.telephone}
-                        onChange={handleInputChange}
-                        className="w-full rounded-lg border-outline-variant bg-surface-container-lowest px-4 py-3 transition-all focus:border-primary focus:ring-primary"
-                        placeholder="+212 600 000 000"
-                        required
-                      />
+                    <div data-has-error={errors.telephone ? 'true' : undefined}>
+                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Telephone</label>
+                      <input type="tel" name="telephone" value={form.telephone} onChange={handleInput} placeholder="+212 600 000 000" className={inputCls(errors.telephone)} />
+                      <FieldError msg={errors.telephone} />
                     </div>
                   </div>
-                </div>
+                </section>
 
-                <div>
+                <section>
                   <div className="mb-8 flex items-center gap-4">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">
-                      2
-                    </span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">2</span>
                     <h3 className="font-display text-2xl font-bold">Details de la Formation</h3>
                   </div>
-                  <div className="mb-10">
-                    <label className="mb-4 ml-1 block text-sm font-semibold text-on-surface-variant">
-                      Selectionnez vos modules (Multi-choix possible)
-                    </label>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                      {MODULE_CARDS.map((module) => {
-                        const checked = formData.modules[module.key];
 
+                  <p className="mb-4 ml-1 text-sm font-semibold text-on-surface-variant">
+                    Selectionnez vos modules <span className="font-normal text-on-surface-variant/70">(multi-choix possible)</span>
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3" data-has-error={errors.modules ? 'true' : undefined}>
+                    {MODULE_CARDS.map((module) => {
+                      const checked = form.modules[module.key];
+                      return (
+                        <label key={module.key} className="group cursor-pointer">
+                          <input type="checkbox" name={module.name} checked={checked} onChange={handleInput} className="sr-only" />
+                          <div
+                            className="h-full rounded-2xl bg-white p-5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md"
+                            style={{
+                              border: checked ? `2px solid ${module.accent}` : '1.5px solid #e5e7eb',
+                              backgroundColor: checked ? `${module.accent}0D` : 'white',
+                              boxShadow: checked ? `0 12px 32px -16px ${module.accent}50` : undefined,
+                            }}
+                          >
+                            <div className="mb-4 flex items-start justify-between gap-3">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: `${module.accent}18` }}>
+                                <img src={module.icon} alt={module.title} className="h-8 w-8 object-contain" />
+                              </div>
+                              <span className="rounded-full px-2.5 py-0.5 text-xs font-bold" style={{ color: module.accent, backgroundColor: `${module.accent}15` }}>
+                                {fmtAmount(module.price)}
+                              </span>
+                            </div>
+                            <p className="font-bold text-on-surface">{module.title}</p>
+                            <p className="mt-1.5 text-sm leading-relaxed text-on-surface-variant">{module.description}</p>
+                            <div className="mt-5 flex items-center justify-between">
+                              <span className="text-xs font-medium text-on-surface-variant">{checked ? 'Selectionne' : 'Cliquer pour choisir'}</span>
+                              <span
+                                className="material-symbols-outlined text-xl transition-all"
+                                style={{ color: checked ? module.accent : '#d1d5db', fontVariationSettings: checked ? "'FILL' 1" : "'FILL' 0" }}
+                              >
+                                check_circle
+                              </span>
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <FieldError msg={errors.modules} />
+
+                  <div className="mt-5 rounded-2xl border border-outline-variant/40 bg-white p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Recapitulatif</p>
+                        <p className="mt-1.5 text-sm text-on-surface-variant">
+                          {selectedModules.length ? selectedModules.map((m) => m.title).join(' · ') : 'Aucun module selectionne pour le moment'}
+                        </p>
+                      </div>
+                      <div className="sm:text-right">
+                        <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">Montant</p>
+                        <p className="font-display text-3xl font-bold text-on-surface">{fmtAmount(totalAmount)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                    <label className="mb-4 ml-1 block text-sm font-semibold text-on-surface-variant">Niveau souhaite</label>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                      {LEVEL_OPTIONS.map(({ value, label, sub }) => {
+                        const active = form.level === value;
                         return (
-                          <label key={module.key} className="group relative cursor-pointer">
-                            <input
-                              type="checkbox"
-                              name={module.name}
-                              checked={checked}
-                              onChange={handleInputChange}
-                              className="peer sr-only"
-                            />
+                          <label key={value} className="group cursor-pointer">
+                            <input type="radio" name="level" value={value} checked={active} onChange={handleRadio} className="sr-only" />
                             <div
-                              className="h-full rounded-2xl border border-outline-variant bg-white p-5 text-center transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg peer-checked:shadow-lg"
-                              style={{
-                                borderColor: checked ? module.accent : undefined,
-                                backgroundColor: checked ? `${module.accent}12` : undefined,
-                                boxShadow: checked ? `0 18px 40px -24px ${module.accent}` : undefined,
-                              }}
+                              className={`rounded-xl p-4 text-center transition-all duration-200 ${
+                                active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant/50 bg-white group-hover:border-primary/40'
+                              }`}
                             >
-                              <div className="mb-4 flex items-start justify-between gap-3">
-                                <div
-                                  className="flex h-14 w-14 items-center justify-center rounded-2xl"
-                                  style={{ backgroundColor: `${module.accent}18` }}
-                                >
-                                  <img
-                                    src={module.icon}
-                                    alt={module.title}
-                                    className="h-9 w-9 object-contain"
-                                  />
-                                </div>
-                                <div
-                                  className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]"
-                                  style={{
-                                    color: module.accent,
-                                    backgroundColor: `${module.accent}14`,
-                                  }}
-                                >
-                                  {module.price}
-                                </div>
-                              </div>
-                              <div className="text-left">
-                                <p className="font-bold text-on-surface">{module.title}</p>
-                                <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-                                  {module.description}
-                                </p>
-                              </div>
-                              <div className="mt-6 flex items-center justify-between">
-                                <span className="text-xs font-medium uppercase tracking-[0.18em] text-on-surface-variant">
-                                  {checked ? 'Selectionne' : 'Cliquer pour choisir'}
-                                </span>
-                                <span
-                                  className="material-symbols-outlined transition-all"
-                                  style={{
-                                    color: checked ? module.accent : '#9ca3af',
-                                    fontVariationSettings: checked ? "'FILL' 1" : "'FILL' 0",
-                                  }}
-                                >
-                                  check_circle
-                                </span>
-                              </div>
+                              <p className="font-bold text-on-surface">{label}</p>
+                              <p className="text-xs text-on-surface-variant">{sub}</p>
                             </div>
                           </label>
                         );
                       })}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <label className="ml-1 block text-sm font-semibold text-on-surface-variant">Niveau Souhaite</label>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <label className="group relative cursor-pointer">
-                        <input
-                          type="radio"
-                          name="level"
-                          value="debutant"
-                          checked={formData.level === 'debutant'}
-                          onChange={handleRadioChange}
-                          className="peer sr-only"
-                        />
-                        <div className="rounded-xl border border-outline-variant p-4 text-center transition-all group-hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary-container/20">
-                          <p className="font-bold">Debutant</p>
-                          <p className="text-xs text-on-surface-variant">Bases et introduction</p>
-                        </div>
-                      </label>
-                      <label className="group relative cursor-pointer">
-                        <input
-                          type="radio"
-                          name="level"
-                          value="intermediaire"
-                          checked={formData.level === 'intermediaire'}
-                          onChange={handleRadioChange}
-                          className="peer sr-only"
-                        />
-                        <div className="rounded-xl border border-outline-variant p-4 text-center transition-all group-hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary-container/20">
-                          <p className="font-bold">Intermediaire</p>
-                          <p className="text-xs text-on-surface-variant">Fonctions avancees</p>
-                        </div>
-                      </label>
-                      <label className="group relative cursor-pointer">
-                        <input
-                          type="radio"
-                          name="level"
-                          value="avance"
-                          checked={formData.level === 'avance'}
-                          onChange={handleRadioChange}
-                          className="peer sr-only"
-                        />
-                        <div className="rounded-xl border border-outline-variant p-4 text-center transition-all group-hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary-container/20">
-                          <p className="font-bold">Avance</p>
-                          <p className="text-xs text-on-surface-variant">Expertise metier</p>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                </section>
 
-                <div>
+                <section>
                   <div className="mb-8 flex items-center gap-4">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">
-                      3
-                    </span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">3</span>
                     <h3 className="font-display text-2xl font-bold">Mode de Paiement</h3>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <label className="relative cursor-pointer">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="online"
-                        checked={formData.payment === 'online'}
-                        onChange={handleRadioChange}
-                        className="peer sr-only"
-                      />
-                      <div className="flex items-center gap-4 rounded-2xl border border-outline-variant p-5 transition-all peer-checked:border-primary peer-checked:bg-white">
-                        <span className="material-symbols-outlined text-on-surface-variant peer-checked:text-primary">
-                          credit_card
-                        </span>
-                        <span className="font-medium">Paiement en ligne</span>
-                      </div>
-                    </label>
-                    <label className="relative cursor-pointer">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="onsite"
-                        checked={formData.payment === 'onsite'}
-                        onChange={handleRadioChange}
-                        className="peer sr-only"
-                      />
-                      <div className="flex items-center gap-4 rounded-2xl border border-outline-variant p-5 transition-all peer-checked:border-primary peer-checked:bg-white">
-                        <span className="material-symbols-outlined text-on-surface-variant peer-checked:text-primary">
-                          event_available
-                        </span>
-                        <span className="font-medium">Rendez-vous Presentiel</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
 
-                <div className="space-y-8 border-t border-outline-variant/30 pt-8">
-                  <div className="space-y-3">
-                    <label className="group flex cursor-pointer items-start gap-3">
-                      <input
-                        type="checkbox"
-                        name="acceptTerms"
-                        checked={formData.acceptTerms}
-                        onChange={handleInputChange}
-                        className="mt-1 rounded border-outline-variant text-primary transition-all focus:ring-primary"
-                      />
-                      <span className="text-sm text-on-surface-variant transition-colors group-hover:text-on-surface">
-                        J'accepte les Conditions Generales d'Utilisation.
-                      </span>
-                    </label>
-                    <label className="group flex cursor-pointer items-start gap-3">
-                      <input
-                        type="checkbox"
-                        name="acceptPrivacy"
-                        checked={formData.acceptPrivacy}
-                        onChange={handleInputChange}
-                        className="mt-1 rounded border-outline-variant text-primary transition-all focus:ring-primary"
-                      />
-                      <span className="text-sm text-on-surface-variant transition-colors group-hover:text-on-surface">
-                        Je consens au traitement de mes donnees personnelles selon la Politique de Confidentialite.
-                      </span>
-                    </label>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-has-error={errors.payment ? 'true' : undefined}>
+                    {[
+                      { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Carte bancaire securisee — Stripe' },
+                      { value: 'onsite' as PaymentMode, icon: 'storefront', label: 'Paiement presentiel', sub: 'Reglement au centre de formation' },
+                    ].map(({ value, icon, label, sub }) => {
+                      const active = form.payment === value;
+                      return (
+                        <label key={value} className="group cursor-pointer">
+                          <input type="radio" name="payment" value={value} checked={active} onChange={handleRadio} className="sr-only" />
+                          <div
+                            className={`flex items-center gap-4 rounded-2xl bg-white p-5 transition-all duration-200 ${
+                              active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant/50 group-hover:border-primary/40'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-2xl transition-colors" style={{ color: active ? 'var(--color-primary)' : '#9ca3af' }}>
+                              {icon}
+                            </span>
+                            <div className="flex-1">
+                              <p className="font-semibold text-on-surface">{label}</p>
+                              <p className="text-sm text-on-surface-variant">{sub}</p>
+                            </div>
+                            <span
+                              className="material-symbols-outlined text-xl"
+                              style={{ color: active ? 'var(--color-primary)' : '#d1d5db', fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}
+                            >
+                              radio_button_checked
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
+                  <FieldError msg={errors.payment} />
+
+                  {form.payment === 'online' &&
+                    (stripePromise ? (
+                      <Elements stripe={stripePromise} options={stripeOptions}>
+                        <StripeCardSection
+                          ref={stripeCardRef}
+                          totalAmount={totalAmount}
+                          cardError={errors.card}
+                          processing={submitting}
+                          paymentDone={onlinePaymentCompleted}
+                          paymentReference={onlinePaymentReference}
+                          onCardChange={(hasErr) => {
+                            setCardHasError(hasErr);
+                            if (!hasErr) clearErr('card');
+                          }}
+                          onPayNow={handleOnlinePayment}
+                        />
+                      </Elements>
+                    ) : (
+                      <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+                        Paiement en ligne indisponible — cle Stripe manquante.
+                      </div>
+                    ))}
+
+                  {form.payment === 'onsite' && (
+                    <div className="mt-6 rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Paiement au centre</p>
+                      <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Informations de rendez-vous</h4>
+                      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Adresse</p>
+                          <p className="mt-2 text-sm font-semibold text-on-surface">14 avenue Hassan II, 1er etage, Ville Nouvelle, Meknes, Maroc</p>
+                          <a
+                            href="https://www.google.com/maps/search/?api=1&query=33.8989909,-5.551918"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary"
+                          >
+                            <span className="material-symbols-outlined text-base leading-none">north_east</span>
+                            Google Maps
+                          </a>
+                        </div>
+                        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Horaires</p>
+                          <div className="mt-2 space-y-1 text-sm text-on-surface">
+                            <p>Lundi – Vendredi : 08h00 – 18h00</p>
+                            <p>Samedi : 09h00 – 13h00</p>
+                            <p className="text-on-surface-variant">Dimanche : ferme</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Moyens acceptes</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['Cash Plus', 'Wafacash', 'Barid Cash', 'Carte bancaire'].map((p) => (
+                            <span key={p} className="rounded-full border border-outline-variant bg-white px-4 py-1.5 text-sm font-medium text-on-surface">
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <div className="space-y-6 border-t border-outline-variant/30 pt-8">
+                  <div className="space-y-4">
+                    <div data-has-error={errors.acceptTerms ? 'true' : undefined}>
+                      <label className="group flex cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="acceptTerms"
+                          checked={form.acceptTerms}
+                          onChange={handleInput}
+                          className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${
+                            errors.acceptTerms ? 'border-red-400' : 'border-outline-variant'
+                          }`}
+                        />
+                        <span className="text-sm leading-relaxed text-on-surface-variant transition-colors group-hover:text-on-surface">
+                          En cochant cette case, j'accepte les{' '}
+                          <a href="/terms" className="font-medium text-primary underline underline-offset-2">
+                            Conditions Generales d'Utilisation
+                          </a>
+                          , la{' '}
+                          <a href="/privacy" className="font-medium text-primary underline underline-offset-2">
+                            Politique de Confidentialite
+                          </a>
+                          {' '}et j'autorise le centre a traiter mon dossier, verifier les elements administratifs et associer mon paiement a mon inscription.
+                        </span>
+                      </label>
+                      <FieldError msg={errors.acceptTerms} />
+                    </div>
+
+                    <div data-has-error={errors.acceptPrivacy ? 'true' : undefined}>
+                      <label className="group flex cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="acceptPrivacy"
+                          checked={form.acceptPrivacy}
+                          onChange={handleInput}
+                          className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${
+                            errors.acceptPrivacy ? 'border-red-400' : 'border-outline-variant'
+                          }`}
+                        />
+                        <span className="text-sm leading-relaxed text-on-surface-variant transition-colors group-hover:text-on-surface">
+                          Je confirme que les informations fournies sont exactes et j'accepte le traitement de mes donnees personnelles pour la gestion administrative, pedagogique et financiere de mon inscription.
+                        </span>
+                      </label>
+                      <FieldError msg={errors.acceptPrivacy} />
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-5 text-lg font-bold tracking-wide text-on-primary transition-all duration-300 hover:bg-on-primary-fixed-variant hover:shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
+                    disabled={submitting || (form.payment === 'online' && !onlinePaymentCompleted)}
+                    className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-primary py-5 text-base font-bold tracking-wide text-on-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:brightness-110 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Valider ma place
-                    <span className="material-symbols-outlined">arrow_forward</span>
+                    {submitting ? (
+                      <>
+                        <span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>
+                        Traitement en cours...
+                      </>
+                    ) : (
+                      <>
+                        {form.payment === 'online' ? "Confirmer l'inscription" : 'Valider ma place'}
+                        <span className="material-symbols-outlined text-xl leading-none">arrow_forward</span>
+                      </>
+                    )}
                   </button>
+
+                  {form.payment === 'online' && !onlinePaymentCompleted && (
+                    <p className="text-center text-xs text-on-surface-variant">
+                      Le paiement doit etre effectue dans le bloc securise ci-dessus avant la confirmation finale.
+                    </p>
+                  )}
+
+                  {certificate && (
+                    <div className="flex items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                      <span className="material-symbols-outlined text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                        verified
+                      </span>
+                      <p className="text-sm font-semibold text-emerald-800">
+                        Inscription confirmee —{' '}
+                        <button type="button" onClick={() => setShowModal(true)} className="underline underline-offset-2">
+                          Consulter le certificat
+                        </button>
+                      </p>
+                    </div>
+                  )}
                 </div>
               </form>
             </div>
@@ -518,6 +1024,8 @@ const InscriptionBureautique: React.FC = () => {
         .hover-color-transition:hover {
           filter: grayscale(0%);
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 0.8s linear infinite; display: inline-block; }
       `}</style>
     </>
   );
