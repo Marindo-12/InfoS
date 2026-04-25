@@ -162,10 +162,9 @@ const LogoVisa: React.FC<{ active: boolean }> = ({ active }) => (
     style={{ opacity: active ? 1 : 0.3, transition: 'opacity .25s' }}
     aria-label="Visa"
   >
-    <rect width="50" height="32" rx="5" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
-    <rect x="0" y="0" width="50" height="32" rx="5" fill="#fff" />
+    <rect width="50" height="32" rx="5" fill="#0055A5" stroke="#0055A5" strokeWidth="1" />
     <text x="5" y="22" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="13"
-      fill="#1A1F71" letterSpacing="-0.5">VISA</text>
+      fill="#FFFFFF" letterSpacing="-0.5">VISA</text>
   </svg>
 );
 
@@ -223,7 +222,7 @@ const BRAND_LOGO: Record<string, React.FC<{ active: boolean }>> = {
 };
 
 /** Shown when no brand detected */
-const ALL_BRANDS = ['visa', 'mastercard', 'discover', 'amex'] as const;
+const ALL_BRANDS = ['visa', 'mastercard'] as const;
 
 /** CVC card icon SVG */
 const CvcIcon: React.FC = () => (
