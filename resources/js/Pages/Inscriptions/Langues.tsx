@@ -57,21 +57,45 @@ interface StripeCardSectionProps {
 }
 
 const NIVEAU_OPTIONS = ['Baccalaureat', 'Licence', 'Master', 'Doctorat / Autre'];
-const LANGUAGE_OPTIONS: Array<{ value: LanguageKey; title: string; sub: string }> = [
-  { value: 'francais', title: 'Francais', sub: 'Communication & DELF' },
-  { value: 'anglais', title: 'Anglais Business', sub: 'TOEFL & Cambridge' },
-  { value: 'allemand', title: 'Allemand', sub: 'Niveaux A1 a C1' },
+const LANGUAGE_OPTIONS = [
+  {
+    value: 'francais',
+    title: 'Français',
+    sub: 'Communication & DELF',
+    flag: '🇫🇷',
+    price: '1500 DH',
+  },
+  {
+    value: 'anglais',
+    title: 'Anglais Business',
+    sub: 'TOEFL & Cambridge',
+    flag: '🇬🇧',
+    price: '1500 DH',
+  },
+  {
+    value: 'allemand',
+    title: 'Allemand',
+    sub: 'Niveaux A1 à C1',
+    flag: '🇩🇪',
+    price: '1500 DH',
+  },
 ];
 
-const LANGUAGE_LABELS: Record<LanguageKey, string> = {
-  francais: 'Francais',
-  anglais: 'Anglais Business',
-  allemand: 'Allemand',
+const LANGUAGE_LABELS: Record<string, string> = {
+  francais: 'Français (Communication & DELF)',
+  anglais: 'Anglais Business (TOEFL & Cambridge)',
+  allemand: 'Allemand (Niveaux A1 à C1)',
 };
 
 const TRAINING_PRICE = 1500;
+const fmtAmount = (amount: number) => `${amount} DH`;
 
-const fmtAmount = (n: number) => `${n.toLocaleString('fr-MA')} DH`;
+const FLAG_URLS: Record<string, string> = {
+  francais:  'https://flagcdn.com/w160/fr.png',
+  allemand:  'https://flagcdn.com/w160/de.png',
+  anglais:   'https://flagcdn.com/w160/gb.png',
+};
+
 const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const okPhone = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
 const secureRef = (prefix: string) => {
@@ -84,8 +108,7 @@ const secureRef = (prefix: string) => {
 };
 
 const inputCls = (err?: string) =>
-  `w-full rounded-xl border bg-surface-bright px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 ${
-    err ? 'border-red-400 bg-red-50/30 focus:ring-red-200' : 'border-outline-variant focus:border-primary focus:ring-primary/20'
+  `w-full rounded-xl border bg-surface-bright px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 ${err ? 'border-red-400 bg-red-50/30 focus:ring-red-200' : 'border-outline-variant focus:border-primary focus:ring-primary/20'
   }`;
 
 const FieldError: React.FC<{ msg?: string }> = ({ msg }) =>
@@ -183,10 +206,9 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
     };
 
     const fieldCls = (hasError?: boolean) =>
-      `rounded-xl border bg-white transition-all focus-within:ring-2 ${
-        hasError
-          ? 'border-red-400 bg-red-50/30 focus-within:ring-red-200'
-          : 'border-outline-variant focus-within:border-primary focus-within:ring-primary/20'
+      `rounded-xl border bg-white transition-all focus-within:ring-2 ${hasError
+        ? 'border-red-400 bg-red-50/30 focus-within:ring-red-200'
+        : 'border-outline-variant focus-within:border-primary focus-within:ring-primary/20'
       }`;
 
     const DetectedLogo = brand !== 'unknown' ? BRAND_LOGO[brand] : null;
@@ -599,33 +621,70 @@ const InscriptionLangues: React.FC<Props> = ({
 
                   <section className="space-y-8 pt-4">
                     <div className="mb-6 flex items-center gap-4">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-on-primary">2</span>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-on-primary">
+                        2
+                      </span>
                       <h3 className="font-display text-2xl">Choix de la Formation</h3>
                     </div>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3" data-has-error={errors.language ? 'true' : undefined}>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                       {LANGUAGE_OPTIONS.map(({ value, title, sub }) => {
                         const active = form.language === value;
                         return (
                           <label key={value} className="group cursor-pointer">
-                            <input type="radio" name="language" value={value} checked={active} onChange={handleRadio} className="sr-only" />
+                            <input
+                              type="radio"
+                              name="language"
+                              value={value}
+                              checked={active}
+                              onChange={handleRadio}
+                              className="sr-only"
+                            />
                             <div
-                              className={`flex h-full flex-col justify-center rounded-xl p-6 text-center transition-all ${
-                                active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant group-hover:border-primary/50'
-                              }`}
-                            >
-                              <p className="font-bold">{title}</p>
-                              <p className="mt-1 text-xs text-secondary-fixed-dim">{sub}</p>
-                            </div>
+  className={`relative flex h-full flex-col items-start overflow-hidden rounded-xl p-5 transition-all ${
+    active
+      ? 'border-2 border-primary bg-primary/5 shadow-md'
+      : 'border-2 border-outline-variant bg-white group-hover:border-primary/50'
+  }`}
+>
+  {/* Drapeau en background — part de gauche, fondu vers droite */}
+  <div
+    className="pointer-events-none absolute inset-0 bg-cover bg-left"
+    style={{
+      backgroundImage: `url('${FLAG_URLS[value]}')`,
+      WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.10) 38%, transparent 72%)',
+      maskImage:       'linear-gradient(to right, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.10) 38%, transparent 72%)',
+    }}
+  />
+
+  {/* Contenu au-dessus du drapeau */}
+  <div className="relative z-10 flex w-full flex-col items-start">
+    {/* Badge langue + emoji drapeau */}
+    
+
+    <p className="font-bold text-on-surface">{title}</p>
+    <p className="mt-1 text-xs text-on-surface-variant">{sub}</p>
+
+    <div className="mt-4 rounded-full bg-primary/10 px-4 py-1">
+      <span className="text-sm font-bold text-primary">{fmtAmount(TRAINING_PRICE)}</span>
+    </div>
+  </div>
+
+  
+</div>
                           </label>
                         );
                       })}
                     </div>
-                    <FieldError msg={errors.language} />
+
+                    {/* Récapitulatif (inchangé, mais affiche le prix cohérent) */}
                     <div className="rounded-2xl border border-outline-variant/40 bg-surface-container-low p-5">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Recapitulatif</p>
-                          <p className="mt-1 text-sm text-on-surface-variant">{LANGUAGE_LABELS[form.language]}</p>
+                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Récapitulatif</p>
+                          <p className="mt-1 text-sm text-on-surface-variant">
+                            {LANGUAGE_LABELS[form.language] || 'Aucune langue selectionnee'}
+                          </p>
                         </div>
                         <div className="sm:text-right">
                           <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">Montant</p>
@@ -650,9 +709,8 @@ const InscriptionLangues: React.FC<Props> = ({
                           <label key={value} className="group cursor-pointer">
                             <input type="radio" name="payment" value={value} checked={active} onChange={handleRadio} className="sr-only" />
                             <div
-                              className={`flex items-center gap-4 rounded-2xl bg-white p-5 transition-all duration-200 ${
-                                active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant/50 group-hover:border-primary/40'
-                              }`}
+                              className={`flex items-center gap-4 rounded-2xl bg-white p-5 transition-all duration-200 ${active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant/50 group-hover:border-primary/40'
+                                }`}
                             >
                               <span className="material-symbols-outlined text-2xl transition-colors" style={{ color: active ? 'var(--color-primary)' : '#9ca3af' }}>
                                 {icon}
@@ -737,9 +795,8 @@ const InscriptionLangues: React.FC<Props> = ({
                             name="acceptTerms"
                             checked={form.acceptTerms}
                             onChange={handleInput}
-                            className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${
-                              errors.acceptTerms ? 'border-red-400' : 'border-outline-variant'
-                            }`}
+                            className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${errors.acceptTerms ? 'border-red-400' : 'border-outline-variant'
+                              }`}
                           />
                           <span className="text-sm leading-relaxed text-on-surface-variant transition-colors group-hover:text-on-surface">
                             En cochant cette case, j'accepte les{' '}
@@ -763,9 +820,8 @@ const InscriptionLangues: React.FC<Props> = ({
                             name="acceptPrivacy"
                             checked={form.acceptPrivacy}
                             onChange={handleInput}
-                            className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${
-                              errors.acceptPrivacy ? 'border-red-400' : 'border-outline-variant'
-                            }`}
+                            className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${errors.acceptPrivacy ? 'border-red-400' : 'border-outline-variant'
+                              }`}
                           />
                           <span className="text-sm leading-relaxed text-on-surface-variant transition-colors group-hover:text-on-surface">
                             Je confirme que les informations fournies sont exactes et j'accepte le traitement de mes donnees personnelles.
