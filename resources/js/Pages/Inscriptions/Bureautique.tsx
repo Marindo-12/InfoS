@@ -14,6 +14,10 @@ import wordIc from '../../../../public/images/word.png';
 import excelIc from '../../../../public/images/excel.png';
 import powerpointIc from '../../../../public/images/powerpoint.png';
 
+/* ═══════════════════════════════════════════════════
+   TYPES
+═══════════════════════════════════════════════════ */
+
 type ModuleKey = 'word' | 'excel' | 'powerpoint';
 type PaymentMode = '' | 'online' | 'onsite';
 
@@ -71,6 +75,10 @@ interface StripeCardSectionProps {
   onPayNow: () => void;
 }
 
+/* ═══════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════ */
+
 const MODULE_CARDS = [
   {
     key: 'word' as ModuleKey,
@@ -108,22 +116,31 @@ const LEVEL_OPTIONS = [
   { value: 'avance', label: 'Avance', sub: 'Expertise metier' },
 ];
 
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
+
 const fmtAmount = (n: number) => `${n.toLocaleString('fr-MA')} DH`;
+
 const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const okPhone = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
+
 const secureRef = (prefix: string) => {
   const bytes = new Uint32Array(2);
   crypto.getRandomValues(bytes);
-  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${bytes[0].toString(36).slice(0, 4).toUpperCase()}${bytes[1]
-    .toString(36)
-    .slice(0, 4)
-    .toUpperCase()}`;
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${bytes[0]
+    .toString(36).slice(0, 4).toUpperCase()}${bytes[1].toString(36).slice(0, 4).toUpperCase()}`;
 };
 
 const inputCls = (err?: string) =>
-  `w-full rounded-xl border bg-surface-container-lowest px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 ${
-    err ? 'border-red-400 bg-red-50/30 focus:ring-red-200' : 'border-outline-variant focus:border-primary focus:ring-primary/20'
+  `w-full rounded-xl border bg-surface-container-lowest px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 ${err
+    ? 'border-red-400 bg-red-50/30 focus:ring-red-200'
+    : 'border-outline-variant focus:border-primary focus:ring-primary/20'
   }`;
+
+/* ═══════════════════════════════════════════════════
+   FIELD ERROR
+═══════════════════════════════════════════════════ */
 
 const FieldError: React.FC<{ msg?: string }> = ({ msg }) =>
   msg ? (
@@ -133,49 +150,115 @@ const FieldError: React.FC<{ msg?: string }> = ({ msg }) =>
     </p>
   ) : null;
 
-const CARD_BRAND_STYLES: Record<string, { label: string; bg: string; text: string; border: string }> = {
-  visa: { label: 'Visa', bg: '#E8F0FE', text: '#185ABC', border: '#B6CCF6' },
-  mastercard: { label: 'Mastercard', bg: '#FFF1EB', text: '#C2410C', border: '#FED7C3' },
-  amex: { label: 'Amex', bg: '#E8F7FB', text: '#0F5E7A', border: '#B8E3F0' },
-  discover: { label: 'Discover', bg: '#FFF4E8', text: '#B45309', border: '#FBD1A2' },
-  diners: { label: 'Diners', bg: '#EEF2FF', text: '#4338CA', border: '#C7D2FE' },
-  jcb: { label: 'JCB', bg: '#ECFDF3', text: '#15803D', border: '#BBF7D0' },
-  unionpay: { label: 'UnionPay', bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA' },
-  unknown: { label: 'Carte', bg: '#F3F4F6', text: '#4B5563', border: '#D1D5DB' },
+/* ═══════════════════════════════════════════════════
+   CARD BRAND SVG LOGOS
+   Inline SVGs — no external deps, no CDN
+═══════════════════════════════════════════════════ */
+
+/** Visa */
+const LogoVisa: React.FC<{ active: boolean }> = ({ active }) => (
+  <svg
+    viewBox="0 0 50 32" width="44" height="28"
+    style={{ opacity: active ? 1 : 0.3, transition: 'opacity .25s' }}
+    aria-label="Visa"
+  >
+    <rect width="50" height="32" rx="5" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
+    <rect x="0" y="0" width="50" height="32" rx="5" fill="#fff" />
+    <text x="5" y="22" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="13"
+      fill="#1A1F71" letterSpacing="-0.5">VISA</text>
+  </svg>
+);
+
+/** Mastercard — two overlapping circles */
+const LogoMastercard: React.FC<{ active: boolean }> = ({ active }) => (
+  <svg
+    viewBox="0 0 50 32" width="44" height="28"
+    style={{ opacity: active ? 1 : 0.3, transition: 'opacity .25s' }}
+    aria-label="Mastercard"
+  >
+    <rect width="50" height="32" rx="5" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
+    <circle cx="19" cy="16" r="9" fill="#EB001B" />
+    <circle cx="31" cy="16" r="9" fill="#F79E1B" />
+    <path d="M25 9.3a9 9 0 0 1 0 13.4A9 9 0 0 1 25 9.3z" fill="#FF5F00" />
+  </svg>
+);
+
+/** Discover */
+const LogoDiscover: React.FC<{ active: boolean }> = ({ active }) => (
+  <svg
+    viewBox="0 0 50 32" width="44" height="28"
+    style={{ opacity: active ? 1 : 0.3, transition: 'opacity .25s' }}
+    aria-label="Discover"
+  >
+    <rect width="50" height="32" rx="5" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
+    <circle cx="34" cy="16" r="9" fill="#F76F20" />
+    <text x="5" y="20" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="7.5"
+      fill="#231F20" letterSpacing="0.2">DISC</text>
+    <text x="5" y="28" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="7.5"
+      fill="#231F20" letterSpacing="0.2">OVER</text>
+  </svg>
+);
+
+/** Amex */
+const LogoAmex: React.FC<{ active: boolean }> = ({ active }) => (
+  <svg
+    viewBox="0 0 50 32" width="44" height="28"
+    style={{ opacity: active ? 1 : 0.3, transition: 'opacity .25s' }}
+    aria-label="American Express"
+  >
+    <rect width="50" height="32" rx="5" fill="#2E77BC" stroke="#2E77BC" strokeWidth="1" />
+    <text x="5" y="14" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="6"
+      fill="#fff" letterSpacing="0.5">AMERICAN</text>
+    <text x="5" y="22" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="6"
+      fill="#fff" letterSpacing="0.5">EXPRESS</text>
+  </svg>
+);
+
+/** Map Stripe brand string → logo */
+const BRAND_LOGO: Record<string, React.FC<{ active: boolean }>> = {
+  visa: LogoVisa,
+  mastercard: LogoMastercard,
+  discover: LogoDiscover,
+  amex: LogoAmex,
 };
+
+/** Shown when no brand detected */
+const ALL_BRANDS = ['visa', 'mastercard', 'discover', 'amex'] as const;
+
+/** CVC card icon SVG */
+const CvcIcon: React.FC = () => (
+  <svg viewBox="0 0 38 24" width="36" height="22" fill="none" aria-hidden="true">
+    <rect width="38" height="24" rx="4" fill="#e5e7eb" />
+    <rect x="0" y="7" width="38" height="6" fill="#9ca3af" />
+    <rect x="6" y="16" width="16" height="4" rx="1" fill="#d1d5db" />
+    <rect x="25" y="15.5" width="8" height="5" rx="1.5" fill="#fff" stroke="#d1d5db" strokeWidth="0.5" />
+    <text x="26.5" y="19.5" fontSize="4" fill="#374151" fontFamily="monospace" fontWeight="bold">123</text>
+  </svg>
+);
 
 const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
   ({ totalAmount, cardError, processing, paymentDone, paymentReference, onCardChange, onPayNow }, ref) => {
     const stripe = useStripe();
     const elements = useElements();
-    const [cardNumberComplete, setCardNumberComplete] = useState(false);
-    const [cardExpiryComplete, setCardExpiryComplete] = useState(false);
-    const [cardCvcComplete, setCardCvcComplete] = useState(false);
-    const [cardBrand, setCardBrand] = useState<keyof typeof CARD_BRAND_STYLES>('unknown');
 
-    const elementOptions = {
-      style: {
-        base: {
-          fontSize: '15px',
-          fontFamily: 'inherit',
-          color: '#1c1c1e',
-          '::placeholder': { color: '#9ca3af' },
-          iconColor: '#6b7280',
-        },
-        invalid: {
-          color: '#dc2626',
-          iconColor: '#dc2626',
-        },
-      },
+    const [numberComplete, setNumberComplete] = useState(false);
+    const [expiryComplete, setExpiryComplete] = useState(false);
+    const [cvcComplete, setCvcComplete] = useState(false);
+    const [brand, setBrand] = useState<string>('unknown');
+
+    const allComplete = numberComplete && expiryComplete && cvcComplete;
+
+    /* Sync combined error state to parent */
+    const syncCardState = (next: {
+      number?: boolean; expiry?: boolean; cvc?: boolean; hasOwnError: boolean;
+    }) => {
+      const n = next.number ?? numberComplete;
+      const e = next.expiry ?? expiryComplete;
+      const c = next.cvc ?? cvcComplete;
+      onCardChange(next.hasOwnError || !n || !e || !c);
     };
 
-    const syncCardState = (next: { number?: boolean; expiry?: boolean; cvc?: boolean; hasOwnError: boolean }) => {
-      const number = next.number ?? cardNumberComplete;
-      const expiry = next.expiry ?? cardExpiryComplete;
-      const cvc = next.cvc ?? cardCvcComplete;
-      onCardChange(next.hasOwnError || !number || !expiry || !cvc);
-    };
-
+    /* Expose createPaymentMethod to parent via ref */
     useImperativeHandle(ref, () => ({
       async createPaymentMethod(billingDetails) {
         if (!stripe || !elements) return { error: 'Stripe non initialise.' };
@@ -193,21 +276,48 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
       },
     }));
 
-    const fieldCls = `rounded-xl border px-4 py-3 transition-all ${
-      cardError
-        ? 'border-red-400 bg-red-50/30'
-        : 'border-outline-variant bg-surface-container-lowest focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'
-    }`;
+    /* Stripe element style */
+    const elementOptions = {
+      style: {
+        base: {
+          fontSize: '15px',
+          fontFamily: 'inherit',
+          color: '#1c1c1e',
+          '::placeholder': { color: '#9ca3af' },
+          iconColor: '#6b7280',
+        },
+        invalid: { color: '#dc2626', iconColor: '#dc2626' },
+      },
+    };
 
-    const cardComplete = cardNumberComplete && cardExpiryComplete && cardCvcComplete;
-    const cardBrandStyle = CARD_BRAND_STYLES[cardBrand] ?? CARD_BRAND_STYLES.unknown;
+    /* Field wrapper class */
+    const fieldCls = (hasError?: boolean) =>
+      `rounded-xl border bg-white transition-all focus-within:ring-2 ${hasError
+        ? 'border-red-400 bg-red-50/30 focus-within:ring-red-200'
+        : 'border-outline-variant focus-within:border-primary focus-within:ring-primary/20'
+      }`;
 
+    /* Which logo to show */
+    const DetectedLogo = brand !== 'unknown' ? BRAND_LOGO[brand] : null;
+
+    /*
+      Stripe Elements render inside an <iframe>.
+      The iframe needs a block container with an explicit width.
+      We must NOT use overflow:hidden on the wrapper or clip the iframe.
+      Logos go BELOW the input row, not inside/overlapping it.
+    */
     return (
       <div className="mt-6 rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
-        <div className="mb-5 flex items-center justify-between gap-4">
+
+        {/* ── Header ── */}
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Paiement securise</p>
-            <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Carte bancaire</h4>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              Paiement securise
+            </p>
+            <h4 className="mt-1 font-display text-xl font-bold text-on-surface">
+              Carte bancaire
+            </h4>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container px-4 py-2">
             <span className="material-symbols-outlined text-base text-emerald-600">lock</span>
@@ -215,76 +325,93 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
           </div>
         </div>
 
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-on-surface-variant">Accepte :</span>
-          {['Visa', 'Mastercard', 'CMI', 'CIH', 'Attijariwafa'].map((m) => (
-            <span
-              key={m}
-              className="rounded-md border border-outline-variant/40 bg-surface-container px-2.5 py-0.5 text-xs font-semibold text-on-surface-variant"
-            >
-              {m}
-            </span>
-          ))}
-        </div>
+        <div className="payment-card-grid">
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-3">
-              <label className="ml-1 text-sm font-semibold text-on-surface-variant">Numero de carte</label>
-              <div
-                className="inline-flex min-w-[104px] items-center justify-center rounded-full border px-3 py-1 text-xs font-bold tracking-[0.14em] uppercase"
-                style={{
-                  backgroundColor: cardBrandStyle.bg,
-                  color: cardBrandStyle.text,
-                  borderColor: cardBrandStyle.border,
-                }}
-              >
-                {cardBrandStyle.label}
-              </div>
-            </div>
-            <div className={fieldCls}>
-              <CardNumberElement
-                options={elementOptions}
-                onChange={(ev) => {
-                  setCardNumberComplete(ev.complete);
-                  setCardBrand((ev.brand as keyof typeof CARD_BRAND_STYLES) || 'unknown');
-                  syncCardState({ number: ev.complete, hasOwnError: !!ev.error });
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="ml-1 text-sm font-semibold text-on-surface-variant">Date d'expiration</label>
-              <div className={fieldCls}>
-                <CardExpiryElement
-                  options={elementOptions}
+          {/* ── Card number ── */}
+          <div className="payment-card-field payment-card-field-full">
+            <label className="payment-card-label">
+                Numero de carte
+            </label>
+              {/* Logos sit in the label row — never overlap the input */}
+            <div className={`${fieldCls(!!cardError && !numberComplete)} payment-card-input-shell payment-card-number-shell`}>
+              <div className="payment-card-element payment-card-element-number">
+                <CardNumberElement
+                  options={{ ...elementOptions, showIcon: false }}
                   onChange={(ev) => {
-                    setCardExpiryComplete(ev.complete);
-                    syncCardState({ expiry: ev.complete, hasOwnError: !!ev.error });
+                    setNumberComplete(ev.complete);
+                    setBrand(ev.brand ?? 'unknown');
+                    syncCardState({ number: ev.complete, hasOwnError: !!ev.error });
                   }}
                 />
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="ml-1 text-sm font-semibold text-on-surface-variant">CVC</label>
-              <div className={fieldCls}>
-                <CardCvcElement
-                  options={elementOptions}
-                  onChange={(ev) => {
-                    setCardCvcComplete(ev.complete);
-                    syncCardState({ cvc: ev.complete, hasOwnError: !!ev.error });
-                  }}
-                />
+              <div className="payment-card-icons" aria-hidden="true">
+                {DetectedLogo ? (
+                  <DetectedLogo active={true} />
+                ) : (
+                  ALL_BRANDS.map((b) => {
+                    const Logo = BRAND_LOGO[b];
+                    return <Logo key={b} active={true} />;
+                  })
+                )}
               </div>
+            </div>
+
+            {/* Input wrapper — full width, no overflow:hidden, no absolute children */}
+          </div>
+
+          {/* ── Expiry + CVC ── */}
+          <div className="payment-card-subgrid">
+
+            {/* Expiry */}
+            <div className="payment-card-field">
+              <label className="payment-card-label">
+                Date d'expiration
+              </label>
+              <div className={`${fieldCls()} payment-card-input-shell`}>
+                <div className="payment-card-element">
+                  <CardExpiryElement
+                    options={elementOptions}
+                    onChange={(ev) => {
+                      setExpiryComplete(ev.complete);
+                      syncCardState({ expiry: ev.complete, hasOwnError: !!ev.error });
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* CVC */}
+            <div className="payment-card-field">
+              <label className="payment-card-label">
+                Code de securite
+              </label>
+              <div className={`${fieldCls()} payment-card-input-shell payment-card-cvc-shell`}>
+                <div className="payment-card-element payment-card-element-cvc">
+                  <CardCvcElement
+                    options={elementOptions}
+                    onChange={(ev) => {
+                      setCvcComplete(ev.complete);
+                      syncCardState({ cvc: ev.complete, hasOwnError: !!ev.error });
+                    }}
+                  />
+                {/* CVC icon floated right via absolute — outside iframe flow */}
+                </div>
+                <div className="payment-card-cvc-icon" aria-hidden="true">
+                  <CvcIcon />
+                </div>
+              </div>
+
             </div>
           </div>
 
+          {/* Inline error / success */}
           {cardError && <FieldError msg={cardError} />}
-          {cardComplete && !cardError && (
+          {allComplete && !cardError && (
             <p className="ml-1 mt-1.5 flex items-center gap-1.5 text-xs text-emerald-600">
-              <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>
+              <span
+                className="material-symbols-outlined text-sm leading-none"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
                 check_circle
               </span>
               Informations de carte valides
@@ -292,20 +419,34 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
           )}
         </div>
 
+        {/* ── Pay button ── */}
         <button
           type="button"
           onClick={onPayNow}
-          disabled={processing || paymentDone || !stripe}
-          className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-600 py-4 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 hover:bg-emerald-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={processing || paymentDone || !stripe || !allComplete}
+          className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-sm font-bold tracking-wide text-white shadow-lg transition-all duration-300 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+          style={{
+            background: paymentDone
+              ? 'linear-gradient(135deg,#059669,#047857)'
+              : 'linear-gradient(135deg,#059669,#065f46)',
+            boxShadow: paymentDone ? '0 8px 24px -8px #05966970' : '0 8px 24px -8px #05966960',
+          }}
         >
           {processing ? (
             <>
-              <span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>
+              <span className="material-symbols-outlined animate-spin text-xl leading-none">
+                progress_activity
+              </span>
               Paiement en cours...
             </>
           ) : paymentDone ? (
             <>
-              <span className="material-symbols-outlined text-xl leading-none">task_alt</span>
+              <span
+                className="material-symbols-outlined text-xl leading-none"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                task_alt
+              </span>
               Paiement effectue
             </>
           ) : (
@@ -316,19 +457,34 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
           )}
         </button>
 
+        {/* Payment done confirmation */}
         {paymentDone && paymentReference && (
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-semibold text-emerald-800">Paiement effectue avec succes</p>
-            <p className="mt-1 text-sm text-emerald-700">
-              Reference de paiement : <span className="font-mono font-semibold">{paymentReference}</span>
-            </p>
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <span
+              className="material-symbols-outlined mt-0.5 text-base text-emerald-600"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              check_circle
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-800">Paiement effectue avec succes</p>
+              <p className="mt-0.5 text-xs text-emerald-700">
+                Reference :{' '}
+                <span className="font-mono font-semibold">{paymentReference}</span>
+              </p>
+              <p className="mt-1 text-xs text-emerald-600">
+                Cliquez sur "Confirmer l'inscription" ci-dessous pour finaliser votre dossier.
+              </p>
+            </div>
           </div>
         )}
 
+        {/* Security notice */}
         <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
           <span className="material-symbols-outlined text-base text-emerald-600">security</span>
           <p className="text-xs leading-relaxed text-emerald-800">
-            Vos donnees sont chiffrees et traitees directement par <strong>Stripe</strong> (certifie PCI-DSS niveau 1).
+            Vos donnees sont chiffrees et traitees directement par{' '}
+            <strong>Stripe</strong> (certifie PCI-DSS niveau 1).
             Aucune information bancaire ne transite par nos serveurs.
           </p>
         </div>
@@ -339,11 +495,13 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
 
 StripeCardSection.displayName = 'StripeCardSection';
 
+/* ═══════════════════════════════════════════════════
+   CERTIFICATE MODAL
+═══════════════════════════════════════════════════ */
+
 const CertificateModal: React.FC<{ cert: Certificate; onClose: () => void }> = ({ cert, onClose }) => {
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', esc);
     document.body.style.overflow = 'hidden';
     return () => {
@@ -374,17 +532,23 @@ const CertificateModal: React.FC<{ cert: Certificate; onClose: () => void }> = (
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 px-8 py-8 text-white">
           <div className="mb-3 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
-              <span className="material-symbols-outlined text-2xl text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+              <span
+                className="material-symbols-outlined text-2xl text-white"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
                 verified
               </span>
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-200">Pre-inscription confirmee</p>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-200">
+                Pre-inscription confirmee
+              </p>
               <h3 className="font-display text-2xl font-bold">Certificat genere</h3>
             </div>
           </div>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-emerald-100">
-            Conservez ce document. La reference et le code de traitement sont lies a votre dossier pour le suivi avec le centre.
+            Conservez ce document. La reference et le code de traitement sont lies a votre
+            dossier pour le suivi avec le centre.
           </p>
         </div>
 
@@ -392,18 +556,27 @@ const CertificateModal: React.FC<{ cert: Certificate; onClose: () => void }> = (
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
             <div className="grid grid-cols-2 gap-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Apprenant</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                  Apprenant
+                </p>
                 <p className="mt-1 text-base font-bold text-on-surface">{cert.learnerName}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Niveau</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                  Niveau
+                </p>
                 <p className="mt-1 text-base font-bold text-on-surface">{cert.level}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Modules inscrits</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                  Modules inscrits
+                </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {cert.modules.map((m) => (
-                    <span key={m} className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                    <span
+                      key={m}
+                      className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary"
+                    >
                       {m}
                     </span>
                   ))}
@@ -414,37 +587,72 @@ const CertificateModal: React.FC<{ cert: Certificate; onClose: () => void }> = (
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Reference unique</p>
-              <p className="mt-2 break-all font-mono text-sm font-bold text-on-surface">{cert.reference}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                Reference unique
+              </p>
+              <p className="mt-2 break-all font-mono text-sm font-bold text-on-surface">
+                {cert.reference}
+              </p>
             </div>
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Code de traitement</p>
-              <p className="mt-2 break-all font-mono text-sm font-bold text-emerald-800">{cert.processingCode}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                Code de traitement
+              </p>
+              <p className="mt-2 break-all font-mono text-sm font-bold text-emerald-800">
+                {cert.processingCode}
+              </p>
             </div>
           </div>
 
           <div className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+              <span
+                className="material-symbols-outlined text-primary"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
                 {cert.paymentMode === 'Paiement en ligne' ? 'credit_card' : 'storefront'}
               </span>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Mode</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                  Mode
+                </p>
                 <p className="text-sm font-bold text-on-surface">{cert.paymentMode}</p>
               </div>
             </div>
             <div className="sm:text-right">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Montant</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                Montant
+              </p>
               <p className="font-display text-2xl font-bold text-on-surface">{cert.amount}</p>
             </div>
           </div>
 
           <p className="text-center text-xs text-on-surface-variant">Emis le {cert.issuedAt}</p>
+
+          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-outline-variant py-3 text-sm font-semibold text-on-surface transition-all hover:bg-surface-container active:scale-95"
+            >
+              <span className="material-symbols-outlined text-base leading-none">print</span>
+              Imprimer
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-on-primary transition-all hover:opacity-90 active:scale-95"
+            >
+              <span className="material-symbols-outlined text-base leading-none">check</span>
+              Fermer
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 
 interface Props {
   stripePublishableKey?: string;
@@ -453,7 +661,10 @@ interface Props {
 const InscriptionBureautique: React.FC<Props> = ({
   stripePublishableKey = (import.meta as any).env?.VITE_STRIPE_PK ?? '',
 }) => {
-  const stripePromise = useMemo(() => (stripePublishableKey ? loadStripe(stripePublishableKey) : null), [stripePublishableKey]);
+  const stripePromise = useMemo(
+    () => (stripePublishableKey ? loadStripe(stripePublishableKey) : null),
+    [stripePublishableKey],
+  );
   const stripeOptions = useMemo(
     () => ({
       mode: 'payment' as const,
@@ -470,18 +681,13 @@ const InscriptionBureautique: React.FC<Props> = ({
   const stripeCardRef = useRef<StripeCardHandle>(null);
 
   const [form, setForm] = useState<FormData>({
-    nom: '',
-    prenom: '',
-    age: '',
-    niveau: 'Baccalaureat',
-    email: '',
-    telephone: '',
+    nom: '', prenom: '', age: '', niveau: 'Baccalaureat',
+    email: '', telephone: '',
     modules: { word: false, excel: false, powerpoint: false },
-    level: 'debutant',
-    payment: '',
-    acceptTerms: false,
-    acceptPrivacy: false,
+    level: 'debutant', payment: '',
+    acceptTerms: false, acceptPrivacy: false,
   });
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [cardHasError, setCardHasError] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -490,35 +696,46 @@ const InscriptionBureautique: React.FC<Props> = ({
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const selectedModules = useMemo(() => MODULE_CARDS.filter((m) => form.modules[m.key]), [form.modules]);
-  const totalAmount = useMemo(() => selectedModules.reduce((sum, m) => sum + m.price, 0), [selectedModules]);
+  const selectedModules = useMemo(
+    () => MODULE_CARDS.filter((m) => form.modules[m.key]),
+    [form.modules],
+  );
+  const totalAmount = useMemo(
+    () => selectedModules.reduce((sum, m) => sum + m.price, 0),
+    [selectedModules],
+  );
 
-  const clearErr = (field: keyof FormErrors) => setErrors((prev) => ({ ...prev, [field]: undefined }));
+  const clearErr = (field: keyof FormErrors) =>
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
 
+  /* ── Validation for final confirmation ── */
   const validateFinalConfirmation = (): FormErrors => {
     const e: FormErrors = {};
     if (!form.nom.trim()) e.nom = 'Le nom est requis.';
     if (!form.prenom.trim()) e.prenom = 'Le prenom est requis.';
-    if (!form.age || Number(form.age) < 15 || Number(form.age) > 80) e.age = 'Saisissez un age valide (15 - 80).';
+    if (!form.age || Number(form.age) < 15 || Number(form.age) > 80)
+      e.age = 'Saisissez un age valide (15 - 80).';
     if (!okEmail(form.email)) e.email = 'Adresse email invalide.';
     if (!okPhone(form.telephone)) e.telephone = 'Numero de telephone invalide.';
     if (!selectedModules.length) e.modules = 'Selectionnez au moins un module.';
     if (!form.payment) e.payment = 'Choisissez un mode de paiement.';
-    if (form.payment === 'online' && !onlinePaymentCompleted) e.card = 'Effectuez le paiement en ligne avant la confirmation finale.';
+    if (form.payment === 'online' && !onlinePaymentCompleted)
+      e.card = 'Effectuez le paiement en ligne avant la confirmation finale.';
     if (!form.acceptTerms) e.acceptTerms = 'Acceptez les conditions generales.';
     if (!form.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
   };
 
+  /* ── Input handlers ── */
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       if (name.startsWith('module_')) {
         const key = name.replace('module_', '') as ModuleKey;
         setForm((prev) => ({ ...prev, modules: { ...prev.modules, [key]: checked } }));
         clearErr('modules');
+        // Reset payment if amount changes
         setOnlinePaymentCompleted(false);
         setOnlinePaymentReference('');
       } else {
@@ -527,7 +744,6 @@ const InscriptionBureautique: React.FC<Props> = ({
       }
       return;
     }
-
     setForm((prev) => ({ ...prev, [name]: value }));
     clearErr(name as keyof FormErrors);
   };
@@ -542,18 +758,21 @@ const InscriptionBureautique: React.FC<Props> = ({
     }
   };
 
+  /* ── Online payment handler (called from "Payer X DH" button inside StripeCardSection) ── */
   const handleOnlinePayment = async () => {
-    const paymentErrors: FormErrors = {};
-    if (!form.nom.trim()) paymentErrors.nom = 'Le nom est requis avant le paiement.';
-    if (!form.prenom.trim()) paymentErrors.prenom = 'Le prenom est requis avant le paiement.';
-    if (!okEmail(form.email)) paymentErrors.email = 'Adresse email invalide.';
-    if (!okPhone(form.telephone)) paymentErrors.telephone = 'Numero de telephone invalide.';
-    if (!selectedModules.length) paymentErrors.modules = 'Selectionnez au moins un module avant le paiement.';
-    if (cardHasError) paymentErrors.card = 'Completez correctement les informations de carte.';
+    // Validate required fields before charging
+    const preErrors: FormErrors = {};
+    if (!form.nom.trim()) preErrors.nom = 'Le nom est requis avant le paiement.';
+    if (!form.prenom.trim()) preErrors.prenom = 'Le prenom est requis avant le paiement.';
+    if (!okEmail(form.email)) preErrors.email = 'Adresse email invalide.';
+    if (!okPhone(form.telephone)) preErrors.telephone = 'Numero de telephone invalide.';
+    if (!selectedModules.length) preErrors.modules = 'Selectionnez au moins un module avant le paiement.';
+    if (cardHasError) preErrors.card = 'Completez correctement les informations de carte.';
 
-    if (Object.keys(paymentErrors).length) {
-      setErrors((prev) => ({ ...prev, ...paymentErrors }));
-      document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (Object.keys(preErrors).length) {
+      setErrors((prev) => ({ ...prev, ...preErrors }));
+      document.querySelector('[data-has-error="true"]')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -575,7 +794,13 @@ const InscriptionBureautique: React.FC<Props> = ({
         return;
       }
 
-      console.log('[Stripe] PaymentMethod:', result.paymentMethodId);
+      // ──────────────────────────────────────────────────────────────
+      // BACKEND INTEGRATION : send result.paymentMethodId to your API
+      // POST /api/payment-intent { paymentMethodId, amount: totalAmount * 100 }
+      // then confirm via stripe.confirmCardPayment(clientSecret)
+      // ──────────────────────────────────────────────────────────────
+      console.log('[Stripe] PaymentMethod created:', result.paymentMethodId);
+
       setOnlinePaymentCompleted(true);
       setOnlinePaymentReference(secureRef('PAY'));
       clearErr('card');
@@ -584,12 +809,14 @@ const InscriptionBureautique: React.FC<Props> = ({
     }
   };
 
+  /* ── Final form submit (generates certificate) ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const finalErrors = validateFinalConfirmation();
     if (Object.keys(finalErrors).length) {
       setErrors(finalErrors);
-      document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelector('[data-has-error="true"]')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -611,6 +838,9 @@ const InscriptionBureautique: React.FC<Props> = ({
     }
   };
 
+  /* ════════════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════════════ */
   return (
     <>
       <Head title="Bureautique" />
@@ -618,8 +848,12 @@ const InscriptionBureautique: React.FC<Props> = ({
         <main className="relative">
           <div className="geometric-bg pointer-events-none absolute inset-0 opacity-30" />
 
-          {showModal && certificate && <CertificateModal cert={certificate} onClose={() => setShowModal(false)} />}
+          {/* Certificate modal */}
+          {showModal && certificate && (
+            <CertificateModal cert={certificate} onClose={() => setShowModal(false)} />
+          )}
 
+          {/* Sticky "voir certificat" button */}
           {certificate && !showModal && (
             <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
               <button
@@ -627,7 +861,10 @@ const InscriptionBureautique: React.FC<Props> = ({
                 onClick={() => setShowModal(true)}
                 className="flex items-center gap-3 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95"
               >
-                <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>
+                <span
+                  className="material-symbols-outlined text-base leading-none"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
                   verified
                 </span>
                 Voir mon certificat d'inscription
@@ -635,25 +872,52 @@ const InscriptionBureautique: React.FC<Props> = ({
             </div>
           )}
 
+          {/* ── Hero ── */}
           <section className="relative mx-auto max-w-7xl px-6 pb-12 pt-16 lg:px-8">
             <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
               <div>
-                <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-primary">Formation Certifiante</span>
+                <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-primary">
+                  Formation Certifiante
+                </span>
                 <h1 className="mb-6 font-display text-5xl font-bold leading-tight md:text-6xl">
-                  <span className="text-primary">Inscriptions :</span> <span className="text-on-surface">Pole Bureautique</span>
+                  <span className="text-primary">Inscriptions :</span>{' '}
+                  <span className="text-on-surface">Pole Bureautique</span>
                 </h1>
                 <p className="mb-8 max-w-xl text-lg leading-relaxed text-on-surface-variant">
-                  Maitrisez les outils indispensables du monde professionnel. Une formation intensive de{' '}
-                  <span className="font-bold text-on-surface">2 mois</span> couvrant Excel, Word et PowerPoint pour transformer votre productivite.
+                  Maitrisez les outils indispensables du monde professionnel. Une formation intensive
+                  de <span className="font-bold text-on-surface">2 mois</span> couvrant Excel, Word
+                  et PowerPoint pour transformer votre productivite.
                 </p>
                 <div className="mb-8 flex flex-wrap gap-4">
-                  {[{ icon: 'schedule', text: 'Duree : 2 mois' }, { icon: 'payments', text: 'A partir de 250 DH' }].map(({ icon, text }) => (
+                  {[
+                    { icon: 'schedule', text: 'Duree : 2 mois' },
+                    { icon: 'payments', text: 'A partir de 250 DH' },
+                  ].map(({ icon, text }) => (
                     <div key={text} className="flex items-center gap-3 rounded-xl border border-outline-variant/50 bg-surface-container px-5 py-3">
                       <span className="material-symbols-outlined text-primary">{icon}</span>
                       <span className="font-medium">{text}</span>
                     </div>
                   ))}
                 </div>
+                <ul className="space-y-4">
+                  {[
+                    { title: 'Hands-on training', desc: 'Projets reels et exercices pratiques immediats.' },
+                    { title: 'Professional tools', desc: 'Dernieres versions de la suite Microsoft Office.' },
+                  ].map(({ title, desc }) => (
+                    <li key={title} className="flex items-start gap-3">
+                      <span
+                        className="material-symbols-outlined mt-0.5 text-primary"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        check_circle
+                      </span>
+                      <div>
+                        <h4 className="font-semibold">{title}</h4>
+                        <p className="text-sm leading-tight text-on-surface-variant">{desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div className="group relative">
                 <div className="absolute -inset-4 rounded-[2rem] bg-primary/10 blur-2xl transition-all duration-500 group-hover:bg-primary/20" />
@@ -666,66 +930,86 @@ const InscriptionBureautique: React.FC<Props> = ({
             </div>
           </section>
 
+          {/* Section title */}
           <div className="relative z-10 mx-auto max-w-7xl px-6 pb-8 pt-12 text-center lg:px-8">
             <div className="mb-6 inline-block h-1 w-12 bg-primary" />
-            <h2 className="mb-4 font-display text-4xl font-bold text-on-surface md:text-5xl">Finaliser votre Inscription</h2>
+            <h2 className="mb-4 font-display text-4xl font-bold text-on-surface md:text-5xl">
+              Finaliser votre Inscription
+            </h2>
             <p className="mx-auto max-w-2xl text-lg text-on-surface-variant">
-              Remplissez le formulaire ci-dessous pour reserver votre place au sein de notre promotion de Bureautique Professionnelle.
+              Remplissez le formulaire ci-dessous pour reserver votre place au sein de notre
+              promotion de Bureautique Professionnelle.
             </p>
           </div>
 
+          {/* ── Form card ── */}
           <section className="relative mx-auto max-w-4xl px-6 pb-24 lg:px-8">
             <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-low p-8 shadow-sm md:p-12">
+
               {!stripePublishableKey && (
                 <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  <strong>Stripe non configure</strong> — Ajoutez <code className="rounded bg-amber-100 px-1">VITE_STRIPE_PK</code> dans votre{' '}
+                  <strong>Stripe non configure</strong> — Ajoutez{' '}
+                  <code className="rounded bg-amber-100 px-1">VITE_STRIPE_PK</code> dans votre{' '}
                   <code className="rounded bg-amber-100 px-1">.env</code> pour activer le paiement en ligne.
                 </div>
               )}
 
               <form onSubmit={handleSubmit} noValidate className="space-y-12">
+
+                {/* ── Step 1: Personal info ── */}
                 <section>
                   <div className="mb-8 flex items-center gap-4">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">1</span>
                     <h3 className="font-display text-2xl font-bold">Informations Personnelles</h3>
                   </div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
                     <div data-has-error={errors.nom ? 'true' : undefined}>
                       <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Nom</label>
-                      <input type="text" name="nom" value={form.nom} onChange={handleInput} placeholder="Votre nom" className={inputCls(errors.nom)} />
+                      <input type="text" name="nom" value={form.nom} onChange={handleInput}
+                        placeholder="Votre nom" className={inputCls(errors.nom)} />
                       <FieldError msg={errors.nom} />
                     </div>
+
                     <div data-has-error={errors.prenom ? 'true' : undefined}>
                       <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Prenom</label>
-                      <input type="text" name="prenom" value={form.prenom} onChange={handleInput} placeholder="Votre prenom" className={inputCls(errors.prenom)} />
+                      <input type="text" name="prenom" value={form.prenom} onChange={handleInput}
+                        placeholder="Votre prenom" className={inputCls(errors.prenom)} />
                       <FieldError msg={errors.prenom} />
                     </div>
+
                     <div data-has-error={errors.age ? 'true' : undefined}>
                       <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Age</label>
-                      <input type="number" name="age" value={form.age} onChange={handleInput} placeholder="Ex : 22" min={15} max={80} className={inputCls(errors.age)} />
+                      <input type="number" name="age" value={form.age} onChange={handleInput}
+                        placeholder="Ex : 22" min={15} max={80} className={inputCls(errors.age)} />
                       <FieldError msg={errors.age} />
                     </div>
+
                     <div>
                       <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Niveau academique</label>
                       <select name="niveau" value={form.niveau} onChange={handleInput} className={inputCls()}>
-                        {NIVEAU_OPTIONS.map((o) => (
-                          <option key={o}>{o}</option>
-                        ))}
+                        {NIVEAU_OPTIONS.map((o) => <option key={o}>{o}</option>)}
                       </select>
                     </div>
+
                     <div data-has-error={errors.email ? 'true' : undefined}>
                       <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Email</label>
-                      <input type="email" name="email" value={form.email} onChange={handleInput} placeholder="email@exemple.com" className={inputCls(errors.email)} />
+                      <input type="email" name="email" value={form.email} onChange={handleInput}
+                        placeholder="email@exemple.com" className={inputCls(errors.email)} />
                       <FieldError msg={errors.email} />
                     </div>
+
                     <div data-has-error={errors.telephone ? 'true' : undefined}>
                       <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Telephone</label>
-                      <input type="tel" name="telephone" value={form.telephone} onChange={handleInput} placeholder="+212 600 000 000" className={inputCls(errors.telephone)} />
+                      <input type="tel" name="telephone" value={form.telephone} onChange={handleInput}
+                        placeholder="+212 600 000 000" className={inputCls(errors.telephone)} />
                       <FieldError msg={errors.telephone} />
                     </div>
+
                   </div>
                 </section>
 
+                {/* ── Step 2: Modules + Level ── */}
                 <section>
                   <div className="mb-8 flex items-center gap-4">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">2</span>
@@ -733,15 +1017,18 @@ const InscriptionBureautique: React.FC<Props> = ({
                   </div>
 
                   <p className="mb-4 ml-1 text-sm font-semibold text-on-surface-variant">
-                    Selectionnez vos modules <span className="font-normal text-on-surface-variant/70">(multi-choix possible)</span>
+                    Selectionnez vos modules{' '}
+                    <span className="font-normal text-on-surface-variant/70">(multi-choix possible)</span>
                   </p>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3" data-has-error={errors.modules ? 'true' : undefined}>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3"
+                    data-has-error={errors.modules ? 'true' : undefined}>
                     {MODULE_CARDS.map((module) => {
                       const checked = form.modules[module.key];
                       return (
                         <label key={module.key} className="group cursor-pointer">
-                          <input type="checkbox" name={module.name} checked={checked} onChange={handleInput} className="sr-only" />
+                          <input type="checkbox" name={module.name} checked={checked}
+                            onChange={handleInput} className="sr-only" />
                           <div
                             className="h-full rounded-2xl bg-white p-5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md"
                             style={{
@@ -751,21 +1038,28 @@ const InscriptionBureautique: React.FC<Props> = ({
                             }}
                           >
                             <div className="mb-4 flex items-start justify-between gap-3">
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: `${module.accent}18` }}>
+                              <div className="flex h-12 w-12 items-center justify-center rounded-xl"
+                                style={{ backgroundColor: `${module.accent}18` }}>
                                 <img src={module.icon} alt={module.title} className="h-8 w-8 object-contain" />
                               </div>
-                              <span className="rounded-full px-2.5 py-0.5 text-xs font-bold" style={{ color: module.accent, backgroundColor: `${module.accent}15` }}>
+                              <span className="rounded-full px-2.5 py-0.5 text-xs font-bold"
+                                style={{ color: module.accent, backgroundColor: `${module.accent}15` }}>
                                 {fmtAmount(module.price)}
                               </span>
                             </div>
                             <p className="font-bold text-on-surface">{module.title}</p>
-                            <p className="mt-1.5 text-sm leading-relaxed text-on-surface-variant">{module.description}</p>
+                            <p className="mt-1.5 text-sm leading-relaxed text-on-surface-variant">
+                              {module.description}
+                            </p>
                             <div className="mt-5 flex items-center justify-between">
-                              <span className="text-xs font-medium text-on-surface-variant">{checked ? 'Selectionne' : 'Cliquer pour choisir'}</span>
-                              <span
-                                className="material-symbols-outlined text-xl transition-all"
-                                style={{ color: checked ? module.accent : '#d1d5db', fontVariationSettings: checked ? "'FILL' 1" : "'FILL' 0" }}
-                              >
+                              <span className="text-xs font-medium text-on-surface-variant">
+                                {checked ? 'Selectionne' : 'Cliquer pour choisir'}
+                              </span>
+                              <span className="material-symbols-outlined text-xl transition-all"
+                                style={{
+                                  color: checked ? module.accent : '#d1d5db',
+                                  fontVariationSettings: checked ? "'FILL' 1" : "'FILL' 0",
+                                }}>
                                 check_circle
                               </span>
                             </div>
@@ -776,34 +1070,42 @@ const InscriptionBureautique: React.FC<Props> = ({
                   </div>
                   <FieldError msg={errors.modules} />
 
+                  {/* Recap */}
                   <div className="mt-5 rounded-2xl border border-outline-variant/40 bg-white p-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Recapitulatif</p>
                         <p className="mt-1.5 text-sm text-on-surface-variant">
-                          {selectedModules.length ? selectedModules.map((m) => m.title).join(' · ') : 'Aucun module selectionne pour le moment'}
+                          {selectedModules.length
+                            ? selectedModules.map((m) => m.title).join(' · ')
+                            : 'Aucun module selectionne pour le moment'}
                         </p>
                       </div>
                       <div className="sm:text-right">
                         <p className="text-xs uppercase tracking-[0.2em] text-on-surface-variant">Montant</p>
-                        <p className="font-display text-3xl font-bold text-on-surface">{fmtAmount(totalAmount)}</p>
+                        <p className="font-display text-3xl font-bold text-on-surface">
+                          {fmtAmount(totalAmount)}
+                        </p>
                       </div>
                     </div>
                   </div>
 
+                  {/* Level */}
                   <div className="mt-8">
-                    <label className="mb-4 ml-1 block text-sm font-semibold text-on-surface-variant">Niveau souhaite</label>
+                    <label className="mb-4 ml-1 block text-sm font-semibold text-on-surface-variant">
+                      Niveau souhaite
+                    </label>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       {LEVEL_OPTIONS.map(({ value, label, sub }) => {
                         const active = form.level === value;
                         return (
                           <label key={value} className="group cursor-pointer">
-                            <input type="radio" name="level" value={value} checked={active} onChange={handleRadio} className="sr-only" />
-                            <div
-                              className={`rounded-xl p-4 text-center transition-all duration-200 ${
-                                active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant/50 bg-white group-hover:border-primary/40'
-                              }`}
-                            >
+                            <input type="radio" name="level" value={value}
+                              checked={active} onChange={handleRadio} className="sr-only" />
+                            <div className={`rounded-xl p-4 text-center transition-all duration-200 ${active
+                                ? 'border-2 border-primary bg-primary/5'
+                                : 'border-2 border-outline-variant/50 bg-white group-hover:border-primary/40'
+                              }`}>
                               <p className="font-bold text-on-surface">{label}</p>
                               <p className="text-xs text-on-surface-variant">{sub}</p>
                             </div>
@@ -814,13 +1116,15 @@ const InscriptionBureautique: React.FC<Props> = ({
                   </div>
                 </section>
 
+                {/* ── Step 3: Payment ── */}
                 <section>
                   <div className="mb-8 flex items-center gap-4">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">3</span>
                     <h3 className="font-display text-2xl font-bold">Mode de Paiement</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-has-error={errors.payment ? 'true' : undefined}>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                    data-has-error={errors.payment ? 'true' : undefined}>
                     {[
                       { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Carte bancaire securisee — Stripe' },
                       { value: 'onsite' as PaymentMode, icon: 'storefront', label: 'Paiement presentiel', sub: 'Reglement au centre de formation' },
@@ -828,23 +1132,25 @@ const InscriptionBureautique: React.FC<Props> = ({
                       const active = form.payment === value;
                       return (
                         <label key={value} className="group cursor-pointer">
-                          <input type="radio" name="payment" value={value} checked={active} onChange={handleRadio} className="sr-only" />
-                          <div
-                            className={`flex items-center gap-4 rounded-2xl bg-white p-5 transition-all duration-200 ${
-                              active ? 'border-2 border-primary bg-primary/5' : 'border-2 border-outline-variant/50 group-hover:border-primary/40'
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-2xl transition-colors" style={{ color: active ? 'var(--color-primary)' : '#9ca3af' }}>
+                          <input type="radio" name="payment" value={value}
+                            checked={active} onChange={handleRadio} className="sr-only" />
+                          <div className={`flex items-center gap-4 rounded-2xl bg-white p-5 transition-all duration-200 ${active
+                              ? 'border-2 border-primary bg-primary/5'
+                              : 'border-2 border-outline-variant/50 group-hover:border-primary/40'
+                            }`}>
+                            <span className="material-symbols-outlined text-2xl transition-colors"
+                              style={{ color: active ? 'var(--color-primary)' : '#9ca3af' }}>
                               {icon}
                             </span>
                             <div className="flex-1">
                               <p className="font-semibold text-on-surface">{label}</p>
                               <p className="text-sm text-on-surface-variant">{sub}</p>
                             </div>
-                            <span
-                              className="material-symbols-outlined text-xl"
-                              style={{ color: active ? 'var(--color-primary)' : '#d1d5db', fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}
-                            >
+                            <span className="material-symbols-outlined text-xl"
+                              style={{
+                                color: active ? 'var(--color-primary)' : '#d1d5db',
+                                fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                              }}>
                               radio_button_checked
                             </span>
                           </div>
@@ -854,8 +1160,9 @@ const InscriptionBureautique: React.FC<Props> = ({
                   </div>
                   <FieldError msg={errors.payment} />
 
-                  {form.payment === 'online' &&
-                    (stripePromise ? (
+                  {/* Stripe card form — inside <Elements> */}
+                  {form.payment === 'online' && (
+                    stripePromise ? (
                       <Elements stripe={stripePromise} options={stripeOptions}>
                         <StripeCardSection
                           ref={stripeCardRef}
@@ -875,20 +1182,27 @@ const InscriptionBureautique: React.FC<Props> = ({
                       <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
                         Paiement en ligne indisponible — cle Stripe manquante.
                       </div>
-                    ))}
+                    )
+                  )}
 
+                  {/* Onsite info */}
                   {form.payment === 'onsite' && (
                     <div className="mt-6 rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
-                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Paiement au centre</p>
-                      <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Informations de rendez-vous</h4>
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                        Paiement au centre
+                      </p>
+                      <h4 className="mt-1 font-display text-xl font-bold text-on-surface">
+                        Informations de rendez-vous
+                      </h4>
                       <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
                           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Adresse</p>
-                          <p className="mt-2 text-sm font-semibold text-on-surface">14 avenue Hassan II, 1er etage, Ville Nouvelle, Meknes, Maroc</p>
+                          <p className="mt-2 text-sm font-semibold text-on-surface">
+                            14 avenue Hassan II, 1er etage, Ville Nouvelle, Meknes, Maroc
+                          </p>
                           <a
                             href="https://www.google.com/maps/search/?api=1&query=33.8989909,-5.551918"
-                            target="_blank"
-                            rel="noreferrer"
+                            target="_blank" rel="noreferrer"
                             className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary"
                           >
                             <span className="material-symbols-outlined text-base leading-none">north_east</span>
@@ -905,10 +1219,13 @@ const InscriptionBureautique: React.FC<Props> = ({
                         </div>
                       </div>
                       <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
-                        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Moyens acceptes</p>
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                          Moyens acceptes
+                        </p>
                         <div className="flex flex-wrap gap-2">
                           {['Cash Plus', 'Wafacash', 'Barid Cash', 'Carte bancaire'].map((p) => (
-                            <span key={p} className="rounded-full border border-outline-variant bg-white px-4 py-1.5 text-sm font-medium text-on-surface">
+                            <span key={p}
+                              className="rounded-full border border-outline-variant bg-white px-4 py-1.5 text-sm font-medium text-on-surface">
                               {p}
                             </span>
                           ))}
@@ -918,18 +1235,16 @@ const InscriptionBureautique: React.FC<Props> = ({
                   )}
                 </section>
 
+                {/* ── Terms + Submit ── */}
                 <div className="space-y-6 border-t border-outline-variant/30 pt-8">
                   <div className="space-y-4">
+
                     <div data-has-error={errors.acceptTerms ? 'true' : undefined}>
                       <label className="group flex cursor-pointer items-start gap-3">
-                        <input
-                          type="checkbox"
-                          name="acceptTerms"
-                          checked={form.acceptTerms}
+                        <input type="checkbox" name="acceptTerms" checked={form.acceptTerms}
                           onChange={handleInput}
-                          className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${
-                            errors.acceptTerms ? 'border-red-400' : 'border-outline-variant'
-                          }`}
+                          className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${errors.acceptTerms ? 'border-red-400' : 'border-outline-variant'
+                            }`}
                         />
                         <span className="text-sm leading-relaxed text-on-surface-variant transition-colors group-hover:text-on-surface">
                           En cochant cette case, j'accepte les{' '}
@@ -940,7 +1255,8 @@ const InscriptionBureautique: React.FC<Props> = ({
                           <a href="/privacy" className="font-medium text-primary underline underline-offset-2">
                             Politique de Confidentialite
                           </a>
-                          {' '}et j'autorise le centre a traiter mon dossier, verifier les elements administratifs et associer mon paiement a mon inscription.
+                          {' '}et j'autorise le centre a traiter mon dossier, verifier les elements
+                          administratifs et associer mon paiement a mon inscription.
                         </span>
                       </label>
                       <FieldError msg={errors.acceptTerms} />
@@ -948,21 +1264,20 @@ const InscriptionBureautique: React.FC<Props> = ({
 
                     <div data-has-error={errors.acceptPrivacy ? 'true' : undefined}>
                       <label className="group flex cursor-pointer items-start gap-3">
-                        <input
-                          type="checkbox"
-                          name="acceptPrivacy"
-                          checked={form.acceptPrivacy}
+                        <input type="checkbox" name="acceptPrivacy" checked={form.acceptPrivacy}
                           onChange={handleInput}
-                          className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${
-                            errors.acceptPrivacy ? 'border-red-400' : 'border-outline-variant'
-                          }`}
+                          className={`mt-0.5 h-4 w-4 rounded border text-primary transition-all focus:ring-primary ${errors.acceptPrivacy ? 'border-red-400' : 'border-outline-variant'
+                            }`}
                         />
                         <span className="text-sm leading-relaxed text-on-surface-variant transition-colors group-hover:text-on-surface">
-                          Je confirme que les informations fournies sont exactes et j'accepte le traitement de mes donnees personnelles pour la gestion administrative, pedagogique et financiere de mon inscription.
+                          Je confirme que les informations fournies sont exactes et j'accepte le
+                          traitement de mes donnees personnelles pour la gestion administrative,
+                          pedagogique et financiere de mon inscription.
                         </span>
                       </label>
                       <FieldError msg={errors.acceptPrivacy} />
                     </div>
+
                   </div>
 
                   <button
@@ -972,7 +1287,9 @@ const InscriptionBureautique: React.FC<Props> = ({
                   >
                     {submitting ? (
                       <>
-                        <span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>
+                        <span className="material-symbols-outlined animate-spin text-xl leading-none">
+                          progress_activity
+                        </span>
                         Traitement en cours...
                       </>
                     ) : (
@@ -983,26 +1300,33 @@ const InscriptionBureautique: React.FC<Props> = ({
                     )}
                   </button>
 
+                  {/* Hint when payment not yet done */}
                   {form.payment === 'online' && !onlinePaymentCompleted && (
                     <p className="text-center text-xs text-on-surface-variant">
                       Le paiement doit etre effectue dans le bloc securise ci-dessus avant la confirmation finale.
                     </p>
                   )}
 
+                  {/* Certificate banner after submission */}
                   {certificate && (
                     <div className="flex items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                      <span className="material-symbols-outlined text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      <span
+                        className="material-symbols-outlined text-emerald-600"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
                         verified
                       </span>
                       <p className="text-sm font-semibold text-emerald-800">
                         Inscription confirmee —{' '}
-                        <button type="button" onClick={() => setShowModal(true)} className="underline underline-offset-2">
+                        <button type="button" onClick={() => setShowModal(true)}
+                          className="underline underline-offset-2">
                           Consulter le certificat
                         </button>
                       </p>
                     </div>
                   )}
                 </div>
+
               </form>
             </div>
           </section>
@@ -1023,6 +1347,76 @@ const InscriptionBureautique: React.FC<Props> = ({
         }
         .hover-color-transition:hover {
           filter: grayscale(0%);
+        }
+        .payment-card-grid {
+          display: grid;
+          gap: 16px;
+        }
+        .payment-card-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .payment-card-field-full {
+          grid-column: 1 / -1;
+        }
+        .payment-card-subgrid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+        .payment-card-label {
+          margin-left: 4px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: rgb(var(--color-on-surface-variant));
+        }
+        .payment-card-input-shell {
+          position: relative;
+          display: flex;
+          min-height: 54px;
+          align-items: center;
+          padding: 0 16px;
+          overflow: hidden;
+        }
+        .payment-card-number-shell {
+          padding-right: 124px;
+        }
+        .payment-card-cvc-shell {
+          padding-right: 58px;
+        }
+        .payment-card-element {
+          width: 100%;
+          min-width: 0;
+        }
+        .payment-card-icons {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transform: translateY(-50%);
+          pointer-events: none;
+        }
+        .payment-card-cvc-icon {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+        }
+        .payment-card-element .StripeElement {
+          width: 100%;
+        }
+        .payment-card-element .StripeElement iframe {
+          width: 100% !important;
+          min-height: 22px;
+        }
+        @media (max-width: 767px) {
+          .payment-card-subgrid {
+            grid-template-columns: 1fr;
+          }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin { animation: spin 0.8s linear infinite; display: inline-block; }
