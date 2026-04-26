@@ -1,3 +1,4 @@
+import React from 'react';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -29,8 +30,17 @@ export default function Login({
     remember: false as boolean,
   });
 
+  // Client-side validation (shown instantly, before server round-trip)
+  const [touched, setTouched] = React.useState({ email: false, password: false });
+  const clientErrors = {
+    email:    touched.email    && !data.email    ? 'L\'adresse email est requise.' : '',
+    password: touched.password && !data.password ? 'Le mot de passe est requis.'   : '',
+  };
+
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
+    setTouched({ email: true, password: true });
+    if (!data.email || !data.password) return;
     post(route('login'), { onFinish: () => reset('password') });
   };
 
@@ -47,11 +57,13 @@ export default function Login({
         <div className="login-card">
           {/* Logo / brand */}
           <div className="login-brand">
-            <img src={logo} alt="Info Saloua Logo" className="w-8 h-8" />
+            <Link href={route('home')}>
+              <img src={logo} alt="Info Saloua Logo" className="w-8 h-8" />
+            </Link>
             <span className="login-brand-name">Info Saloua</span>
           </div>
 
-          <h1 className="login-title">Bon retour entre nous</h1>
+          <h1 className="login-title">Bon retour parmi nous</h1>
           <p className="login-subtitle">Connectez-vous pour acceder a votre espace</p>
 
           {/* Status message */}
@@ -62,7 +74,7 @@ export default function Login({
           )}
 
           {/* Google button */}
-          <a href={route(/*'auth.google'*/'about')} className="login-google-btn">
+          <a href={route('about')} className="login-google-btn">
             <GoogleIcon />
             <span>Continuer avec Google</span>
           </a>
@@ -89,14 +101,15 @@ export default function Login({
                   type="email"
                   name="email"
                   value={data.email}
-                  className="login-input"
+                  className={`login-input${(errors.email || clientErrors.email) ? ' login-input-error' : ''}`}
                   autoComplete="username"
                   isFocused={true}
                   placeholder="ex: sarah@exemple.com"
                   onChange={(e) => setData('email', e.target.value)}
+                  onBlur={() => setTouched(t => ({ ...t, email: true }))}
                 />
               </div>
-              <InputError message={errors.email} className="login-error" />
+              <InputError message={errors.email || clientErrors.email} className="login-error" />
             </div>
 
             {/* Password */}
@@ -113,13 +126,14 @@ export default function Login({
                   type="password"
                   name="password"
                   value={data.password}
-                  className="login-input"
+                  className={`login-input${(errors.password || clientErrors.password) ? ' login-input-error' : ''}`}
                   autoComplete="current-password"
                   placeholder="Votre mot de passe"
                   onChange={(e) => setData('password', e.target.value)}
+                  onBlur={() => setTouched(t => ({ ...t, password: true }))}
                 />
               </div>
-              <InputError message={errors.password} className="login-error" />
+              <InputError message={errors.password || clientErrors.password} className="login-error" />
             </div>
 
             {/* Remember + Forgot */}
@@ -160,7 +174,7 @@ export default function Login({
           <p className="login-register">
             Pas encore de compte ?{' '}
             <p className="login-register-link">
-              Veuillez s'inscrire a l'une de nos formations pour acceder a votre espace
+              Veuillez s'isncrire pour acceder a votre espace
             </p>
           </p>
         </div>
@@ -250,9 +264,9 @@ export default function Login({
         }
         .login-brand-name {
           font-family: 'EB Garamond', serif;
-          font-size: 1.5rem;
-          border-bottom: 2px solid #ff6b2b;
+          font-size: 1.25rem;
           font-weight: 600;
+          border-bottom: 2px solid #ff6b2b;
           color: #1a1a1a;
           letter-spacing: -0.01em;
         }
@@ -260,7 +274,7 @@ export default function Login({
         /* ── Titles ── */
         .login-title {
           font-family: "Playwrite DE SAS", cursive;
-          font-size: 2rem;
+          font-size: 1.6rem;
           font-weight: 700;
           color: #111;
           text-align: center;
@@ -375,6 +389,14 @@ export default function Login({
           border-color: #ff6b2b !important;
           background: #fff !important;
           box-shadow: 0 0 0 3px rgba(255,107,43,.12) !important;
+        }
+        .login-input-error {
+          border-color: #ef4444 !important;
+          background: #fff8f8 !important;
+        }
+        .login-input-error:focus {
+          border-color: #ef4444 !important;
+          box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important;
         }
         .login-input::placeholder { color: #bbb !important; }
 
