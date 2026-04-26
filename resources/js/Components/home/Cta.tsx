@@ -14,13 +14,13 @@ const Cta = () => {
         </p>
         <div className="flex flex-wrap justify-center gap-6 relative z-10">
           <Link
-            href="/apply"
+            href="/inscriptions"
             className="px-12 py-5 bg-primary text-on-primary rounded-lg font-bold text-lg hover:brightness-110 shadow-lg active:scale-95 transition-all"
           >
             Déposer ma candidature
           </Link>
           <a
-            href="#contact"
+            href="/contact"
             className="px-12 py-5 border-2 border-primary text-primary rounded-lg font-bold text-lg hover:bg-primary hover:text-on-primary transition-all"
           >
             Nous contacter

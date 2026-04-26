@@ -29,7 +29,7 @@ const Hero = () => {
 
             <div className="flex flex-wrap gap-6">
               <a
-                href="#formations"
+                href="/formations"
                 className="px-10 py-4 bg-primary text-on-primary rounded-lg font-bold hover:brightness-110 transition-all shadow-xl flex items-center gap-2 group"
               >
                 Nos Formations
@@ -38,7 +38,7 @@ const Hero = () => {
                 </span>
               </a>
               <a
-                href="#about"
+                href="/about"
                 className="px-10 py-4 border border-outline text-on-surface rounded-lg font-semibold hover:bg-surface-container-high transition-all"
               >
                 Notre Méthode
