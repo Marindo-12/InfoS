@@ -30,16 +30,16 @@ export default function Login({
     remember: false as boolean,
   });
 
-  // Client-side validation (shown instantly, before server round-trip)
-  const [touched, setTouched] = React.useState({ email: false, password: false });
+  // Client-side validation (shown only after form submission attempt)
+  const [submitted, setSubmitted] = React.useState(false);
   const clientErrors = {
-    email:    touched.email    && !data.email    ? 'L\'adresse email est requise.' : '',
-    password: touched.password && !data.password ? 'Le mot de passe est requis.'   : '',
+    email:    submitted && !data.email    ? 'L\'adresse email est requise.' : '',
+    password: submitted && !data.password ? 'Le mot de passe est requis.'   : '',
   };
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    setTouched({ email: true, password: true });
+    setSubmitted(true);
     if (!data.email || !data.password) return;
     post(route('login'), { onFinish: () => reset('password') });
   };
@@ -106,7 +106,6 @@ export default function Login({
                   isFocused={true}
                   placeholder="ex: sarah@exemple.com"
                   onChange={(e) => setData('email', e.target.value)}
-                  onBlur={() => setTouched(t => ({ ...t, email: true }))}
                 />
               </div>
               <InputError message={errors.email || clientErrors.email} className="login-error" />
@@ -130,7 +129,6 @@ export default function Login({
                   autoComplete="current-password"
                   placeholder="Votre mot de passe"
                   onChange={(e) => setData('password', e.target.value)}
-                  onBlur={() => setTouched(t => ({ ...t, password: true }))}
                 />
               </div>
               <InputError message={errors.password || clientErrors.password} className="login-error" />

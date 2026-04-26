@@ -8,12 +8,13 @@ import logo from '../../../../public/infos-logo.png'
 export default function ForgotPassword({ status }: { status?: string }) {
   const { data, setData, post, processing, errors } = useForm({ email: '' });
 
-  const [touched, setTouched] = React.useState(false);
-  const clientEmailError = touched && !data.email ? 'L\'adresse email est requise.' : '';
+  // Client-side validation (shown only after form submission attempt)
+  const [submitted, setSubmitted] = React.useState(false);
+  const clientEmailError = submitted && !data.email ? 'L\'adresse email est requise.' : '';
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    setTouched(true);
+    setSubmitted(true);
     if (!data.email) return;
     post(route('password.email'));
   };
@@ -85,7 +86,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
                   isFocused={true}
                   placeholder="votre@email.com"
                   onChange={(e) => setData('email', e.target.value)}
-                  onBlur={() => setTouched(true)}
                 />
               </div>
               <InputError message={errors.email || clientEmailError} className="login-error" />
