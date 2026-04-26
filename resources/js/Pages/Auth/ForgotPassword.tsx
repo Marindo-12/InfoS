@@ -29,10 +29,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
         <div className="login-card">
           {/* Brand */}
           <div className="login-brand">
-            <Link href={route('home')}>
+            <Link href={route('home')} className='flex items-center gap-2'>
               <img src={logo} alt="Info Saloua Logo" className="w-8 h-8" />
+              <span className="login-brand-name">Info Saloua</span>
             </Link>
-            <span className="login-brand-name">Info Saloua</span>
           </div>
 
           {/* Icon */}
