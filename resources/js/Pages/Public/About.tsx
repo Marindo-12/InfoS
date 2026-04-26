@@ -1,3 +1,4 @@
+import AboutHero from '@/Components/about/AboutHero';
 import Navbar from '@/Components/Navbar';
 import { Head } from '@inertiajs/react';
 import React from 'react';
@@ -9,34 +10,7 @@ const About = () => {
       <Navbar />
       <main>
         {/* Hero Section */}
-        <section className="relative h-[700px] flex items-center justify-center overflow-hidden abstract-bg">
-          <div className="blob bg-stone-900 w-72 h-80 top-[15%] -left-12 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] opacity-10 animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="blob bg-black w-96 h-96 bottom-[10%] -right-20 rounded-[60%_40%_30%_70%/50%_30%_70%_50%] opacity-5" style={{ animationDuration: '12s' }} />
-          <div className="blob bg-stone-800 w-48 h-56 top-[20%] right-[10%] rounded-[50%] opacity-[0.08]" />
-          <div className="blob bg-stone-700 w-64 h-64 bottom-[30%] left-[15%] rounded-[30%_70%_50%_50%/50%_40%_60%_40%] opacity-[0.03]" />
-
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <div className="hero-line top-1/4 -rotate-12 opacity-40" />
-            <div className="hero-line top-2/3 rotate-6 opacity-30" />
-            <div className="hero-circle w-[400px] h-[400px] -top-20 -left-20" />
-            <div className="hero-circle w-[600px] h-[600px] -bottom-40 -right-40" />
-            <div className="hero-circle w-[200px] h-[200px] top-1/2 right-1/4 opacity-50" />
-            <div className="absolute top-[15%] left-[10%] w-3 h-3 bg-primary/20 rounded-full" />
-            <div className="absolute bottom-[20%] right-[15%] w-4 h-4 bg-primary/10 rounded-full" />
-            <div className="absolute top-[40%] right-[5%] w-24 h-px bg-[#d8d0c8]/40 rotate-90" />
-          </div>
-
-          <div className="relative z-10 text-center px-4 max-w-4xl">
-            <span className="font-body text-primary uppercase tracking-[0.3em] text-sm mb-6 block">
-              Fondée en 1994
-            </span>
-            <h1 className="text-6xl md:text-8xl font-serif text-on-surface leading-[1.1] mb-8">
-              Notre héritage,<br />
-              <i className="font-serif italic text-primary">votre avenir</i>
-            </h1>
-            <div className="w-24 h-px bg-primary mx-auto" />
-          </div>
-        </section>
+        <AboutHero />
 
         {/* Histoire & Mission */}
         <section className="py-24 px-8 max-w-7xl mx-auto">
@@ -86,48 +60,72 @@ const About = () => {
         </section>
 
         {/* Valeurs fondamentales */}
-        <section className="py-24 bg-surface-container-low px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-serif mb-4">Nos piliers fondamentaux</h2>
-              <p className="font-body text-on-surface-variant tracking-wide uppercase text-sm">
-                Les principes qui guident chacun de nos cours
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/40 transition-all duration-300 group">
-                <span className="material-symbols-outlined text-4xl text-primary mb-6 block">
-                  architecture
-                </span>
-                <h3 className="text-2xl font-serif mb-4">Précision</h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Qu'il s'agisse de la syntaxe d'une nouvelle langue ou de l'architecture d'un système
-                  logiciel, nous croyons en la puissance de l'exactitude et du souci du détail.
-                </p>
-              </div>
-              <div className="bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/40 transition-all duration-300 group">
-                <span className="material-symbols-outlined text-4xl text-primary mb-6 block">
-                  lightbulb
-                </span>
-                <h3 className="text-2xl font-serif mb-4">Innovation</h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Nous n'enseignons pas seulement la norme actuelle ; nous anticipons l'avenir. Notre
-                  programme est un écosystème vivant qui évolue avec les mutations de l'industrie.
-                </p>
-              </div>
-              <div className="bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/40 transition-all duration-300 group">
-                <span className="material-symbols-outlined text-4xl text-primary mb-6 block">
-                  public
-                </span>
-                <h3 className="text-2xl font-serif mb-4">Excellence globale</h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Nos normes sont alignées sur les critères mondiaux les plus élevés, garantissant que
-                  nos diplômés sont compétitifs sur n'importe quel marché, où que ce soit.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <section className="py-24 bg-surface-container-low px-8 overflow-hidden">
+  <div className="max-w-7xl mx-auto">
+    <div className="text-center mb-16">
+      <h2 className="text-4xl font-serif mb-4">Nos piliers fondamentaux</h2>
+      <p className="font-body text-on-surface-variant tracking-wide uppercase text-sm">
+        Les principes qui guident chacun de nos cours
+      </p>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Carte Précision */}
+      <div className="group relative bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer">
+        <span className="material-symbols-outlined text-5xl text-primary mb-6 block transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+          architecture
+        </span>
+        <h3 className="text-2xl font-serif mb-4 group-hover:text-primary transition-colors duration-300">Précision</h3>
+        <p className="text-on-surface-variant leading-relaxed transition-all duration-300">
+          Qu'il s'agisse de la syntaxe d'une nouvelle langue ou de l'architecture d'un système
+          logiciel, nous croyons en la puissance de l'exactitude et du souci du détail.
+        </p>
+        <div className="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+          <a href="#" className="text-primary text-sm font-semibold inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+            Explorer <span className="material-symbols-outlined text-base">arrow_right_alt</span>
+          </a>
+        </div>
+        {/* Décoration de fond au hover */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      </div>
+
+      {/* Carte Innovation */}
+      <div className="group relative bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer">
+        <span className="material-symbols-outlined text-5xl text-primary mb-6 block transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3">
+          lightbulb
+        </span>
+        <h3 className="text-2xl font-serif mb-4 group-hover:text-primary transition-colors duration-300">Innovation</h3>
+        <p className="text-on-surface-variant leading-relaxed">
+          Nous n'enseignons pas seulement la norme actuelle ; nous anticipons l'avenir. Notre
+          programme est un écosystème vivant qui évolue avec les mutations de l'industrie.
+        </p>
+        <div className="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+          <a href="#" className="text-primary text-sm font-semibold inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+            Explorer <span className="material-symbols-outlined text-base">arrow_right_alt</span>
+          </a>
+        </div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      </div>
+
+      {/* Carte Excellence globale */}
+      <div className="group relative bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer">
+        <span className="material-symbols-outlined text-5xl text-primary mb-6 block transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
+          public
+        </span>
+        <h3 className="text-2xl font-serif mb-4 group-hover:text-primary transition-colors duration-300">Excellence globale</h3>
+        <p className="text-on-surface-variant leading-relaxed">
+          Nos normes sont alignées sur les critères mondiaux les plus élevés, garantissant que
+          nos diplômés sont compétitifs sur n'importe quel marché, où que ce soit.
+        </p>
+        <div className="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+          <a href="#" className="text-primary text-sm font-semibold inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+            Explorer <span className="material-symbols-outlined text-base">arrow_right_alt</span>
+          </a>
+        </div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* Direction & Corps professoral */}
         <section className="py-24 px-8 max-w-7xl mx-auto">
@@ -373,7 +371,7 @@ const About = () => {
               </h2>
               <p className="text-lg text-white/60 font-body leading-relaxed max-w-xl">
                 Nous croyons que les avancées humaines les plus profondes surviennent lorsque nous
-                comblons le fossé entre la logique technique et l'expression humaine. À Elite Academy,
+                comblons le fossé entre la logique technique et l'expression humaine. À Info Saloua,
                 nous n'enseignons pas seulement des compétences ; nous cultivons un état d'esprit de
                 fluence globale qui transcende les frontières et le binaire.
               </p>
@@ -430,7 +428,7 @@ const About = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
               <div className="md:col-span-1">
                 <div className="text-3xl font-serif tracking-tight text-primary mb-6">
-                  Elite Academy
+                  Info Saloua
                 </div>
                 <p className="text-white/40 text-sm leading-relaxed">
                   L'excellence au service de l'esprit et du code.<br />
@@ -477,7 +475,7 @@ const About = () => {
               </div>
             </div>
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-[0.3em] text-white/30 border-t border-white/5 pt-8">
-              <p>© 2024 Elite Academy. Tous droits réservés.</p>
+              <p>© {new Date().getFullYear()} Info Saloua. Tous droits réservés.</p>
               <div className="flex gap-8">
                 <a className="hover:text-primary transition-colors" href="#">Confidentialité</a>
                 <a className="hover:text-primary transition-colors" href="#">Conditions</a>

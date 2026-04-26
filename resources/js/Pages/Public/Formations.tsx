@@ -43,7 +43,7 @@ const Formations = () => {
       <Navbar />
       <main className="">
         {/* Hero Section */}
-        <section className="relative min-h-[614px] flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-[740px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img
               className="w-full h-full object-cover opacity-20"
@@ -506,7 +506,7 @@ const Formations = () => {
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${(((percent ?? 0) * 100)).toFixed(0)}%`}
                 >
                   {laureatesByField.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
