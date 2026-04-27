@@ -171,9 +171,9 @@ export default function Login({
           {/* Register link */}
           <p className="login-register">
             Pas encore de compte ?{' '}
-            <p className="login-register-link">
+            <span className="login-register-link">
               Veuillez s'isncrire pour acceder a votre espace
-            </p>
+            </span>
           </p>
         </div>
       </div>
