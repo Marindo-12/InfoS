@@ -109,20 +109,20 @@ const IconClose = () => (
 ───────────────────────────────────────────── */
 
 const NAV_MAIN: NavItem[] = [
-  { label: 'Tableau de bord', icon: <IconDashboard />, route: route('dashboard'),     routeName: 'dashboard'     },
-  { label: 'Mes Formations',  icon: <IconFormations />, route: route('dashboard'),    routeName: 'formations'    },
+  { label: 'Tableau de bord', icon: <IconDashboard />, route: route('student.dashboard'),     routeName: 'dashboard'     },
+  { label: 'Mes Formations',  icon: <IconFormations />, route: route('student.courses'),    routeName: 'formations'    },
   { label: 'Planning',        icon: <IconCalendar />,   route: route('dashboard'),    routeName: 'planning'      },
   { label: 'Notes & Résultats', icon: <IconResults />,  route: route('dashboard'),   routeName: 'results'       },
 ];
 
 const NAV_FINANCE: NavItem[] = [
-  { label: 'Paiements',       icon: <IconPayments />,  route: route('dashboard'),    routeName: 'payments'      },
+  { label: 'Paiements',       icon: <IconPayments />,  route: route('student.payment'),    routeName: 'payments'      },
   { label: 'Certificats',     icon: <IconCertificates />, route: route('dashboard'), routeName: 'certificates'  },
   { label: 'Documents',       icon: <IconDocuments />, route: route('dashboard'),    routeName: 'documents'     },
 ];
 
 const NAV_ACCOUNT: NavItem[] = [
-  { label: 'Notifications',   icon: <IconNotifications />, route: route('dashboard'), routeName: 'notifications', badge: 3 },
+  { label: 'Notifications',   icon: <IconNotifications />, route: route('student.notifications'), routeName: 'notifications', badge: 3 },
   { label: 'Mon Profil',      icon: <IconProfile />,    route: route('profile.edit'), routeName: 'profile.edit' },
 ];
 

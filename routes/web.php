@@ -58,7 +58,7 @@ Route::get('/inscriptions', function () {
 require __DIR__.'/auth.php';
 
 Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Dashboard/Student/Dashboard');
 })->name('dashboard');
 
 /*
@@ -69,11 +69,11 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 
 Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Student/Dashboard');
+        return Inertia::render('Dashboard/Student/Dashboard');
     })->name('dashboard');
 
     Route::get('/courses', function () {
-        return Inertia::render('Student/MyCourses');
+        return Inertia::render('Dashboard/Student/MyCourses');
     })->name('courses');
 
     Route::get('/progress', function () {
@@ -84,8 +84,12 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
         return Inertia::render('Student/Schedule');
     })->name('schedule');
 
+    Route::get('/notifications', function() {
+        return Inertia::render('Dashboard/Student/Notifications');
+    })->name('notifications');
+
     Route::get('/payment', function () {
-        return Inertia::render('Student/Payment');
+        return Inertia::render('Dashboard/Student/Payment');
     })->name('payment');
 });
 
