@@ -109,7 +109,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     })->name('applications');
 
     Route::get('/students', function () {
-        return Inertia::render('Admin/Students');
+        return Inertia::render('Dashboard/Admin/Students');
     })->name('students');
 
     Route::get('/courses', function () {
