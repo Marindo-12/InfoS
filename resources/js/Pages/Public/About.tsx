@@ -376,7 +376,7 @@ const About = () => {
                 fluence globale qui transcende les frontières et le binaire.
               </p>
               <div className="pt-4">
-                <a className="inline-flex items-center gap-3 group" href="#">
+                <a className="inline-flex items-center gap-3 group" href="/formations">
                   <span className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all">
                     <span className="material-symbols-outlined text-sm">play_arrow</span>
                   </span>
@@ -432,44 +432,58 @@ const About = () => {
                 </div>
                 <p className="text-white/40 text-sm leading-relaxed">
                   L'excellence au service de l'esprit et du code.<br />
-                  Basée à Londres, New York et Singapour.
+                  Formation professionnelle en langues, bureautique et concours.
                 </p>
               </div>
               <div className="space-y-6">
                 <h5 className="font-body font-bold text-xs uppercase tracking-widest text-white/80">
-                  Parcours
+                  Formations
                 </h5>
                 <ul className="space-y-3 text-white/50 text-sm font-body">
-                  <li><a className="hover:text-primary transition-colors" href="#">Maîtrise des langues</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Ingénierie avancée</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Éthique & politique de l'IA</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Leadership numérique</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="/formations">Toutes nos formations</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="/inscriptions/langues">Langues</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="/inscriptions/bureautique">Bureautique</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="/inscriptions/concours">Concours</a></li>
                 </ul>
               </div>
               <div className="space-y-6">
                 <h5 className="font-body font-bold text-xs uppercase tracking-widest text-white/80">
-                  Académie
+                  Entreprise
                 </h5>
                 <ul className="space-y-3 text-white/50 text-sm font-body">
-                  <li><a className="hover:text-primary transition-colors" href="#">Notre histoire</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Le corps professoral</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Bourses</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Partenaires mondiaux</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="/about">À propos</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="/contact">Contact</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="#">Carrières</a></li>
+                  <li><a className="hover:text-primary transition-colors" href="#">Partenaires</a></li>
                 </ul>
               </div>
               <div className="space-y-8">
                 <h5 className="font-body font-bold text-xs uppercase tracking-widest text-white/80">
                   Admissions
                 </h5>
-                <button className="w-full bg-primary text-white py-4 rounded-xl font-body font-bold text-sm hover:opacity-90 transition-opacity">
+                <a href="/inscriptions" className="w-full bg-primary text-white py-4 rounded-xl font-body font-bold text-sm hover:opacity-90 transition-opacity inline-block text-center">
                   Commencer votre candidature
-                </button>
+                </a>
                 <div className="flex gap-4">
-                  <a className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all" href="#">
-                    <span className="material-symbols-outlined text-sm">alternate_email</span>
+                  <a className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all" href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.77,7.46H14.5v-1.9c0-.9.6-1.1,1-1.1h3V.5h-4.33C10.24.5,9.5,3.44,9.5,5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4Z"/>
+                    </svg>
                   </a>
-                  <a className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all" href="#">
-                    <span className="material-symbols-outlined text-sm">language</span>
+                  <a className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all" href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12,2.16c3.2,0,3.58,0,4.85.07,3.25.15,4.77,1.69,4.92,4.92.06,1.27.07,1.65.07,4.85s0,3.58-.07,4.85c-.15,3.23-1.66,4.77-4.92,4.92-1.27.06-1.65.07-4.85.07s-3.58,0-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s0-3.58.07-4.85C2.38,3.92,3.9,2.38,7.15,2.23,8.42,2.18,8.8,2.16,12,2.16ZM12,0C8.74,0,8.33,0,7.05.07c-4.35.2-6.78,2.71-7,7C0,8.33,0,8.74,0,12s0,3.67.07,4.95c.2,4.36,2.71,6.78,7,7C8.33,24,8.74,24,12,24s3.67,0,4.95-.07c4.35-.2,6.78-2.71,7-7C24,15.67,24,15.26,24,12s0-3.67-.07-4.95c-.2-4.35-2.71-6.78-7-7C15.67,0,15.26,0,12,0Zm0,5.84A6.16,6.16,0,1,0,18.16,12,6.16,6.16,0,0,0,12,5.84ZM12,16a4,4,0,1,1,4-4A4,4,0,0,1,12,16ZM18.41,4.15a1.44,1.44,0,1,0,1.44,1.44A1.44,1.44,0,0,0,18.41,4.15Z"/>
+                    </svg>
+                  </a>
+                  <a className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all" href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.45,20.45H17.71v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85,0-2.39,1.45-2.39,2.94v5.67H10.7V9h3.41v1.56h.05c.48-.9,1.64-1.85,3.37-1.85,3.59,0,4.26,2.36,4.26,5.44v6.27ZM5.34,7.43A2.06,2.06,0,1,1,7.4,5.37,2.06,2.06,0,0,1,5.34,7.43Zm1.78,13H3.56V9h3.56ZM22.22,0H1.78C.8,0,0,.8,0,1.78v20.44C0,23.2.8,24,1.78,24H22.22c1,0,1.78-.8,1.78-1.78V1.78C24,.8,23.2,0,22.22,0Z"/>
+                    </svg>
+                  </a>
+                  <a className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all" href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.49,6.29a2.13,2.13,0,0,0-1.5-1.52C20.28,4.5,12,4.5,12,4.5s-8.28,0-9.93.77A2.13,2.13,0,0,0,.53,6.29,22.58,22.58,0,0,0,0,12a22.58,22.58,0,0,0,.53,5.71,2.13,2.13,0,0,0,1.5,1.52c1.65.77,9.93.77,9.93.77s8.28,0,9.93-.77a2.13,2.13,0,0,0,1.5-1.52A22.58,22.58,0,0,0,24,12,22.58,22.58,0,0,0,23.49,6.29ZM9.55,15.57V8.43L16,12Z"/>
+                    </svg>
                   </a>
                 </div>
               </div>
@@ -477,9 +491,9 @@ const About = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-[0.3em] text-white/30 border-t border-white/5 pt-8">
               <p>© {new Date().getFullYear()} Info Saloua. Tous droits réservés.</p>
               <div className="flex gap-8">
-                <a className="hover:text-primary transition-colors" href="#">Confidentialité</a>
-                <a className="hover:text-primary transition-colors" href="#">Conditions</a>
-                <a className="hover:text-primary transition-colors" href="#">Accessibilité</a>
+                <a className="hover:text-primary transition-colors" href="/contact">Confidentialité</a>
+                <a className="hover:text-primary transition-colors" href="/contact">Conditions</a>
+                <a className="hover:text-primary transition-colors" href="/contact">Accessibilité</a>
               </div>
             </div>
           </div>

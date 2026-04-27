@@ -45,10 +45,6 @@ Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
     })->name('infographie');
 });
 
-Route::get('/login', function () {
-    return Inertia::render('Auth/Login');
-})->name('apply');
-
 Route::get('/inscriptions', function () {
     return Inertia::render('Inscriptions/Index');
 })->name('inscriptions');
@@ -60,6 +56,10 @@ Route::get('/inscriptions', function () {
 */
 
 require __DIR__.'/auth.php';
+
+Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

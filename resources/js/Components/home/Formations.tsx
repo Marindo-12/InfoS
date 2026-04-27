@@ -35,7 +35,7 @@ const Formations = () => {
                 </li>
               ))}
             </ul>
-            <a href="#apply" className="text-primary font-bold text-sm tracking-widest inline-flex items-center gap-2 group">
+            <a href="/inscriptions/langues" className="text-primary font-bold text-sm tracking-widest inline-flex items-center gap-2 group">
               EN SAVOIR PLUS
               <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
             </a>
@@ -76,7 +76,7 @@ const Formations = () => {
                 <p className="text-sm text-on-surface-variant">Certification Microsoft Office Specialist reconnue mondialement.</p>
               </div>
             </div>
-            <a href="#apply" className="text-primary font-bold text-sm tracking-widest inline-flex items-center gap-2 group">
+            <a href="/inscriptions/bureautique" className="text-primary font-bold text-sm tracking-widest inline-flex items-center gap-2 group">
               VOIR LE PROGRAMME
               <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
             </a>

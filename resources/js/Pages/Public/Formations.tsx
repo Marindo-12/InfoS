@@ -1,6 +1,7 @@
 import Footer from '@/Components/Footer';
 import Navbar from '@/Components/Navbar';
 import { Head } from '@inertiajs/react';
+import {Link} from '@inertiajs/react';
 import React from 'react';
 import {
   LineChart,
@@ -105,12 +106,12 @@ const Formations = () => {
                     <span className="w-6 h-[1px] bg-primary"></span> Rédaction de rapports et mémoires
                   </li>
                 </ul>
-                <a
+                <Link
                   className="text-primary text-xs font-bold tracking-widest uppercase flex items-center gap-2 border-b border-primary/20 w-max pb-2 hover:border-primary transition-all"
-                  href="#"
+                  href={route('inscriptions.langues')}
                 >
                   Explorez le syllabus <span className="material-symbols-outlined text-sm">north_east</span>
-                </a>
+                </Link>
               </div>
               <div className="order-1 md:order-2 bg-surface-container-low aspect-video rounded-2xl overflow-hidden relative group">
                 <img
@@ -153,12 +154,12 @@ const Formations = () => {
                     <span className="w-6 h-[1px] bg-primary"></span> Immersion culturelle anglo-saxonne
                   </li>
                 </ul>
-                <a
+                <Link
                   className="text-primary text-xs font-bold tracking-widest uppercase flex items-center gap-2 border-b border-primary/20 w-max pb-2 hover:border-primary transition-all"
-                  href="#"
+                  href={route('inscriptions.langues')}
                 >
                   Explorez le syllabus <span className="material-symbols-outlined text-sm">north_east</span>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -205,7 +206,7 @@ const Formations = () => {
                 </div>
                 <div className="pt-6 border-t border-outline-variant/30 flex items-center justify-between">
                   <span className="font-serif text-lg text-on-background">1000 dh</span>
-                  <button className="text-primary font-bold text-xs uppercase underline">Réserver</button>
+                  <Link href={route('inscriptions.concours')} className="text-primary font-bold text-xs uppercase underline">Réserver</Link>
                 </div>
               </div>
               {/* ENCG Card */}
@@ -225,9 +226,9 @@ const Formations = () => {
                 </div>
                 <div className="pt-6 border-t border-white/20 flex items-center justify-between">
                   <span className="font-serif text-lg">600 dh</span>
-                  <button className="bg-white text-primary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase">
+                  <Link href={route('inscriptions.concours')} className="bg-white text-primary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase">
                     Réserver
-                  </button>
+                  </Link>
                 </div>
               </div>
               {/* ENSA Card */}
@@ -251,7 +252,7 @@ const Formations = () => {
                 </div>
                 <div className="pt-6 border-t border-outline-variant/30 flex items-center justify-between">
                   <span className="font-serif text-lg text-on-background">500 dh</span>
-                  <button className="text-primary font-bold text-xs uppercase underline">Réserver</button>
+                  <Link href={route('inscriptions.concours')}  className="text-primary font-bold text-xs uppercase underline">Réserver</Link>
                 </div>
               </div>
               {/* Consultation Card */}

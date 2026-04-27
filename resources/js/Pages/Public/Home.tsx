@@ -11,7 +11,7 @@ import History from '@/Components/home/History'
 export default function Home() {
     return (
         <PublicLayout>
-            <Head title="Centre Informatique | Formation en Langues, Concours & Bureautique" />
+            <Head title="Home"/>
 
             <Hero />
 
