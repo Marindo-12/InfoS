@@ -1,5 +1,17 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 const paymentHistory = [
   { date: '12 sept. 2024', method: 'Visa **** 4421', type: 'card', amount: '2 500,00 DH', status: 'paid' },
@@ -26,6 +38,24 @@ const stats = [
   { label: 'Reste a payer', value: '2 450 DH', sub: 'prochaine echeance le 15 oct.', color: '#ff6b2b', icon: <IconWallet /> },
   { label: 'Paiements valides', value: '2 / 3', sub: 'une operation en attente', color: '#3b82f6', icon: <IconReceipt /> },
 ];
+
+const paymentDistribution = [
+  { name: 'Regle', value: 15000, color: '#ff6b2b' },
+  { name: 'Restant', value: 10000, color: '#f2d7c7' },
+];
+
+const installmentChartData = [
+  { month: 'Juil', paid: 5000, expected: 5000 },
+  { month: 'Aout', paid: 2500, expected: 2500 },
+  { month: 'Sept', paid: 2500, expected: 2500 },
+  { month: 'Oct', paid: 0, expected: 2500 },
+  { month: 'Nov', paid: 0, expected: 2500 },
+  { month: 'Dec', paid: 0, expected: 10000 },
+];
+
+function formatDh(value: number | string | undefined) {
+  return `${Number(value ?? 0).toLocaleString('fr-FR')} DH`;
+}
 
 function statusMeta(status: 'paid' | 'pending') {
   if (status === 'paid') {
@@ -206,6 +236,50 @@ export default function Payment() {
             <div className="pay-panel">
               <div className="pay-panel-head">
                 <div>
+                  <h3 className="pay-panel-title">Repartition du budget</h3>
+                  <p className="pay-muted">Lecture rapide entre le montant deja regle et le reste a solder.</p>
+                </div>
+              </div>
+
+              <div className="pay-chart-donut">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={paymentDistribution}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={62}
+                      outerRadius={92}
+                      paddingAngle={3}
+                      stroke="none"
+                    >
+                      {paymentDistribution.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatDh(value as number | string | undefined)} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pay-chart-center">
+                  <strong>60%</strong>
+                  <span>deja regle</span>
+                </div>
+              </div>
+
+              <div className="pay-legend">
+                {paymentDistribution.map((entry) => (
+                  <div key={entry.name} className="pay-legend-item">
+                    <span className="pay-legend-dot" style={{ background: entry.color }} />
+                    <span>{entry.name}</span>
+                    <strong>{entry.value.toLocaleString('fr-FR')} DH</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pay-panel">
+              <div className="pay-panel-head">
+                <div>
                   <h3 className="pay-panel-title">Factures officielles</h3>
                   <p className="pay-muted">Documents disponibles au telechargement.</p>
                 </div>
@@ -252,6 +326,19 @@ export default function Payment() {
               <h3 className="pay-panel-title">Calendrier des echeances</h3>
               <p className="pay-muted">Suivi mois par mois des versements de l annee.</p>
             </div>
+          </div>
+
+          <div className="pay-chart-block">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={installmentChartData} barGap={10}>
+                <CartesianGrid vertical={false} stroke="rgba(15,23,42,0.08)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12 }} />
+                <Tooltip formatter={(value) => formatDh(value as number | string | undefined)} />
+                <Bar dataKey="expected" fill="#f2d7c7" radius={[8, 8, 0, 0]} name="Prevu" />
+                <Bar dataKey="paid" fill="#ff6b2b" radius={[8, 8, 0, 0]} name="Regle" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="pay-timeline">
@@ -667,6 +754,57 @@ export default function Payment() {
           flex-direction: column;
           gap: 16px;
         }
+        .pay-chart-donut {
+          position: relative;
+          width: 100%;
+          height: 240px;
+          margin-top: 10px;
+        }
+        .pay-chart-center {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+        }
+        .pay-chart-center strong {
+          font-size: 2rem;
+          line-height: 1;
+          color: #18181b;
+        }
+        .pay-chart-center span {
+          margin-top: 6px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #8b8b8b;
+        }
+        .pay-legend {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 8px;
+        }
+        .pay-legend-item {
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 10px;
+          font-size: 0.84rem;
+          color: #666;
+        }
+        .pay-legend-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+        }
+        .pay-legend-item strong {
+          color: #18181b;
+          font-size: 0.82rem;
+        }
         .pay-doc-card {
           display: flex;
           align-items: center;
@@ -700,6 +838,15 @@ export default function Payment() {
           overflow-x: auto;
           padding-top: 8px;
           margin-top: 18px;
+        }
+        .pay-chart-block {
+          width: 100%;
+          height: 280px;
+          margin-top: 18px;
+          padding: 12px 8px 0;
+          border-radius: 18px;
+          background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+          border: 1px solid rgba(15, 23, 42, 0.06);
         }
         .pay-timeline-line {
           position: absolute;
