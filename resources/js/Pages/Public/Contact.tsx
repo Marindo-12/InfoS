@@ -358,7 +358,7 @@ const Contact: React.FC = () => {
 
                             <div className="relative lg:col-span-7">
                                 <div
-                                    className="relative overflow-hidden rounded-3xl border border-outline-variant/40 p-10 shadow-sm md:p-16"
+                                    className="relative overflow-hidden rounded-3xl border-2 border-outline-variant/60 p-10 shadow-sm md:p-16"
                                     style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)' }}
                                 >
                                     <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-primary/5" />
