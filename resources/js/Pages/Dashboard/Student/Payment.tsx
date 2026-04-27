@@ -1,262 +1,908 @@
-import Authenticated from '@/Layouts/AuthenticatedLayout'
-import React from 'react'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, usePage } from '@inertiajs/react';
 
-const Payment = () => {
-  return (
-    <Authenticated header={<h2>Payment Analytics</h2>}>
-      <main className="flex-1 flex flex-col min-w-0 bg-background">
-        
-        <div className="p-8 max-w-7xl mx-auto w-full space-y-10">
-          <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <h3 className="text-4xl serif-font font-semibold text-on-background">Financial Overview</h3>
-              <p className="text-on-surface-variant mt-2 max-w-lg">Monitor your tuition balance, upcoming installments, and official documentation for the current 2023-2024 academic year.</p>
-            </div>
-            <div className="flex items-center gap-3 bg-surface-container-high px-5 py-3 rounded-xl border border-outline-variant/40">
-              <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-on-surface-variant">Active Semester: Fall 2024</span>
-            </div>
-          </section>
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-surface-container-lowest rounded-3xl p-8 border border-outline-variant/40 shadow-[0_2px_16px_rgba(58,48,42,0.04)] relative overflow-hidden">
-              <div className="relative z-10">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <p className="text-on-surface-variant text-sm font-medium uppercase tracking-widest">Remaining Balance</p>
-                    <h4 className="text-5xl serif-font font-bold text-primary mt-2">2,450.00 <span className="text-2xl font-medium">DH</span></h4>
-                  </div>
-                  <span className="bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter">Next Due: Oct 15</span>
-                </div>
-                <div className="flex flex-wrap gap-4 items-center mt-10">
-                  <button className="bg-primary text-on-primary px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center gap-2 group">
-                    <span>Pay Now</span>
-                    <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
-                  </button>
-                  <button className="border border-outline text-on-surface px-8 py-3 rounded-lg font-bold hover:bg-surface-container-low transition-colors">
-                    View Installments
-                  </button>
-                </div>
-              </div>
-              <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
-            </div>
-            <div className="bg-surface-container-high rounded-3xl p-8 border border-outline-variant/40 shadow-[0_2px_16px_rgba(58,48,42,0.04)] flex flex-col justify-between">
-              <div>
-                <p className="text-on-surface-variant text-sm font-medium uppercase tracking-widest mb-6">Payment Status</p>
-                <div className="relative pt-1">
-                  <div className="flex mb-4 items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold inline-block py-1 px-2 uppercase rounded-full text-on-primary bg-primary">
-                        60% Completed
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-bold inline-block text-primary">
-                        15,000 / 25,000 DH
-                      </span>
-                    </div>
-                  </div>
-                  <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-white">
-                    <div className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary" /* style="width:60%" */></div>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                You have successfully covered 60% of your annual tuition. Maintaining this pace will ensure full eligibility for final examinations.
-              </p>
-            </div>
-          </section>
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="flex items-center justify-between">
-                <h4 className="text-2xl serif-font font-semibold">Payment History</h4>
-                <button className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
-                  View All Transactions <span className="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                </button>
-              </div>
-              <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/40 overflow-hidden shadow-[0_2px_16px_rgba(58,48,42,0.04)]">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Date</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Method</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Amount</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">Receipt</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/20">
-                    <tr className="hover:bg-surface-container/30 transition-colors">
-                      <td className="px-6 py-5 text-sm">Sep 12, 2024</td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-on-surface-variant" data-icon="credit_card">credit_card</span>
-                          <span className="text-sm">Visa **** 4421</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-bold">2,500.00 DH</td>
-                      <td className="px-6 py-5">
-                        <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">Paid</span>
-                      </td>
-                      <td className="px-6 py-5 text-right">
-                        <button className="hover:bg-primary/10 p-2 rounded-full transition-colors text-primary">
-                          <span className="material-symbols-outlined" data-icon="download">download</span>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-surface-container/30 transition-colors">
-                      <td className="px-6 py-5 text-sm">Aug 15, 2024</td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-on-surface-variant" data-icon="account_balance">account_balance</span>
-                          <span className="text-sm">Bank Transfer</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-bold">2,500.00 DH</td>
-                      <td className="px-6 py-5">
-                        <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">Paid</span>
-                      </td>
-                      <td className="px-6 py-5 text-right">
-                        <button className="hover:bg-primary/10 p-2 rounded-full transition-colors text-primary">
-                          <span className="material-symbols-outlined" data-icon="download">download</span>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-surface-container/30 transition-colors">
-                      <td className="px-6 py-5 text-sm">Jul 10, 2024</td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-on-surface-variant" data-icon="payments">payments</span>
-                          <span className="text-sm">Cash Deposit</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-bold">5,000.00 DH</td>
-                      <td className="px-6 py-5">
-                        <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">Pending</span>
-                      </td>
-                      <td className="px-6 py-5 text-right opacity-50 cursor-not-allowed">
-                        <span className="material-symbols-outlined p-2" data-icon="hourglass_empty">hourglass_empty</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <h4 className="text-2xl serif-font font-semibold">Official Invoices</h4>
-              <div className="space-y-4">
-                <div className="bg-surface-container rounded-2xl p-5 border border-outline-variant/40 flex items-center gap-4 hover:border-primary/40 transition-colors group">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
-                    <span className="material-symbols-outlined" data-icon="description">description</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold">Fall Semester Invoice</p>
-                    <p className="text-xs text-on-surface-variant">Issued Sep 01, 2024</p>
-                  </div>
-                  <button className="bg-primary/10 text-primary p-2 rounded-lg group-hover:bg-primary group-hover:text-white transition-all">
-                    <span className="material-symbols-outlined text-sm" data-icon="download">download</span>
-                  </button>
-                </div>
-                <div className="bg-surface-container rounded-2xl p-5 border border-outline-variant/40 flex items-center gap-4 hover:border-primary/40 transition-colors group">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
-                    <span className="material-symbols-outlined" data-icon="description">description</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold">Enrollment Fee Receipt</p>
-                    <p className="text-xs text-on-surface-variant">Issued Jun 15, 2024</p>
-                  </div>
-                  <button className="bg-primary/10 text-primary p-2 rounded-lg group-hover:bg-primary group-hover:text-white transition-all">
-                    <span className="material-symbols-outlined text-sm" data-icon="download">download</span>
-                  </button>
-                </div>
-                <div className="bg-surface-container-high/50 rounded-2xl p-6 border border-dashed border-outline-variant flex flex-col items-center text-center gap-3">
-                  <span className="material-symbols-outlined text-on-surface-variant text-4xl" data-icon="help">help</span>
-                  <p className="text-sm font-medium text-on-surface-variant">Missing an invoice? Contact the administration office.</p>
-                  <a className="text-primary text-xs font-bold underline" href="#">Request Support</a>
-                </div>
-              </div>
-            </div>
-          </section>
-          <section className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h4 className="text-2xl serif-font font-semibold">Installment Timeline</h4>
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  <span className="text-xs font-medium text-on-surface-variant uppercase">Paid</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-surface-container-highest"></div>
-                  <span className="text-xs font-medium text-on-surface-variant uppercase">Upcoming</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container-low rounded-3xl p-10 border border-outline-variant/20 overflow-x-auto">
-              <div className="min-w-[800px] relative">
-                <div className="absolute top-1/2 left-0 w-full h-1 bg-surface-container-highest -translate-y-1/2"></div>
-                <div className="absolute top-1/2 left-0 w-3/5 h-1 bg-primary -translate-y-1/2"></div>
-                <div className="relative flex justify-between">
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">July</span>
-                    <div className="w-6 h-6 rounded-full bg-primary border-4 border-white shadow-sm z-10"></div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold">5,000 DH</p>
-                      <span className="material-symbols-outlined text-primary text-base" data-icon="check_circle" /* style="font-variation-settings: 'FILL' 1;" */>check_circle</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">August</span>
-                    <div className="w-6 h-6 rounded-full bg-primary border-4 border-white shadow-sm z-10"></div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold">2,500 DH</p>
-                      <span className="material-symbols-outlined text-primary text-base" data-icon="check_circle" /* style={'font-variation-settings: 'FILL' 1;'} */>check_circle</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest text-primary">September</span>
-                    <div className="w-8 h-8 rounded-full bg-white border-4 border-primary shadow-lg z-10 flex items-center justify-center -mt-1">
-                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-black text-primary">2,500 DH</p>
-                      <p className="text-[10px] text-primary font-bold">CURRENT</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">October</span>
-                    <div className="w-6 h-6 rounded-full bg-surface-container-highest border-4 border-white shadow-sm z-10"></div>
-                    <div className="text-center opacity-40">
-                      <p className="text-sm font-bold">2,500 DH</p>
-                      <span className="text-[10px] font-bold">SCHEDULED</span>
-                    </div>
-                  </div>
+const paymentHistory = [
+  { date: '12 sept. 2024', method: 'Visa **** 4421', type: 'card', amount: '2 500,00 DH', status: 'paid' },
+  { date: '15 aout 2024', method: 'Virement bancaire', type: 'bank', amount: '2 500,00 DH', status: 'paid' },
+  { date: '10 juil. 2024', method: 'Depot espece', type: 'cash', amount: '5 000,00 DH', status: 'pending' },
+];
 
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">November</span>
-                    <div className="w-6 h-6 rounded-full bg-surface-container-highest border-4 border-white shadow-sm z-10"></div>
-                    <div className="text-center opacity-40">
-                      <p className="text-sm font-bold">2,500 DH</p>
-                      <span className="text-[10px] font-bold">SCHEDULED</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">December</span>
-                    <div className="w-6 h-6 rounded-full bg-surface-container-highest border-4 border-white shadow-sm z-10"></div>
-                    <div className="text-center opacity-40">
-                      <p className="text-sm font-bold">10,000 DH</p>
-                      <span className="text-[10px] font-bold">FINAL</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-        <footer className="mt-auto border-t border-outline-variant/30 py-8 px-8 text-center md:text-left">
-          <p className="text-xs text-on-surface-variant font-medium">© 2024 Info Saloua Student Portal. All financial transactions are secured by 256-bit SSL encryption.</p>
-        </footer>
-      </main>
-    </Authenticated>
-  )
+const invoices = [
+  { title: 'Facture semestre d automne', issuedAt: '01 sept. 2024' },
+  { title: 'Recu des frais d inscription', issuedAt: '15 juin 2024' },
+];
+
+const installments = [
+  { month: 'Juillet', amount: '5 000 DH', state: 'paid' },
+  { month: 'Aout', amount: '2 500 DH', state: 'paid' },
+  { month: 'Septembre', amount: '2 500 DH', state: 'current' },
+  { month: 'Octobre', amount: '2 500 DH', state: 'upcoming' },
+  { month: 'Novembre', amount: '2 500 DH', state: 'upcoming' },
+  { month: 'Decembre', amount: '10 000 DH', state: 'final' },
+];
+
+const stats = [
+  { label: 'Montant deja regle', value: '15 000 DH', sub: 'sur 25 000 DH', color: '#10b981', icon: <IconCheck /> },
+  { label: 'Reste a payer', value: '2 450 DH', sub: 'prochaine echeance le 15 oct.', color: '#ff6b2b', icon: <IconWallet /> },
+  { label: 'Paiements valides', value: '2 / 3', sub: 'une operation en attente', color: '#3b82f6', icon: <IconReceipt /> },
+];
+
+function statusMeta(status: 'paid' | 'pending') {
+  if (status === 'paid') {
+    return { label: 'Paye', className: 'pay-badge pay-badge--success' };
+  }
+
+  return { label: 'En attente', className: 'pay-badge pay-badge--pending' };
 }
 
-export default Payment
+function methodIcon(type: 'card' | 'bank' | 'cash') {
+  if (type === 'bank') return <IconBank />;
+  if (type === 'cash') return <IconCash />;
+  return <IconCard />;
+}
+
+function StatCard({
+  label,
+  value,
+  sub,
+  color,
+  icon,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  color: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="pay-stat-card">
+      <div className="pay-stat-icon" style={{ background: `${color}16`, color }}>
+        {icon}
+      </div>
+      <div>
+        <p className="pay-eyebrow">{label}</p>
+        <p className="pay-stat-value">{value}</p>
+        <p className="pay-muted">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function Payment() {
+  const user = usePage().props.auth.user;
+  const firstName = user.name.split(' ')[0];
+  const completion = 60;
+
+  return (
+    <AuthenticatedLayout header={<h2>Paiements</h2>}>
+      <Head title="Paiements" />
+
+      <div className="pay-root">
+        <section className="pay-hero">
+          <div className="pay-hero-copy">
+            <p className="pay-section-kicker">Espace financier</p>
+            <h1 className="pay-hero-title">
+              Suivi des paiements de <span>{firstName}</span>
+            </h1>
+            <p className="pay-hero-text">
+              Retrouvez ici votre solde, vos echeances, l historique des reglements et vos documents
+              administratifs pour l annee universitaire 2023-2024.
+            </p>
+          </div>
+
+          <div className="pay-hero-side">
+            <div className="pay-chip">
+              <span className="pay-chip-dot" />
+              Semestre actif : Automne 2024
+            </div>
+            <div className="pay-chip pay-chip--soft">Transactions securisees SSL 256 bits</div>
+          </div>
+        </section>
+
+        <section className="pay-top-grid">
+          <div className="pay-balance-card">
+            <div className="pay-balance-head">
+              <div>
+                <p className="pay-eyebrow">Solde restant</p>
+                <h3 className="pay-balance-value">2 450,00 DH</h3>
+              </div>
+              <span className="pay-badge pay-badge--highlight">Echeance : 15 oct.</span>
+            </div>
+
+            <p className="pay-balance-text">
+              Votre dossier est a jour a 60 %. Il reste une partie du montant annuel a regler pour
+              finaliser la scolarite.
+            </p>
+
+            <div className="pay-balance-actions">
+              <button type="button" className="pay-btn pay-btn--primary">
+                Regler maintenant
+              </button>
+              <button type="button" className="pay-btn pay-btn--secondary">
+                Voir les echeances
+              </button>
+            </div>
+          </div>
+
+          <div className="pay-progress-card">
+            <div className="pay-progress-head">
+              <div>
+                <p className="pay-eyebrow">Progression annuelle</p>
+                <h3 className="pay-progress-value">15 000 / 25 000 DH</h3>
+              </div>
+              <span className="pay-badge pay-badge--success">{completion}% regle</span>
+            </div>
+
+            <div className="pay-progress-track" aria-hidden="true">
+              <div className="pay-progress-fill" style={{ width: `${completion}%` }} />
+            </div>
+
+            <p className="pay-muted">
+              En gardant ce rythme, vous pourrez valider vos paiements avant les examens finaux.
+            </p>
+          </div>
+        </section>
+
+        <section className="pay-stats-grid">
+          {stats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))}
+        </section>
+
+        <section className="pay-content-grid">
+          <div className="pay-panel">
+            <div className="pay-panel-head">
+              <div>
+                <h3 className="pay-panel-title">Historique des paiements</h3>
+                <p className="pay-muted">Vue detaillee des reglements deja enregistres.</p>
+              </div>
+              <button type="button" className="pay-text-link">
+                Voir tout
+              </button>
+            </div>
+
+            <div className="pay-table-wrap">
+              <table className="pay-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th className="pay-align-right">Recu</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paymentHistory.map((item) => {
+                    const status = statusMeta(item.status as 'paid' | 'pending');
+
+                    return (
+                      <tr key={`${item.date}-${item.method}`}>
+                        <td>{item.date}</td>
+                        <td>
+                          <div className="pay-method">
+                            <span className="pay-method-icon">{methodIcon(item.type as 'card' | 'bank' | 'cash')}</span>
+                            <span>{item.method}</span>
+                          </div>
+                        </td>
+                        <td className="pay-amount">{item.amount}</td>
+                        <td>
+                          <span className={status.className}>{status.label}</span>
+                        </td>
+                        <td className="pay-align-right">
+                          <button type="button" className="pay-icon-btn" disabled={item.status === 'pending'}>
+                            <IconDownload />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="pay-side-stack">
+            <div className="pay-panel">
+              <div className="pay-panel-head">
+                <div>
+                  <h3 className="pay-panel-title">Factures officielles</h3>
+                  <p className="pay-muted">Documents disponibles au telechargement.</p>
+                </div>
+              </div>
+
+              <div className="pay-doc-list">
+                {invoices.map((invoice) => (
+                  <div className="pay-doc-card" key={invoice.title}>
+                    <div className="pay-doc-icon">
+                      <IconDocument />
+                    </div>
+                    <div className="pay-doc-copy">
+                      <p className="pay-doc-title">{invoice.title}</p>
+                      <p className="pay-muted">Edite le {invoice.issuedAt}</p>
+                    </div>
+                    <button type="button" className="pay-icon-btn">
+                      <IconDownload />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pay-help-card">
+              <div className="pay-help-icon">
+                <IconHelp />
+              </div>
+              <div>
+                <h3 className="pay-panel-title">Besoin d une facture manquante ?</h3>
+                <p className="pay-muted">
+                  Contactez l administration pour demander un duplicata ou un justificatif supplementaire.
+                </p>
+              </div>
+              <Link href={route('contact')} className="pay-text-link pay-text-link--strong">
+                Contacter le centre
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="pay-panel">
+          <div className="pay-panel-head">
+            <div>
+              <h3 className="pay-panel-title">Calendrier des echeances</h3>
+              <p className="pay-muted">Suivi mois par mois des versements de l annee.</p>
+            </div>
+          </div>
+
+          <div className="pay-timeline">
+            <div className="pay-timeline-line" aria-hidden="true" />
+            {installments.map((installment, index) => (
+              <div className={`pay-step pay-step--${installment.state}`} key={`${installment.month}-${index}`}>
+                <p className="pay-step-month">{installment.month}</p>
+                <div className="pay-step-dot" />
+                <div className="pay-step-card">
+                  <p className="pay-step-amount">{installment.amount}</p>
+                  <p className="pay-step-state">
+                    {installment.state === 'paid' && 'Regle'}
+                    {installment.state === 'current' && 'En cours'}
+                    {installment.state === 'upcoming' && 'Programme'}
+                    {installment.state === 'final' && 'Final'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="pay-footer">
+          Toutes les operations financieres sont protegees et archivees dans votre espace etudiant.
+        </footer>
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        .pay-root {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          font-family: 'Manrope', sans-serif;
+          color: #18181b;
+        }
+
+        .pay-hero,
+        .pay-panel,
+        .pay-balance-card,
+        .pay-progress-card,
+        .pay-help-card,
+        .pay-stat-card {
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+        }
+
+        .pay-hero {
+          position: relative;
+          display: flex;
+          justify-content: space-between;
+          gap: 24px;
+          flex-wrap: wrap;
+          padding: 28px;
+          border-radius: 22px;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at top right, rgba(255, 154, 86, 0.16), transparent 28%),
+            linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+        }
+        .pay-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0 auto auto 0;
+          width: 100%;
+          height: 4px;
+          background: linear-gradient(90deg, #ff6b2b, #ff9a56, #ffbf7a);
+        }
+
+        .pay-hero-copy {
+          max-width: 760px;
+          position: relative;
+          z-index: 1;
+        }
+        .pay-section-kicker,
+        .pay-eyebrow {
+          margin: 0 0 8px;
+          font-size: 0.74rem;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #ff6b2b;
+        }
+        .pay-hero-title {
+          margin: 0;
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(2rem, 3vw, 3rem);
+          line-height: 1;
+          letter-spacing: -0.03em;
+          color: #151515;
+        }
+        .pay-hero-title span {
+          color: #ff6b2b;
+        }
+        .pay-hero-text {
+          margin: 14px 0 0;
+          max-width: 640px;
+          font-size: 0.95rem;
+          line-height: 1.7;
+          color: #666;
+        }
+
+        .pay-hero-side {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          min-width: 240px;
+          position: relative;
+          z-index: 1;
+        }
+        .pay-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.84);
+          border: 1px solid rgba(255, 107, 43, 0.12);
+          color: #6b4b3e;
+          font-size: 0.82rem;
+          font-weight: 700;
+          width: fit-content;
+          max-width: 100%;
+        }
+        .pay-chip--soft {
+          border-radius: 16px;
+          color: #757575;
+          font-weight: 600;
+          border-color: rgba(15, 23, 42, 0.08);
+        }
+        .pay-chip-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #10b981;
+          box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.14);
+        }
+
+        .pay-top-grid,
+        .pay-content-grid,
+        .pay-stats-grid {
+          display: grid;
+          gap: 18px;
+        }
+        .pay-top-grid {
+          grid-template-columns: 1.8fr 1fr;
+        }
+        .pay-stats-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .pay-content-grid {
+          grid-template-columns: 1.55fr 1fr;
+          align-items: start;
+        }
+
+        .pay-balance-card,
+        .pay-progress-card,
+        .pay-panel,
+        .pay-help-card,
+        .pay-stat-card {
+          border-radius: 20px;
+          padding: 24px;
+        }
+
+        .pay-balance-card {
+          position: relative;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at bottom right, rgba(255, 107, 43, 0.12), transparent 30%),
+            #fff;
+        }
+        .pay-balance-head,
+        .pay-progress-head,
+        .pay-panel-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .pay-balance-value,
+        .pay-progress-value,
+        .pay-stat-value {
+          margin: 0;
+          line-height: 1;
+          color: #171717;
+        }
+        .pay-balance-value {
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(2.2rem, 4vw, 3.5rem);
+          color: #ff6b2b;
+        }
+        .pay-progress-value {
+          font-size: 1.4rem;
+          font-weight: 800;
+        }
+        .pay-stat-value {
+          font-size: 1.5rem;
+          font-weight: 800;
+        }
+        .pay-balance-text,
+        .pay-muted {
+          margin: 0;
+          color: #7a7a7a;
+          line-height: 1.6;
+          font-size: 0.86rem;
+        }
+        .pay-balance-text {
+          margin-top: 18px;
+          max-width: 620px;
+        }
+
+        .pay-balance-actions {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 24px;
+        }
+        .pay-btn,
+        .pay-text-link,
+        .pay-icon-btn {
+          transition: all 0.18s ease;
+        }
+        .pay-btn {
+          border: none;
+          border-radius: 12px;
+          padding: 13px 18px;
+          font-family: 'Manrope', sans-serif;
+          font-size: 0.88rem;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .pay-btn--primary {
+          background: linear-gradient(135deg, #ff7a35, #ff5b14);
+          color: #fff;
+          box-shadow: 0 12px 24px rgba(255, 107, 43, 0.22);
+        }
+        .pay-btn--primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 16px 32px rgba(255, 107, 43, 0.28);
+        }
+        .pay-btn--secondary {
+          background: #fff7f1;
+          color: #8f4c2d;
+          border: 1px solid rgba(255, 107, 43, 0.18);
+        }
+        .pay-btn--secondary:hover {
+          background: #fff1e7;
+        }
+
+        .pay-progress-track {
+          width: 100%;
+          height: 12px;
+          border-radius: 999px;
+          background: #f1f1f1;
+          overflow: hidden;
+          margin: 18px 0 14px;
+        }
+        .pay-progress-fill {
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, #ff9a56, #ff6b2b);
+        }
+
+        .pay-stat-card {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+        }
+        .pay-stat-icon,
+        .pay-method-icon,
+        .pay-doc-icon,
+        .pay-help-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .pay-stat-icon {
+          width: 46px;
+          height: 46px;
+          border-radius: 14px;
+        }
+
+        .pay-panel-title,
+        .pay-doc-title,
+        .pay-step-amount {
+          margin: 0;
+          color: #18181b;
+          font-weight: 800;
+        }
+        .pay-panel-title {
+          font-size: 1rem;
+        }
+        .pay-text-link {
+          padding: 0;
+          background: transparent;
+          border: none;
+          color: #ff6b2b;
+          font-weight: 800;
+          font-size: 0.82rem;
+          cursor: pointer;
+          text-decoration: none;
+        }
+        .pay-text-link:hover {
+          color: #e25817;
+        }
+        .pay-text-link--strong {
+          margin-top: 2px;
+        }
+
+        .pay-table-wrap {
+          overflow-x: auto;
+          margin-top: 18px;
+          border-radius: 16px;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .pay-table {
+          width: 100%;
+          min-width: 620px;
+          border-collapse: collapse;
+          background: #fff;
+        }
+        .pay-table thead tr {
+          background: #faf7f4;
+        }
+        .pay-table th,
+        .pay-table td {
+          padding: 16px 18px;
+          text-align: left;
+          border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+          font-size: 0.86rem;
+        }
+        .pay-table th {
+          color: #8b8b8b;
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+        .pay-table tbody tr:hover {
+          background: #fffaf6;
+        }
+        .pay-align-right {
+          text-align: right !important;
+        }
+        .pay-method {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .pay-method-icon,
+        .pay-doc-icon,
+        .pay-help-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: #faf7f4;
+          color: #ff6b2b;
+        }
+        .pay-amount {
+          font-weight: 800;
+          color: #161616;
+        }
+        .pay-icon-btn {
+          width: 38px;
+          height: 38px;
+          border: 1px solid rgba(255, 107, 43, 0.14);
+          border-radius: 12px;
+          background: #fff7f1;
+          color: #ff6b2b;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        }
+        .pay-icon-btn:hover:not(:disabled) {
+          background: #ffefe3;
+        }
+        .pay-icon-btn:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .pay-badge {
+          display: inline-flex;
+          align-items: center;
+          border-radius: 999px;
+          padding: 7px 11px;
+          font-size: 0.68rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        .pay-badge--highlight {
+          background: rgba(255, 107, 43, 0.1);
+          color: #ff6b2b;
+        }
+        .pay-badge--success {
+          background: rgba(16, 185, 129, 0.12);
+          color: #0f9d70;
+        }
+        .pay-badge--pending {
+          background: rgba(120, 113, 108, 0.12);
+          color: #6b6762;
+        }
+
+        .pay-side-stack,
+        .pay-doc-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .pay-doc-card {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px;
+          border-radius: 16px;
+          background: #fafafa;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .pay-doc-copy {
+          flex: 1;
+          min-width: 0;
+        }
+        .pay-doc-title {
+          font-size: 0.9rem;
+          margin-bottom: 2px;
+        }
+
+        .pay-help-card {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 16px;
+          align-items: start;
+        }
+
+        .pay-timeline {
+          position: relative;
+          display: grid;
+          grid-template-columns: repeat(6, minmax(140px, 1fr));
+          gap: 14px;
+          overflow-x: auto;
+          padding-top: 8px;
+          margin-top: 18px;
+        }
+        .pay-timeline-line {
+          position: absolute;
+          top: 38px;
+          left: 0;
+          right: 0;
+          height: 4px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, #ff6b2b 0%, #ff6b2b 48%, #ece7e3 48%, #ece7e3 100%);
+        }
+        .pay-step {
+          position: relative;
+          min-width: 140px;
+          z-index: 1;
+        }
+        .pay-step-month {
+          margin: 0 0 12px;
+          font-size: 0.74rem;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #8f8f8f;
+        }
+        .pay-step-dot {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          margin-bottom: 14px;
+          border: 4px solid #fff;
+          box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+          background: #dbd6d1;
+        }
+        .pay-step-card {
+          padding: 14px;
+          border-radius: 16px;
+          background: #fbfbfb;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .pay-step-state {
+          margin: 4px 0 0;
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #8c8c8c;
+        }
+        .pay-step--paid .pay-step-dot,
+        .pay-step--current .pay-step-dot {
+          background: #ff6b2b;
+        }
+        .pay-step--paid .pay-step-state {
+          color: #10b981;
+        }
+        .pay-step--current .pay-step-month,
+        .pay-step--current .pay-step-amount,
+        .pay-step--current .pay-step-state {
+          color: #ff6b2b;
+        }
+        .pay-step--current .pay-step-card {
+          background: #fff7f1;
+          border-color: rgba(255, 107, 43, 0.18);
+        }
+        .pay-step--final .pay-step-state {
+          color: #a16207;
+        }
+
+        .pay-footer {
+          text-align: center;
+          color: #8a8a8a;
+          font-size: 0.8rem;
+          padding: 4px 0 8px;
+        }
+
+        @media (max-width: 1100px) {
+          .pay-top-grid,
+          .pay-content-grid,
+          .pay-stats-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .pay-hero,
+          .pay-balance-card,
+          .pay-progress-card,
+          .pay-panel,
+          .pay-help-card,
+          .pay-stat-card {
+            padding: 18px;
+            border-radius: 18px;
+          }
+
+          .pay-hero-title {
+            font-size: 2rem;
+          }
+
+          .pay-balance-actions {
+            flex-direction: column;
+          }
+
+          .pay-btn {
+            width: 100%;
+          }
+
+          .pay-help-card {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </AuthenticatedLayout>
+  );
+}
+
+function IconWallet() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+      <path d="M18 9h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2" />
+      <circle cx="16" cy="12" r="1" />
+    </svg>
+  );
+}
+
+function IconCheck() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m5 12 5 5L20 7" />
+    </svg>
+  );
+}
+
+function IconReceipt() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 3v18l3-2 2 2 2-2 2 2 2-2 2 2 3-2V3z" />
+      <path d="M8 7h8" />
+      <path d="M8 11h8" />
+      <path d="M8 15h5" />
+    </svg>
+  );
+}
+
+function IconCard() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </svg>
+  );
+}
+
+function IconBank() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10 12 4l9 6" />
+      <path d="M4 10h16" />
+      <path d="M6 10v8" />
+      <path d="M10 10v8" />
+      <path d="M14 10v8" />
+      <path d="M18 10v8" />
+      <path d="M3 21h18" />
+    </svg>
+  );
+}
+
+function IconCash() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M6 12h.01" />
+      <path d="M18 12h.01" />
+    </svg>
+  );
+}
+
+function IconDownload() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
+    </svg>
+  );
+}
+
+function IconDocument() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8" />
+      <path d="M8 17h6" />
+    </svg>
+  );
+}
+
+function IconHelp() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </svg>
+  );
+}
