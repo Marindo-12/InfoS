@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\NotificationController;
@@ -103,17 +105,13 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         return Inertia::render('Admin/Applications');
     })->name('applications');
 
-    Route::get('/students', function () {
-        return Inertia::render('Dashboard/Admin/Students');
-    })->name('students');
+    Route::get('/students', [StudentController::class, 'index'])->name('students');
 
     Route::get('/courses', function () {
         return Inertia::render('Admin/Courses');
     })->name('courses');
 
-    Route::get('/payments', function () {
-        return Inertia::render('Admin/Payments');
-    })->name('payments');
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments');
 
     Route::get('/reports', function () {
         return Inertia::render('Admin/Reports');

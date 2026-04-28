@@ -210,5 +210,91 @@ class DatabaseSeeder extends Seeder
                 'read_at' => $notification['read_at'] ?? null,
             ]);
         });
+
+        $extraStudents = [
+            [
+                'name' => 'Omar Drissi',
+                'email' => 'omar.drissi@infosaloua.test',
+                'phone' => '+212600000001',
+                'course_slug' => 'anglais-des-affaires-b2',
+                'progress' => 32,
+                'payment_status' => 'partial',
+                'group_name' => 'Lab 4',
+                'room' => 'Lab 4',
+                'paid_amounts' => [1200],
+            ],
+            [
+                'name' => 'Ines Benjelloun',
+                'email' => 'ines.benjelloun@infosaloua.test',
+                'phone' => '+212600000002',
+                'course_slug' => 'maitrise-adobe-creative-suite',
+                'progress' => 90,
+                'payment_status' => 'retard',
+                'group_name' => 'Groupe A2',
+                'room' => 'Salle 302',
+                'paid_amounts' => [],
+            ],
+            [
+                'name' => 'Anas Filali',
+                'email' => 'anas.filali@infosaloua.test',
+                'phone' => '+212600000003',
+                'course_slug' => 'expertise-microsoft-office',
+                'progress' => 15,
+                'payment_status' => 'paid',
+                'group_name' => 'Lab 1',
+                'room' => 'Lab 1',
+                'paid_amounts' => [2800],
+            ],
+            [
+                'name' => 'Sofia El Alami',
+                'email' => 'sofia.elalami@infosaloua.test',
+                'phone' => '+212600000004',
+                'course_slug' => 'maitrise-adobe-creative-suite',
+                'progress' => 75,
+                'payment_status' => 'paid',
+                'group_name' => 'Groupe A2',
+                'room' => 'Salle 302',
+                'paid_amounts' => [2500, 2000],
+            ],
+        ];
+
+        foreach ($extraStudents as $index => $studentData) {
+            $extraStudent = User::factory()->create([
+                'name' => $studentData['name'],
+                'email' => $studentData['email'],
+                'phone' => $studentData['phone'],
+                'created_at' => now()->subDays($index + 2),
+                'updated_at' => now()->subHours(($index + 1) * 6),
+            ]);
+
+            $course = $courses->firstWhere('slug', $studentData['course_slug']);
+
+            $extraEnrollment = Enrollment::create([
+                'user_id' => $extraStudent->id,
+                'course_id' => $course->id,
+                'reference' => 'ENR-'.Str::padLeft((string) ($index + 10), 4, '0'),
+                'group_name' => $studentData['group_name'],
+                'room' => $studentData['room'],
+                'progress' => $studentData['progress'],
+                'status' => 'active',
+                'payment_status' => $studentData['payment_status'],
+                'enrolled_at' => now()->subWeeks($index + 1),
+                'next_session_at' => now()->addDays($index + 1)->setTime(10 + $index, 0),
+                'created_at' => now()->subDays($index + 2),
+                'updated_at' => now()->subHours(($index + 1) * 6),
+            ]);
+
+            foreach ($studentData['paid_amounts'] as $paymentIndex => $amount) {
+                Payment::create([
+                    'enrollment_id' => $extraEnrollment->id,
+                    'reference' => 'PAY-20'.($index + 1).($paymentIndex + 1),
+                    'method' => $paymentIndex % 2 === 0 ? 'card' : 'bank_transfer',
+                    'amount' => $amount,
+                    'status' => 'paid',
+                    'paid_at' => now()->subDays(($index + 1) * 3 + $paymentIndex),
+                    'notes' => null,
+                ]);
+            }
+        }
     }
 }
