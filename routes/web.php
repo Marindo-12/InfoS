@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -84,9 +85,8 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
         return Inertia::render('Student/Schedule');
     })->name('schedule');
 
-    Route::get('/notifications', function() {
-        return Inertia::render('Dashboard/Student/Notifications');
-    })->name('notifications');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/payment', [PaymentController::class, 'index'])->name('payment');
 });

@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\PaymentInstallment;
+use App\Models\PortalNotification;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -156,5 +157,58 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        collect([
+            [
+                'category' => 'academic',
+                'title' => 'Resultat valide pour votre module de bureautique',
+                'message' => 'Votre progression dans le module Expertise Microsoft Office a ete mise a jour. Vous etes proche de la validation finale.',
+                'icon' => 'school',
+                'action_label' => 'Voir mes formations',
+                'action_url' => route('student.courses', absolute: false),
+                'published_at' => now()->subMinutes(12),
+            ],
+            [
+                'category' => 'financial',
+                'title' => 'Deuxieme versement en attente',
+                'message' => 'Le prochain versement pour Anglais des affaires reste a regler afin de finaliser votre dossier administratif.',
+                'icon' => 'account_balance_wallet',
+                'action_label' => 'Voir mes paiements',
+                'action_url' => route('student.payment', absolute: false),
+                'published_at' => now()->subHours(2),
+            ],
+            [
+                'category' => 'news',
+                'title' => 'Atelier special portfolio cette semaine',
+                'message' => 'Un atelier exceptionnel sera organise vendredi pour optimiser vos presentations et dossiers de projets.',
+                'icon' => 'campaign',
+                'action_label' => 'Voir mes formations',
+                'action_url' => route('student.courses', absolute: false),
+                'published_at' => now()->subDay(),
+                'read_at' => now()->subHours(20),
+            ],
+            [
+                'category' => 'academic',
+                'title' => 'Changement de salle pour la prochaine seance',
+                'message' => 'La prochaine session d infographie aura lieu en Salle 302. Merci de mettre votre agenda a jour.',
+                'icon' => 'calendar_month',
+                'action_label' => 'Consulter le planning',
+                'action_url' => route('student.courses', absolute: false),
+                'published_at' => now()->subDays(2),
+                'read_at' => now()->subDay(),
+            ],
+        ])->each(function (array $notification) use ($student) {
+            PortalNotification::create([
+                'user_id' => $student->id,
+                'category' => $notification['category'],
+                'title' => $notification['title'],
+                'message' => $notification['message'],
+                'icon' => $notification['icon'],
+                'action_label' => $notification['action_label'],
+                'action_url' => $notification['action_url'],
+                'published_at' => $notification['published_at'],
+                'read_at' => $notification['read_at'] ?? null,
+            ]);
+        });
     }
 }

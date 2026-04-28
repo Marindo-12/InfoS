@@ -36,6 +36,11 @@ class User extends Authenticatable
         return $this->hasMany(Enrollment::class);
     }
 
+    public function portalNotifications(): HasMany
+    {
+        return $this->hasMany(PortalNotification::class);
+    }
+
     public function isStudent(): bool
     {
         return $this->role === 'student';
