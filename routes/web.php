@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -72,9 +74,7 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
         return Inertia::render('Dashboard/Student/Dashboard');
     })->name('dashboard');
 
-    Route::get('/courses', function () {
-        return Inertia::render('Dashboard/Student/MyCourses');
-    })->name('courses');
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 
     Route::get('/progress', function () {
         return Inertia::render('Student/Progress');
@@ -88,9 +88,7 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
         return Inertia::render('Dashboard/Student/Notifications');
     })->name('notifications');
 
-    Route::get('/payment', function () {
-        return Inertia::render('Dashboard/Student/Payment');
-    })->name('payment');
+    Route::get('/payment', [PaymentController::class, 'index'])->name('payment');
 });
 
 /*
