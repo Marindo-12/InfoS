@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\ProfileController;
@@ -60,9 +61,7 @@ Route::get('/inscriptions', function () {
 
 require __DIR__.'/auth.php';
 
-Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
-    return Inertia::render('Dashboard/Student/Dashboard');
-})->name('dashboard');
+Route::middleware(['auth', 'verified'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -71,9 +70,7 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 */
 
 Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard/Student/Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 
