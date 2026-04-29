@@ -1,253 +1,473 @@
-import React from 'react'
+import AdminLayout from '@/Layouts/AdminLayout'
+import { Head, usePage } from '@inertiajs/react'
 
-const Students = () => {
-  return (
-    <main className="p-10 min-h-screen">
-<header className="mb-10 flex justify-between items-end">
-<div>
-<h2 className="font-serif text-5xl text-on-surface tracking-tight mb-2">Gestion des Étudiants &amp; Candidats</h2>
-<p className="text-secondary font-body tracking-wide">Vue d'ensemble de votre centre académique aujourd'hui.</p>
-</div>
-<button className="bg-primary text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium hover:opacity-90 transition-all shadow-sm">
-<span className="material-symbols-outlined text-sm">add</span>
-                Nouvel Étudiant
-            </button>
-</header>
-<section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-<div className="bg-surface-container-lowest p-6 rounded-xl shadow-[0_2px_16px_rgba(58,48,42,0.04)] border border-outline-variant/30">
-<div className="flex justify-between items-start mb-4">
-<div className="p-2 bg-primary/10 rounded-lg text-primary">
-<span className="material-symbols-outlined">group</span>
-</div>
-<span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">+12%</span>
-</div>
-<p className="text-secondary text-xs uppercase tracking-widest font-bold mb-1">Total Étudiants</p>
-<p className="text-3xl font-serif text-on-surface">1,284</p>
-</div>
-<div className="bg-surface-container-lowest p-6 rounded-xl shadow-[0_2px_16px_rgba(58,48,42,0.04)] border border-outline-variant/30">
-<div className="flex justify-between items-start mb-4">
-<div className="p-2 bg-tertiary-container/10 text-tertiary">
-<span className="material-symbols-outlined">pending_actions</span>
-</div>
-<span className="text-xs font-bold text-primary bg-primary-fixed px-2 py-1 rounded-full">8 Nouveaux</span>
-</div>
-<p className="text-secondary text-xs uppercase tracking-widest font-bold mb-1">Candidatures</p>
-<p className="text-3xl font-serif text-on-surface">42</p>
-</div>
-<div className="bg-surface-container-lowest p-6 rounded-xl shadow-[0_2px_16px_rgba(58,48,42,0.04)] border border-outline-variant/30">
-<div className="flex justify-between items-start mb-4">
-<div className="p-2 bg-green-100 text-green-700 rounded-lg">
-<span className="material-symbols-outlined">payments</span>
-</div>
-<span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">Mensuel</span>
-</div>
-<p className="text-secondary text-xs uppercase tracking-widest font-bold mb-1">Revenu Total</p>
-<p className="text-3xl font-serif text-on-surface">84,200 <span className="text-sm font-sans">DH</span></p>
-</div>
-<div className="bg-surface-container-lowest p-6 rounded-xl shadow-[0_2px_16px_rgba(58,48,42,0.04)] border border-outline-variant/30">
-<div className="flex justify-between items-start mb-4">
-<div className="p-2 bg-secondary-container text-secondary rounded-lg">
-<span className="material-symbols-outlined">school</span>
-</div>
-</div>
-<p className="text-secondary text-xs uppercase tracking-widest font-bold mb-1">Cours Actifs</p>
-<p className="text-3xl font-serif text-on-surface">18</p>
-</div>
-</section>
-<section className="mb-12">
-<div className="flex justify-between items-center mb-6">
-<h3 className="font-serif text-3xl text-on-surface">Candidats à Valider</h3>
-<a className="text-primary font-medium text-sm hover:underline" href="#">Voir tout le pipeline</a>
-</div>
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-<div className="bg-white rounded-xl p-6 border border-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
-<div className="flex flex-col items-center text-center">
-<img alt="Candidate 1" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-primary/20" data-alt="portrait of a young female student with light eyes looking directly at camera in soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTyUBnCsX-NaV_DfFL0vCAgq_4SfUmXzfRvVpqU3RFR9BYg0gju16spuJSHuCyX3r-cWQN1sgeTdMgsaoPP7gPkQwJshS8TYNLx0B5oQsu7PDs5WCYom8X2E57JfxOom3-yEqDVemSLnbb7FVqkZOGp7A3tsUWbiNf3EVjvXLrQ0anPKV_Nc45yztXj8vkz8eqaJg_1qZqTeuC5kFAzkEgmKuUo0TOUL_KQvviSjqvJ20ImVxpk8Ufna5prJWiAGH4gpxun6-tcthc"/>
-<h4 className="font-serif text-xl text-on-surface mb-1">Selma Bennani</h4>
-<span className="text-xs font-bold py-1 px-3 bg-surface-container-high rounded-full text-secondary mb-6">Concours ENCG</span>
-<div className="grid grid-cols-2 gap-2 w-full">
-<button className="bg-primary text-white text-xs py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors">Approuver</button>
-<button className="bg-white border border-outline-variant text-on-surface text-xs py-2.5 rounded-lg font-bold hover:bg-surface-container-low transition-colors">Détails</button>
-</div>
-</div>
-</div>
-<div className="bg-white rounded-xl p-6 border border-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
-<div className="flex flex-col items-center text-center">
-<img alt="Candidate 2" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-primary/20" data-alt="portrait of a young male professional smiling with warm sun flares highlighting his face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK5gN4pALp8sBft2Y2g0HS0o_CaMtWv9UUqGUmQg1ekqy9T7G-mgZJjAoPX0skdGTfIY9uOqHj85IiWZuQfZt295estYp-LF_YOAWimV7CuZkRdQLCUNzyl_tV-Juq0oH39hQRvRyVp8XMeWOcr1s9sRN90BdBMCCE3wNoq611teqf7E08_BXGwG8_uEPcysVuZgqzf_MU1U0opGN0XBiOFL7v1y5CY6_LnY1rCJLFu6ac0mdYurnAt23GML2ai6usDTupGwf6wKjw"/>
-<h4 className="font-serif text-xl text-on-surface mb-1">Yassine Amrani</h4>
-<span className="text-xs font-bold py-1 px-3 bg-surface-container-high rounded-full text-secondary mb-6">Anglais Business</span>
-<div className="grid grid-cols-2 gap-2 w-full">
-<button className="bg-primary text-white text-xs py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors">Approuver</button>
-<button className="bg-white border border-outline-variant text-on-surface text-xs py-2.5 rounded-lg font-bold hover:bg-surface-container-low transition-colors">Détails</button>
-</div>
-</div>
-</div>
-<div className="bg-white rounded-xl p-6 border border-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
-<div className="flex flex-col items-center text-center">
-<img alt="Candidate 3" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-primary/20" data-alt="young professional woman with dark hair and glasses in a studio setting with soft warm key light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABEyUc6lGujp45VB6FKtqw_42Dwv6wPJH_G6vOEP4n8fk899OBcdNCUr7ohq7teNkJf8rAQ4MkdxDuS3sSEA1tWHOa-7cdtLffbTf48tdJhzhB90ecp_tLrjRv9_uMRGbOu3LJGQcPfl7bHkTnW-qApARxLe9WyDBS8Hd64yh3ikkHAlGQaZf8mw1Ggv6Y6Ee07czhV7zipT6SY6OWdQG-cxxyYNNbk_zWwr_xFPrmQfv2o7ReEEUAr2rXUmdqYQqEQ06yqQDoAce7"/>
-<h4 className="font-serif text-xl text-on-surface mb-1">Ghita Mansouri</h4>
-<span className="text-xs font-bold py-1 px-3 bg-surface-container-high rounded-full text-secondary mb-6">Prépa HEC</span>
-<div className="grid grid-cols-2 gap-2 w-full">
-<button className="bg-primary text-white text-xs py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors">Approuver</button>
-<button className="bg-white border border-outline-variant text-on-surface text-xs py-2.5 rounded-lg font-bold hover:bg-surface-container-low transition-colors">Détails</button>
-</div>
-</div>
-</div>
-<div className="bg-white rounded-xl p-6 border border-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
-<div className="flex flex-col items-center text-center">
-<img alt="Candidate 4" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-primary/20" data-alt="medium shot of a handsome man with a short beard against a blurred neutral wall background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoot9N8ArlJpL5MLAK82swdgPwO7c6UiG6lHP2ohGziOuifhVd_p8ybXZ8e1LTJO2Ahedtik6nTcpcUxdIBrmQwh6e4PA_v__8MU74WRcdJ0IwyzO-v8-eHfsZclQ-w0K2PtmjJBQdrl-vmvDa-eOudCRsoa3qEh7O4nfnqHU7iRH0jmgpjpdMDqjlvEFVX8S3Uuzj7dFVH0e9bubZveiNAocJ5Gz76WtHXm0Rsv5WON_UUiNSxxKBNMHWuc7SXCl4hG9ReZEgW1Qs"/>
-<h4 className="font-serif text-xl text-on-surface mb-1">Mehdi Tazi</h4>
-<span className="text-xs font-bold py-1 px-3 bg-surface-container-high rounded-full text-secondary mb-6">IELTS Intensive</span>
-<div className="grid grid-cols-2 gap-2 w-full">
-<button className="bg-primary text-white text-xs py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors">Approuver</button>
-<button className="bg-white border border-outline-variant text-on-surface text-xs py-2.5 rounded-lg font-bold hover:bg-surface-container-low transition-colors">Détails</button>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section>
-<div className="flex justify-between items-center mb-6">
-<h3 className="font-serif text-3xl text-on-surface">Liste des Étudiants</h3>
-<div className="flex gap-4">
-<div className="flex bg-surface-container rounded-lg p-1">
-<button className="bg-white px-4 py-1.5 rounded text-xs font-bold shadow-sm">Tous</button>
-<button className="px-4 py-1.5 rounded text-xs font-bold text-secondary">Actifs</button>
-<button className="px-4 py-1.5 rounded text-xs font-bold text-secondary">Terminés</button>
-</div>
-</div>
-</div>
-<div className="bg-white rounded-2xl border border-outline-variant/40 overflow-hidden shadow-[0_2px_16px_rgba(58,48,42,0.02)]">
-<div className="grid grid-cols-12 gap-4 px-8 py-4 bg-surface-container-low border-b border-outline-variant/40 text-xs font-bold text-secondary uppercase tracking-widest">
-<div className="col-span-4">Étudiant &amp; Cours</div>
-<div className="col-span-2">Statut Paiement</div>
-<div className="col-span-3">Progression du Cours</div>
-<div className="col-span-2">Dernière Connexion</div>
-<div className="col-span-1 text-right">Actions</div>
-</div>
-<div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-outline-variant/20 items-center hover:bg-surface-bright transition-colors">
-<div className="col-span-4 flex items-center gap-4">
-<img alt="Student 1" className="w-12 h-12 rounded-lg object-cover" data-alt="portrait of a young woman in a beige knit sweater with soft studio lighting and warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoeT0XmxEmuoyJaCJOzId0n4dlUp8p2eK-IK4X9fttGKxk7RBG4wpiHyxZdFjvWNkTFYBTYTpJOjQCdK0QT8TdxSxnfrEt7x7m2JcuhV9As2DrGwCRP1VZWa2xBod0nkVB0vnnG_F1wxyIw573FFe5t5-whd9rf4Z6gP5jlOaxVd5_FOc-kUQxWN-vlf8p9OwAs_x7tKPX8Pm427E8rd_q1SfE6zmAKw0DAJso7cZcza9e38BvcJSs9oRkhrzCTHrmBQHVsCL8EqDd"/>
-<div>
-<p className="font-bold text-on-surface">Sofia El Alami</p>
-<p className="text-xs text-secondary">Préparation Concours ENCG</p>
-</div>
-</div>
-<div className="col-span-2">
-<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">Payé</span>
-</div>
-<div className="col-span-3">
-<div className="flex items-center gap-3">
-<div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-<div className="bg-primary h-full"></div>
-</div>
-<span className="text-xs font-bold text-on-surface">75%</span>
-</div>
-</div>
-<div className="col-span-2 text-sm text-on-surface">Aujourd'hui, 09:12</div>
-<div className="col-span-1 text-right">
-<button className="p-2 hover:bg-stone-100 rounded-lg text-stone-400">
-<span className="material-symbols-outlined text-xl">more_vert</span>
-</button>
-</div>
-</div>
-<div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-outline-variant/20 items-center hover:bg-surface-bright transition-colors">
-<div className="col-span-4 flex items-center gap-4">
-<img alt="Student 2" className="w-12 h-12 rounded-lg object-cover" data-alt="close up of a cheerful man with expressive brown eyes and short hair in warm golden hour light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz0uprA17TJXTDs6EB6AVQ0SbH-DfG5wNlPBK77gKGWlZ-xnUxK__mqzkhS_9a9qH7ug_Rl5Ry1v8K2We8DQpuh_8leI6Zkwtxzjc-9Fs5GseQqlNNpGvLpwLK40G04lSmQGKUL-kPySaC29RukK2T-wf9-3PaieC85bQO-hgUZHKfNSN1857rpAoAXkpssRvmbeyKhZ8dKKOITrzIBfB9ZoRVxdsrBkqZvvtNY6_E6o_TmW_q2i1Xje7DSpQZ94nRbTxti-czJd-W"/>
-<div>
-<p className="font-bold text-on-surface">Omar Drissi</p>
-<p className="text-xs text-secondary">Advanced English Business</p>
-</div>
-</div>
-<div className="col-span-2">
-<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Partiel</span>
-</div>
-<div className="col-span-3">
-<div className="flex items-center gap-3">
-<div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-<div className="bg-primary h-full" /* style="width: 32%" */></div>
-</div>
-<span className="text-xs font-bold text-on-surface">32%</span>
-</div>
-</div>
-<div className="col-span-2 text-sm text-on-surface">Hier, 18:45</div>
-<div className="col-span-1 text-right">
-<button className="p-2 hover:bg-stone-100 rounded-lg text-stone-400">
-<span className="material-symbols-outlined text-xl">more_vert</span>
-</button>
-</div>
-</div>
-<div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-outline-variant/20 items-center hover:bg-surface-bright transition-colors">
-<div className="col-span-4 flex items-center gap-4">
-<img alt="Student 3" className="w-12 h-12 rounded-lg object-cover" data-alt="smiling young woman with smooth skin and dark hair in professional lighting with warm shadow tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaz1e7MlrY9QtwxwDyug1Gdc8iHg4CqArNqyC1AeN-jlX2z_Fa2I4LArDc6j_rOBrlwzNTzdnfqgecuhI8RoZwmuBP3IRIgd5np5PfeELvnKK9vxDb8Fg03FTAnftOEukxgnTM4AfzcDICdMaIwIgHEKqZWHFRgkop4o9IHXOn6_Pdzm9Xk5lDneErVv-lYo6PGjz5MBF3ONdYffsiztzKydWDIvvxzJYsasQKdbqvJn2dbA9GGyDcPexO_NAZy3tX7RWE9loKRl7v"/>
-<div>
-<p className="font-bold text-on-surface">Inès Benjelloun</p>
-<p className="text-xs text-secondary">Mastering Soft Skills</p>
-</div>
-</div>
-<div className="col-span-2">
-<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">Retard</span>
-</div>
-<div className="col-span-3">
-<div className="flex items-center gap-3">
-<div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-<div className="bg-primary h-full" /* style="width: 90%" */></div>
-</div>
-<span className="text-xs font-bold text-on-surface">90%</span>
-</div>
-</div>
-<div className="col-span-2 text-sm text-on-surface">Il y a 3 jours</div>
-<div className="col-span-1 text-right">
-<button className="p-2 hover:bg-stone-100 rounded-lg text-stone-400">
-<span className="material-symbols-outlined text-xl">more_vert</span>
-</button>
-</div>
-</div>
-<div className="grid grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-surface-bright transition-colors">
-<div className="col-span-4 flex items-center gap-4">
-<img alt="Student 4" className="w-12 h-12 rounded-lg object-cover" data-alt="profile headshot of a friendly professional man with short dark hair and slight stubble on soft lit background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcm8-SpFt92nzDNItUrAaiIc0XifQ97r-WBhjiprIKbfAItBYAkO31kvaYDdePEYc63qDgaIO7FpJkclx229hbUR47EeDa-RiIyClyjDsDJdhEM-3tnyrQ6ZSbWFv3GRlBkeVQBmljiCwUpHZ64MJcTdD4UcScxOls_GpJHq4DoP6NkwciUU8Ck2i5SFGnlMRwNY-K_PoWrEIM2lKtJiAcLbCPcm6UKWSFRT7gbJZndmXptr3ObJqapVV3olDbYbdAbD6CtBYBlPfQ"/>
-<div>
-<p className="font-bold text-on-surface">Anas Filali</p>
-<p className="text-xs text-secondary">Pack IELTS 6.5+</p>
-</div>
-</div>
-<div className="col-span-2">
-<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">Payé</span>
-</div>
-<div className="col-span-3">
-<div className="flex items-center gap-3">
-<div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-<div className="bg-primary h-full" /* style="width: 15%" */></div>
-</div>
-<span className="text-xs font-bold text-on-surface">15%</span>
-</div>
-</div>
-<div className="col-span-2 text-sm text-on-surface">Aujourd'hui, 08:30</div>
-<div className="col-span-1 text-right">
-<button className="p-2 hover:bg-stone-100 rounded-lg text-stone-400">
-<span className="material-symbols-outlined text-xl">more_vert</span>
-</button>
-</div>
-</div>
-</div>
-<div className="mt-6 flex justify-center">
-<nav className="flex gap-1 items-center">
-<button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-secondary">
-<span className="material-symbols-outlined">chevron_left</span>
-</button>
-<button className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
-<button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-secondary font-bold">2</button>
-<button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-secondary font-bold">3</button>
-<span className="px-2 text-stone-300">...</span>
-<button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-secondary font-bold">12</button>
-<button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-secondary">
-<span className="material-symbols-outlined">chevron_right</span>
-</button>
-</nav>
-</div>
-</section>
-</main>
-  )
+/* ═══════════════════════════════════════════════
+   TYPES
+═══════════════════════════════════════════════ */
+type Stat = {
+  label:  string
+  value:  string
+  sub:    string
+  accent: 'orange' | 'blue' | 'green' | 'slate'
 }
 
-export default Students
+type RecentStudent = {
+  name:     string
+  email:    string
+  course:   string
+  joinedAt: string
+}
+
+type StudentRow = {
+  name:             string
+  email:            string
+  phone:            string | null
+  course:           string
+  progress:         number
+  paymentStatus:    'paye' | 'partiel' | 'retard' | 'non defini'
+  lastSeen:         string
+  enrollmentsCount: number
+}
+
+type PageProps = {
+  auth:           { user: { id: number; name: string; email: string } }
+  stats:          Stat[]
+  recentStudents: RecentStudent[]
+  students:       StudentRow[]
+}
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function statusMeta(status: StudentRow['paymentStatus']) {
+  if (status === 'paye')    return { label: 'Payé',       cls: 'adm-status adm-status--green' }
+  if (status === 'partiel') return { label: 'Partiel',    cls: 'adm-status adm-status--amber' }
+  if (status === 'retard')  return { label: 'Retard',     cls: 'adm-status adm-status--red'   }
+  return                           { label: 'Non défini', cls: 'adm-status adm-status--slate' }
+}
+
+function initials(name: string) {
+  return name.split(' ').map(p => p[0]).slice(0, 2).join('')
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE
+═══════════════════════════════════════════════ */
+export default function Students() {
+  const { props }                             = usePage<PageProps>()
+  const { stats, recentStudents, students }   = props
+
+  return (
+    <AdminLayout
+      header={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Manrope, sans-serif' }}>
+          <span style={{ fontSize: '.8rem', color: '#b0a49a' }}>Administration</span>
+          <span style={{ color: '#b0a49a', fontSize: '.8rem' }}>/</span>
+          <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#1a1612' }}>Étudiants</span>
+        </div>
+      }
+    >
+      <Head title="Gestion des étudiants" />
+
+      <div className="adm-root">
+
+        {/* ── Page header ── */}
+        <header className="adm-header">
+          <div>
+            <p className="adm-kicker">Administration</p>
+            <h1 className="adm-title">Gestion des étudiants</h1>
+            <p className="adm-subtitle">
+              Vue d'ensemble des inscriptions, paiements et progressions des étudiants du centre.
+            </p>
+          </div>
+          <button className="adm-primary-btn" type="button">
+            + Nouvel étudiant
+          </button>
+        </header>
+
+        {/* ── Stats ── */}
+        <section className="adm-stats-grid">
+          {stats.map(stat => (
+            <div className={`adm-stat-card adm-stat-card--${stat.accent}`} key={stat.label}>
+              <p className="adm-stat-label">{stat.label}</p>
+              <p className="adm-stat-value">{stat.value}</p>
+              <p className="adm-stat-sub">{stat.sub}</p>
+            </div>
+          ))}
+        </section>
+
+        {/* ── Recent students ── */}
+        <section className="adm-recent-section">
+          <div className="adm-section-head">
+            <h2>Nouveaux étudiants récents</h2>
+            <span>{recentStudents.length} profil{recentStudents.length > 1 ? 's' : ''} affiché{recentStudents.length > 1 ? 's' : ''}</span>
+          </div>
+          <div className="adm-recent-grid">
+            {recentStudents.map(student => (
+              <article className="adm-recent-card" key={student.email}>
+                <div className="adm-avatar">{initials(student.name)}</div>
+                <h3>{student.name}</h3>
+                <p>{student.email}</p>
+                <span className="adm-recent-chip">{student.course}</span>
+                <small>Inscrit le {student.joinedAt}</small>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Table ── */}
+        <section className="adm-table-section">
+          <div className="adm-section-head">
+            <h2>Liste des étudiants</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span>{students.length} ligne{students.length > 1 ? 's' : ''}</span>
+              {/* Filters row */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                {['Tous', 'Payé', 'Partiel', 'Retard'].map(f => (
+                  <button key={f} style={{
+                    padding: '4px 12px', borderRadius: 99,
+                    border: f === 'Tous' ? '1px solid rgba(194,101,42,.4)' : '1px solid rgba(0,0,0,0.08)',
+                    background: f === 'Tous' ? '#fff3ec' : '#fff',
+                    color: f === 'Tous' ? '#c2652a' : '#6b7280',
+                    fontSize: '.72rem', fontWeight: 700, cursor: 'pointer',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>Étudiant</th>
+                  <th>Formation</th>
+                  <th>Paiement</th>
+                  <th>Progression</th>
+                  <th>Parcours</th>
+                  <th>Dernière activité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map(student => {
+                  const status = statusMeta(student.paymentStatus)
+                  return (
+                    <tr key={student.email}>
+                      <td>
+                        <div className="adm-student-cell">
+                          <div className="adm-avatar adm-avatar--sm">{initials(student.name)}</div>
+                          <div>
+                            <strong>{student.name}</strong>
+                            <span>{student.email}</span>
+                            {student.phone && <small>{student.phone}</small>}
+                          </div>
+                        </div>
+                      </td>
+                      <td>{student.course}</td>
+                      <td><span className={status.cls}>{status.label}</span></td>
+                      <td>
+                        <div className="adm-progress">
+                          <div className="adm-progress-track">
+                            <div className="adm-progress-fill" style={{ width: `${student.progress}%` }} />
+                          </div>
+                          <span>{student.progress}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 28, height: 28, borderRadius: 8,
+                          background: '#f5f4f1', border: '1px solid rgba(0,0,0,0.07)',
+                          fontWeight: 800, fontSize: '.82rem', color: '#1a1612',
+                        }}>
+                          {student.enrollmentsCount}
+                        </span>
+                      </td>
+                      <td style={{ color: '#6b7280', fontSize: '.8rem' }}>{student.lastSeen}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button className="adm-action-btn" title="Voir le profil">
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
+                          </button>
+                          <button className="adm-action-btn" title="Modifier">
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                          </button>
+                          <button className="adm-action-btn adm-action-btn--danger" title="Supprimer">
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0 4px', flexWrap: 'wrap', gap: 10 }}>
+            <p style={{ fontSize: '.78rem', color: '#8b8b8b', fontFamily: 'Manrope,sans-serif' }}>
+              Affichage de {students.length} sur {students.length} résultats
+            </p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {['←', '1', '2', '3', '→'].map((p, i) => (
+                <button key={i} style={{
+                  width: 32, height: 32, borderRadius: 8, border: '1px solid rgba(0,0,0,0.08)',
+                  background: p === '1' ? '#c2652a' : '#fff',
+                  color: p === '1' ? '#fff' : '#6b7280',
+                  fontWeight: 700, fontSize: '.78rem', cursor: 'pointer',
+                  fontFamily: 'Manrope, sans-serif',
+                }}>{p}</button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      {/* ═══════════════════════════
+          STYLES — scoped
+      ═══════════════════════════ */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+        .material-symbols-outlined {
+          font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
+          font-family:'Material Symbols Outlined';
+          font-style:normal;line-height:1;
+          letter-spacing:normal;text-transform:none;
+          display:inline-block;white-space:nowrap;
+          -webkit-font-smoothing:antialiased;
+        }
+
+        .adm-root {
+          padding: 28px;
+          font-family: 'Manrope', sans-serif;
+          color: #18181b;
+          min-height: 100%;
+        }
+
+        /* Header */
+        .adm-header {
+          display: flex; justify-content: space-between;
+          gap: 20px; align-items: flex-end; flex-wrap: wrap;
+          background: #fff;
+          border: 1px solid rgba(15,23,42,.07);
+          box-shadow: 0 4px 20px rgba(15,23,42,.04);
+          border-radius: 20px;
+          padding: 28px;
+          margin-bottom: 22px;
+          background: radial-gradient(circle at top right, rgba(194,101,42,.08), transparent 40%), #fff;
+        }
+        .adm-kicker {
+          margin: 0 0 6px;
+          font-size: .72rem; font-weight: 800;
+          letter-spacing: .14em; text-transform: uppercase;
+          color: #c2652a;
+        }
+        .adm-title {
+          margin: 0;
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(1.8rem, 3vw, 2.8rem);
+          line-height: 1; color: #18181b;
+        }
+        .adm-subtitle {
+          margin: 12px 0 0; color: #6b7280;
+          max-width: 600px; line-height: 1.7; font-size: .9rem;
+        }
+        .adm-primary-btn {
+          border: none; border-radius: 12px;
+          padding: 11px 20px;
+          background: linear-gradient(135deg, #c2652a, #e8915a);
+          color: #fff;
+          font-size: .84rem; font-weight: 800;
+          cursor: pointer; white-space: nowrap;
+          box-shadow: 0 8px 20px rgba(194,101,42,.3);
+          font-family: 'Manrope', sans-serif;
+          transition: opacity .2s, transform .2s;
+        }
+        .adm-primary-btn:hover { opacity: .9; transform: translateY(-1px); }
+
+        /* Stats */
+        .adm-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px; margin-bottom: 22px;
+        }
+        .adm-stat-card {
+          background: #fff;
+          border: 1px solid rgba(15,23,42,.07);
+          box-shadow: 0 2px 12px rgba(15,23,42,.04);
+          border-radius: 16px; padding: 20px;
+          transition: transform .2s, box-shadow .2s;
+        }
+        .adm-stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.07); }
+        .adm-stat-label {
+          margin: 0 0 8px;
+          color: #8b8b8b; font-size: .7rem;
+          font-weight: 800; text-transform: uppercase;
+          letter-spacing: .12em;
+        }
+        .adm-stat-value {
+          margin: 0; color: #18181b;
+          font-family: 'EB Garamond', serif;
+          font-size: 2rem; line-height: 1;
+        }
+        .adm-stat-sub { margin: 8px 0 0; color: #6b7280; font-size: .8rem; }
+        .adm-stat-card--orange { border-top: 3px solid #c2652a; }
+        .adm-stat-card--blue   { border-top: 3px solid #3b82f6; }
+        .adm-stat-card--green  { border-top: 3px solid #10b981; }
+        .adm-stat-card--slate  { border-top: 3px solid #64748b; }
+
+        /* Recent */
+        .adm-recent-section { margin-bottom: 22px; }
+        .adm-section-head {
+          display: flex; align-items: center;
+          justify-content: space-between; gap: 12px;
+          margin-bottom: 14px; flex-wrap: wrap;
+        }
+        .adm-section-head h2 {
+          margin: 0;
+          font-family: 'EB Garamond', serif; font-size: 1.7rem;
+          color: #18181b;
+        }
+        .adm-section-head > span {
+          color: #8b8b8b; font-size: .78rem; font-weight: 700;
+        }
+        .adm-recent-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+        }
+        .adm-recent-card {
+          background: #fff;
+          border: 1px solid rgba(15,23,42,.07);
+          box-shadow: 0 2px 12px rgba(15,23,42,.04);
+          border-radius: 16px; padding: 22px; text-align: center;
+          transition: transform .2s, box-shadow .2s;
+        }
+        .adm-recent-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.07); }
+        .adm-avatar {
+          width: 56px; height: 56px;
+          border-radius: 16px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #c2652a, #e8915a);
+          color: #fff; font-weight: 800; font-size: .9rem;
+          margin-bottom: 12px;
+        }
+        .adm-avatar--sm {
+          width: 42px; height: 42px;
+          border-radius: 12px;
+          margin-bottom: 0; flex-shrink: 0;
+          font-size: .74rem;
+        }
+        .adm-recent-card h3 { margin: 0; font-size: .96rem; font-weight: 800; color: #18181b; }
+        .adm-recent-card p  { margin: 6px 0; color: #6b7280; font-size: .8rem; }
+        .adm-recent-chip {
+          display: inline-flex; align-items: center;
+          padding: 5px 10px; border-radius: 99px;
+          background: #fff3ec; color: #c2652a;
+          font-size: .68rem; font-weight: 800;
+          margin-bottom: 8px;
+        }
+        .adm-recent-card small { display: block; color: #9ca3af; font-size: .72rem; }
+
+        /* Table section */
+        .adm-table-section {
+          background: #fff;
+          border: 1px solid rgba(15,23,42,.07);
+          box-shadow: 0 4px 20px rgba(15,23,42,.04);
+          border-radius: 20px; padding: 24px;
+          margin-bottom: 8px;
+        }
+        .adm-table-wrap {
+          overflow-x: auto;
+          border-radius: 14px;
+          border: 1px solid rgba(15,23,42,.06);
+          margin-top: 12px;
+        }
+        .adm-table {
+          width: 100%; min-width: 900px;
+          border-collapse: collapse; background: #fff;
+        }
+        .adm-table thead tr { background: #faf8f5; }
+        .adm-table th, .adm-table td {
+          padding: 14px 18px;
+          border-bottom: 1px solid rgba(15,23,42,.06);
+          text-align: left; font-size: .84rem;
+        }
+        .adm-table th {
+          color: #8b8b8b; font-size: .68rem;
+          font-weight: 800; letter-spacing: .1em;
+          text-transform: uppercase;
+        }
+        .adm-table tbody tr:last-child td { border-bottom: none; }
+        .adm-table tbody tr:hover { background: #fffaf6; }
+
+        .adm-student-cell { display: flex; align-items: center; gap: 12px; }
+        .adm-student-cell strong { display: block; color: #18181b; font-weight: 700; }
+        .adm-student-cell span, .adm-student-cell small {
+          display: block; color: #6b7280;
+          font-size: .74rem; margin-top: 1px;
+        }
+
+        /* Status badges */
+        .adm-status {
+          display: inline-flex; align-items: center;
+          padding: 4px 10px; border-radius: 99px;
+          font-size: .67rem; font-weight: 800;
+          text-transform: uppercase; letter-spacing: .06em;
+          width: fit-content;
+        }
+        .adm-status--green { background: rgba(16,185,129,.12); color: #0f9d70; }
+        .adm-status--amber { background: rgba(245,158,11,.14); color: #b45309; }
+        .adm-status--red   { background: rgba(239,68,68,.12);  color: #dc2626; }
+        .adm-status--slate { background: rgba(100,116,139,.12);color: #64748b; }
+
+        /* Progress */
+        .adm-progress { display: flex; align-items: center; gap: 10px; }
+        .adm-progress-track {
+          width: 100px; height: 7px;
+          border-radius: 99px; overflow: hidden;
+          background: #ece8e4; flex-shrink: 0;
+        }
+        .adm-progress-fill {
+          height: 100%; border-radius: inherit;
+          background: linear-gradient(90deg, #e8915a, #c2652a);
+        }
+        .adm-progress > span { color: #18181b; font-size: .76rem; font-weight: 800; }
+
+        /* Action buttons */
+        .adm-action-btn {
+          width: 28px; height: 28px;
+          border-radius: 7px; border: 1px solid rgba(0,0,0,0.08);
+          background: #faf8f5; color: #6b7280;
+          display: inline-flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+        }
+        .adm-action-btn:hover {
+          background: #fff3ec; color: #c2652a; border-color: rgba(194,101,42,.3);
+        }
+        .adm-action-btn--danger:hover {
+          background: #fff0f0; color: #e05252; border-color: rgba(220,38,38,.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+          .adm-stats-grid   { grid-template-columns: repeat(2, 1fr); }
+          .adm-recent-grid  { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+          .adm-root         { padding: 16px; }
+          .adm-stats-grid   { grid-template-columns: 1fr; }
+          .adm-recent-grid  { grid-template-columns: 1fr; }
+          .adm-header       { padding: 18px; border-radius: 16px; }
+        }
+      `}</style>
+
+    </AdminLayout>
+  )
+}

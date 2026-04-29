@@ -1,837 +1,588 @@
-import Authenticated from '@/Layouts/AuthenticatedLayout'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
-  AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
-} from 'recharts'
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
-/* ═══════════════════════════════════════════════════════
-   MOCK DATA
-═══════════════════════════════════════════════════════ */
-const monthlyData = [
-  { month: 'Jan', paid: 0,    pending: 0    },
-  { month: 'Fév', paid: 0,    pending: 0    },
-  { month: 'Mar', paid: 0,    pending: 0    },
-  { month: 'Avr', paid: 0,    pending: 0    },
-  { month: 'Mai', paid: 0,    pending: 0    },
-  { month: 'Jun', paid: 0,    pending: 0    },
-  { month: 'Jul', paid: 5000, pending: 0    },
-  { month: 'Aoû', paid: 2500, pending: 0    },
-  { month: 'Sep', paid: 2500, pending: 0    },
-  { month: 'Oct', paid: 0,    pending: 2500 },
-  { month: 'Nov', paid: 0,    pending: 2500 },
-  { month: 'Déc', paid: 0,    pending: 10000},
-]
+type Stat = {
+  label: string;
+  value: string;
+  sub: string;
+  color: string;
+  icon: 'check' | 'wallet' | 'receipt';
+};
 
-const pieData = [
-  { name: 'Payé',   value: 10000 },
-  { name: 'Restant', value: 15000 },
-]
-const PIE_COLORS = ['#c2652a', '#ede9e4']
+type Summary = {
+  remaining: string;
+  paid: string;
+  completion: number;
+  nextDueLabel: string;
+};
 
-const transactions = [
-  { id: 1, date: '12 Sep 2024', method: 'Visa **** 4421', methodIcon: 'credit_card',       amount: 2500,  status: 'paid'    },
-  { id: 2, date: '15 Aoû 2024', method: 'Virement bancaire', methodIcon: 'account_balance', amount: 2500,  status: 'paid'    },
-  { id: 3, date: '10 Jul 2024', method: 'Dépôt espèces',  methodIcon: 'payments',           amount: 5000,  status: 'pending' },
-]
+type MonthlyChartItem = {
+  month: string;
+  expected: number;
+  paid: number;
+};
 
-const installments = [
-  { month: 'Juillet',   amount: 5000,  status: 'paid',    label: 'PAYÉ'       },
-  { month: 'Août',      amount: 2500,  status: 'paid',    label: 'PAYÉ'       },
-  { month: 'Septembre', amount: 2500,  status: 'current', label: 'EN COURS'   },
-  { month: 'Octobre',   amount: 2500,  status: 'upcoming',label: 'PRÉVU'      },
-  { month: 'Novembre',  amount: 2500,  status: 'upcoming',label: 'PRÉVU'      },
-  { month: 'Décembre',  amount: 10000, status: 'upcoming',label: 'SOLDE FINAL'},
-]
+type DistributionItem = {
+  name: string;
+  value: number;
+  color: string;
+};
 
-/* ═══════════════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════════════ */
-const fmt = (n: number) =>
-  new Intl.NumberFormat('fr-MA', { minimumFractionDigits: 2 }).format(n)
+type PaymentHistoryItem = {
+  date: string;
+  method: string;
+  type: 'card' | 'bank' | 'cash';
+  amount: string;
+  status: 'paid' | 'pending';
+};
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    paid:     'status-paid',
-    pending:  'status-pending',
-    current:  'status-current',
-    upcoming: 'status-upcoming',
-  }
-  const label: Record<string, string> = {
-    paid: 'Payé', pending: 'En attente', current: 'En cours', upcoming: 'Prévu',
-  }
-  return <span className={`p-status ${map[status] ?? ''}`}>{label[status] ?? status}</span>
+type InvoiceItem = {
+  title: string;
+  issuedAt: string;
+};
+
+type InstallmentItem = {
+  month: string;
+  amount: string;
+  state: 'paid' | 'current' | 'upcoming' | 'final';
+};
+
+type PageProps = {
+  auth: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+  };
+  stats: Stat[];
+  summary: Summary;
+  monthlyChart: MonthlyChartItem[];
+  distributionChart: DistributionItem[];
+  paymentHistory: PaymentHistoryItem[];
+  invoices: InvoiceItem[];
+  installments: InstallmentItem[];
+};
+
+function formatDh(value: number | string | undefined) {
+  return `${Number(value ?? 0).toLocaleString('fr-FR')} DH`;
 }
 
-/* ═══════════════════════════════════════════════════════
-   STAT CARD
-═══════════════════════════════════════════════════════ */
-function StatCard({ label, value, sub, icon, accent = false }: {
-  label: string; value: string; sub?: string
-  icon: string; accent?: boolean
-}) {
+function statusMeta(status: 'paid' | 'pending') {
+  if (status === 'paid') {
+    return { label: 'Paye', className: 'pay-badge pay-badge--success' };
+  }
+
+  return { label: 'En attente', className: 'pay-badge pay-badge--pending' };
+}
+
+function methodIcon(type: 'card' | 'bank' | 'cash') {
+  if (type === 'bank') return <IconBank />;
+  if (type === 'cash') return <IconCash />;
+  return <IconCard />;
+}
+
+function statIcon(icon: Stat['icon']) {
+  if (icon === 'check') return <IconCheck />;
+  if (icon === 'receipt') return <IconReceipt />;
+  return <IconWallet />;
+}
+
+function StatCard({ label, value, sub, color, icon }: Stat) {
   return (
-    <div className={`p-stat-card ${accent ? 'p-stat-card--accent' : ''}`}>
-      <div className="p-stat-body">
-        <p className="p-stat-label">{label}</p>
-        <p className="p-stat-value">{value}</p>
-        {sub && <p className="p-stat-sub">{sub}</p>}
+    <div className="pay-stat-card">
+      <div className="pay-stat-icon" style={{ background: `${color}16`, color }}>
+        {statIcon(icon)}
       </div>
-      <div className={`p-stat-icon ${accent ? 'p-stat-icon--accent' : ''}`}>
-        <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{icon}</span>
+      <div>
+        <p className="pay-eyebrow">{label}</p>
+        <p className="pay-stat-value">{value}</p>
+        <p className="pay-muted">{sub}</p>
       </div>
     </div>
-  )
+  );
 }
 
-/* ═══════════════════════════════════════════════════════
-   CUSTOM TOOLTIP
-═══════════════════════════════════════════════════════ */
-function ChartTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="p-tooltip">
-      <p className="p-tooltip-label">{label}</p>
-      {payload.map((p: any) => (
-        <p key={p.name} style={{ color: p.color }} className="p-tooltip-row">
-          {p.name === 'paid' ? 'Payé' : 'À payer'} : {fmt(p.value)} DH
-        </p>
-      ))}
-    </div>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════
-   PAGE
-═══════════════════════════════════════════════════════ */
 export default function Payment() {
+  const { props } = usePage<PageProps>();
+  const { stats, summary, monthlyChart, distributionChart, paymentHistory, invoices, installments } = props;
+  const user = props.auth.user;
+  const firstName = user.name.split(' ')[0];
+
   return (
-    <Authenticated header={
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: '.82rem', color: 'var(--text-3, #b0a49a)' }}>Dashboard</span>
-        <span style={{ color: 'var(--text-3, #b0a49a)', fontSize: '.82rem' }}>/</span>
-        <span style={{ fontSize: '.82rem', fontWeight: 700, color: 'var(--text-1, #1a1612)' }}>Paiements</span>
-      </div>
-    }>
+    <AuthenticatedLayout header={<h2>Paiements</h2>}>
+      <Head title="Paiements" />
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Manrope:wght@400;500;600;700;800&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
-        .material-symbols-outlined {
-          font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
-          font-family:'Material Symbols Outlined';
-          font-style: normal; line-height: 1;
-          letter-spacing: normal; text-transform: none;
-          display: inline-block; white-space: nowrap;
-          -webkit-font-smoothing: antialiased;
-        }
-
-        :root {
-          --orange:       #c2652a;
-          --orange-light: #e8915a;
-          --orange-pale:  #fff3ec;
-          --orange-pale2: #fde8d8;
-          --page-bg:      #f6f4f0;
-          --surface:      #ffffff;
-          --border:       #ede9e4;
-          --text-1:       #1a1612;
-          --text-2:       #6b5f55;
-          --text-3:       #b0a49a;
-          --shadow:       0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-          --shadow-md:    0 4px 16px rgba(0,0,0,0.07);
-          --font:         'Manrope', sans-serif;
-          --radius:       14px;
-        }
-
-        /* ── Page header ── */
-        .p-header {
-          display: flex; flex-wrap: wrap;
-          align-items: flex-end; justify-content: space-between;
-          gap: 16px; margin-bottom: 28px;
-        }
-        .p-title {
-          font-family: 'EB Garamond', serif;
-          font-size: 2rem; font-weight: 600;
-          color: var(--text-1); margin: 0;
-        }
-        .p-subtitle {
-          font-size: .84rem; color: var(--text-2);
-          margin: 4px 0 0; font-family: var(--font);
-        }
-        .p-semester-pill {
-          display: flex; align-items: center; gap: 8px;
-          padding: 8px 16px;
-          background: var(--surface); border: 1px solid var(--border);
-          border-radius: 99px;
-          font-size: .78rem; font-weight: 600;
-          color: var(--text-2);
-          box-shadow: var(--shadow);
-        }
-        .p-semester-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: var(--orange);
-          animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%,100% { opacity: 1; transform: scale(1); }
-          50%      { opacity: .6; transform: scale(.85); }
-        }
-
-        /* ── Stat cards ── */
-        .p-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-        .p-stat-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 20px;
-          display: flex; align-items: center;
-          justify-content: space-between;
-          box-shadow: var(--shadow);
-          transition: box-shadow .2s, transform .2s;
-        }
-        .p-stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-        .p-stat-card--accent {
-          background: linear-gradient(135deg, var(--orange), var(--orange-light));
-          border-color: transparent; color: #fff;
-        }
-        .p-stat-label {
-          font-size: .7rem; font-weight: 700; text-transform: uppercase;
-          letter-spacing: .08em; color: var(--text-3); margin: 0 0 6px;
-          font-family: var(--font);
-        }
-        .p-stat-card--accent .p-stat-label { color: rgba(255,255,255,.75); }
-        .p-stat-value {
-          font-family: 'EB Garamond', serif;
-          font-size: 1.7rem; font-weight: 600;
-          color: var(--text-1); margin: 0;
-          line-height: 1.1;
-        }
-        .p-stat-card--accent .p-stat-value { color: #fff; }
-        .p-stat-sub {
-          font-size: .72rem; color: var(--text-3);
-          margin: 4px 0 0; font-family: var(--font);
-        }
-        .p-stat-card--accent .p-stat-sub { color: rgba(255,255,255,.7); }
-        .p-stat-icon {
-          width: 44px; height: 44px; flex-shrink: 0;
-          border-radius: 12px;
-          background: var(--orange-pale);
-          color: var(--orange);
-          display: flex; align-items: center; justify-content: center;
-        }
-        .p-stat-icon--accent {
-          background: rgba(255,255,255,.2);
-          color: #fff;
-        }
-
-        /* ── Progress card ── */
-        .p-progress-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 20px 24px;
-          box-shadow: var(--shadow);
-          margin-bottom: 24px;
-        }
-        .p-progress-header {
-          display: flex; align-items: center;
-          justify-content: space-between; margin-bottom: 16px;
-          flex-wrap: wrap; gap: 8px;
-        }
-        .p-progress-label {
-          font-size: .7rem; font-weight: 700; text-transform: uppercase;
-          letter-spacing: .08em; color: var(--text-3); margin: 0;
-          font-family: var(--font);
-        }
-        .p-progress-amounts {
-          font-size: .82rem; font-weight: 700; color: var(--orange);
-          font-family: var(--font);
-        }
-        .p-progress-track {
-          height: 10px; background: var(--orange-pale);
-          border-radius: 99px; overflow: hidden;
-        }
-        .p-progress-fill {
-          height: 100%;
-          background: linear-gradient(90deg, var(--orange), var(--orange-light));
-          border-radius: 99px;
-          width: 40%;
-          transition: width .8s cubic-bezier(.4,0,.2,1);
-        }
-        .p-progress-note {
-          font-size: .76rem; color: var(--text-3);
-          margin: 10px 0 0; font-family: var(--font); font-style: italic;
-        }
-
-        /* ── Card generic ── */
-        .p-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          box-shadow: var(--shadow);
-          overflow: hidden;
-        }
-        .p-card-header {
-          padding: 20px 24px 0;
-          display: flex; align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap; gap: 8px;
-        }
-        .p-card-title {
-          font-family: 'EB Garamond', serif;
-          font-size: 1.15rem; font-weight: 600;
-          color: var(--text-1); margin: 0;
-        }
-        .p-card-link {
-          font-size: .78rem; font-weight: 700;
-          color: var(--orange); text-decoration: none;
-          display: flex; align-items: center; gap: 2px;
-        }
-        .p-card-link:hover { text-decoration: underline; }
-        .p-card-body { padding: 20px 24px 24px; }
-
-        /* ── Grids ── */
-        .p-grid-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-        .p-grid-3col {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-        @media (max-width: 1024px) {
-          .p-grid-3col { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 767px) {
-          .p-grid-2 { grid-template-columns: 1fr; }
-        }
-        .p-chart-2col { grid-column: span 2; }
-        @media (max-width: 767px) {
-          .p-chart-2col { grid-column: span 1; }
-        }
-
-        /* ── Table ── */
-        .p-table-wrap { overflow-x: auto; }
-        .p-table {
-          width: 100%; border-collapse: collapse;
-          font-family: var(--font); font-size: .84rem;
-        }
-        .p-table thead tr {
-          border-bottom: 1px solid var(--border);
-          background: #faf8f5;
-        }
-        .p-table th {
-          padding: 12px 20px;
-          font-size: .68rem; font-weight: 700;
-          text-transform: uppercase; letter-spacing: .08em;
-          color: var(--text-3); text-align: left;
-        }
-        .p-table tbody tr {
-          border-bottom: 1px solid #f3ede6;
-          transition: background .15s;
-        }
-        .p-table tbody tr:last-child { border-bottom: none; }
-        .p-table tbody tr:hover { background: var(--orange-pale); }
-        .p-table td {
-          padding: 14px 20px;
-          color: var(--text-1); vertical-align: middle;
-        }
-        .p-table-method {
-          display: flex; align-items: center; gap: 8px; color: var(--text-2);
-        }
-        .p-table-amount { font-weight: 700; font-family: 'EB Garamond', serif; font-size: .98rem; }
-        .p-table-actions { text-align: right; }
-        .p-dl-btn {
-          background: transparent; border: none; cursor: pointer;
-          color: var(--orange); padding: 6px;
-          border-radius: 8px; transition: background .15s;
-          display: inline-flex; align-items: center; justify-content: center;
-        }
-        .p-dl-btn:hover { background: var(--orange-pale); }
-
-        /* ── Status badges ── */
-        .p-status {
-          display: inline-block; padding: 3px 10px;
-          border-radius: 99px;
-          font-size: .67rem; font-weight: 700;
-          text-transform: uppercase; letter-spacing: .06em;
-          font-family: var(--font);
-        }
-        .status-paid    { background: #dcfce7; color: #15803d; }
-        .status-pending { background: #fef3c7; color: #b45309; }
-        .status-current { background: var(--orange-pale2); color: var(--orange); }
-        .status-upcoming{ background: var(--border); color: var(--text-3); }
-
-        /* ── Invoice items ── */
-        .p-invoice-item {
-          display: flex; align-items: center; gap: 14px;
-          padding: 14px;
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          transition: border-color .2s, box-shadow .2s;
-          background: var(--surface);
-          margin-bottom: 10px;
-        }
-        .p-invoice-item:hover {
-          border-color: var(--orange);
-          box-shadow: 0 0 0 3px var(--orange-pale);
-        }
-        .p-invoice-icon {
-          width: 42px; height: 42px; flex-shrink: 0;
-          border-radius: 10px; background: var(--orange-pale);
-          color: var(--orange);
-          display: flex; align-items: center; justify-content: center;
-        }
-        .p-invoice-name { font-size: .84rem; font-weight: 600; color: var(--text-1); }
-        .p-invoice-date { font-size: .72rem; color: var(--text-3); margin-top: 2px; }
-        .p-invoice-dl {
-          margin-left: auto; flex-shrink: 0;
-          background: var(--orange-pale); color: var(--orange);
-          border: none; cursor: pointer; padding: 7px;
-          border-radius: 8px; display: flex;
-          transition: background .15s, color .15s;
-        }
-        .p-invoice-dl:hover { background: var(--orange); color: #fff; }
-
-        /* ── Missing invoice ── */
-        .p-invoice-missing {
-          border: 1px dashed var(--border);
-          border-radius: 10px; padding: 18px;
-          text-align: center; color: var(--text-3);
-          font-size: .82rem; font-family: var(--font);
-        }
-        .p-invoice-missing a { color: var(--orange); font-weight: 700; }
-
-        /* ── Timeline ── */
-        .p-timeline-wrap {
-          overflow-x: auto; padding-bottom: 8px;
-        }
-        .p-timeline {
-          min-width: 700px; position: relative;
-          padding: 28px 0;
-        }
-        .p-timeline-track {
-          position: absolute; top: 50%;
-          left: 0; right: 0; height: 2px;
-          background: var(--border);
-          transform: translateY(-50%); z-index: 0;
-        }
-        .p-timeline-fill {
-          position: absolute; top: 50%;
-          left: 0; width: 40%;
-          height: 2px;
-          background: linear-gradient(90deg, var(--orange), var(--orange-light));
-          transform: translateY(-50%); z-index: 1;
-        }
-        .p-timeline-items {
-          position: relative; z-index: 2;
-          display: flex; justify-content: space-between;
-          align-items: center;
-        }
-        .p-tl-item {
-          display: flex; flex-direction: column;
-          align-items: center; gap: 8px;
-        }
-        .p-tl-label {
-          font-size: .68rem; font-weight: 700;
-          text-transform: uppercase; letter-spacing: .08em;
-          color: var(--text-3); font-family: var(--font);
-          white-space: nowrap;
-        }
-        .p-tl-label--active { color: var(--orange); }
-        .p-tl-dot {
-          width: 20px; height: 20px; border-radius: 50%;
-          background: var(--border);
-          border: 3px solid var(--surface);
-          box-shadow: 0 0 0 2px var(--border);
-        }
-        .p-tl-dot--paid {
-          background: var(--orange);
-          box-shadow: 0 0 0 2px var(--orange-pale2);
-        }
-        .p-tl-dot--current {
-          width: 26px; height: 26px;
-          background: var(--surface);
-          border: 3px solid var(--orange);
-          box-shadow: 0 0 0 4px var(--orange-pale2), 0 0 12px rgba(194,101,42,.25);
-          display: flex; align-items: center; justify-content: center;
-        }
-        .p-tl-dot-inner {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: var(--orange);
-          animation: pulse 2s ease-in-out infinite;
-        }
-        .p-tl-info { text-align: center; }
-        .p-tl-amount {
-          font-size: .86rem; font-weight: 700; font-family: 'EB Garamond', serif;
-          color: var(--text-1);
-        }
-        .p-tl-amount--active { color: var(--orange); }
-        .p-tl-amount--dim { color: var(--text-3); }
-
-        /* ── Pay button ── */
-        .p-btn-primary {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: linear-gradient(135deg, var(--orange), var(--orange-light));
-          color: #fff; border: none; cursor: pointer;
-          padding: 11px 24px; border-radius: 10px;
-          font-family: var(--font); font-size: .84rem; font-weight: 700;
-          transition: opacity .2s, transform .2s, box-shadow .2s;
-          box-shadow: 0 4px 14px rgba(194,101,42,.35);
-          text-decoration: none;
-        }
-        .p-btn-primary:hover {
-          opacity: .92; transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(194,101,42,.45);
-        }
-        .p-btn-primary:active { transform: translateY(0); }
-
-        .p-btn-secondary {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: transparent;
-          border: 1px solid var(--border);
-          color: var(--text-1); cursor: pointer;
-          padding: 10px 22px; border-radius: 10px;
-          font-family: var(--font); font-size: .84rem; font-weight: 600;
-          transition: background .2s, border-color .2s;
-        }
-        .p-btn-secondary:hover {
-          background: var(--orange-pale); border-color: var(--orange-pale2);
-          color: var(--orange);
-        }
-
-        /* ── Legend dot ── */
-        .p-legend { display: flex; align-items: center; gap: 20px; }
-        .p-legend-item { display: flex; align-items: center; gap: 6px; font-size: .76rem; font-weight: 600; color: var(--text-2); font-family: var(--font); }
-        .p-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-        /* ── Tooltip ── */
-        .p-tooltip {
-          background: var(--text-1); border-radius: 10px;
-          padding: 10px 14px; box-shadow: var(--shadow-md);
-        }
-        .p-tooltip-label {
-          font-size: .72rem; color: rgba(255,255,255,.6);
-          font-family: var(--font); font-weight: 600;
-          margin: 0 0 4px; text-transform: uppercase; letter-spacing: .06em;
-        }
-        .p-tooltip-row {
-          font-size: .84rem; font-weight: 700;
-          font-family: 'EB Garamond', serif; margin: 2px 0;
-        }
-
-        /* ── Footer ── */
-        .p-footer {
-          margin-top: 16px; padding: 16px 0 4px;
-          border-top: 1px solid var(--border);
-          font-size: .72rem; color: var(--text-3);
-          font-family: var(--font);
-          display: flex; align-items: center; gap: 8px;
-        }
-      `}</style>
-
-      {/* ══════════════════════════════════════
-          HEADER
-      ══════════════════════════════════════ */}
-      <div className="p-header">
-        <div>
-          <h1 className="p-title">Suivi financier</h1>
-          <p className="p-subtitle">Consulter vos paiements, échéances et documents officiels.</p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div className="p-semester-pill">
-            <span className="p-semester-dot" />
-            Semestre actif : Automne 2024
+      <div className="pay-root">
+        <section className="pay-hero">
+          <div className="pay-hero-copy">
+            <p className="pay-section-kicker">Espace financier</p>
+            <h1 className="pay-hero-title">
+              Suivi des paiements de <span>{firstName}</span>
+            </h1>
+            <p className="pay-hero-text">
+              Retrouvez ici votre solde, vos echeances, l historique des reglements et vos documents
+              administratifs pour l annee universitaire en cours.
+            </p>
           </div>
-          <button className="p-btn-primary">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>payment</span>
-            Payer maintenant
-          </button>
-        </div>
-      </div>
 
-      {/* ══════════════════════════════════════
-          STAT CARDS
-      ══════════════════════════════════════ */}
-      <div className="p-stats-grid">
-        <StatCard label="Solde restant"     value="15 000 DH" sub="Prochain: 15 oct."  icon="account_balance_wallet" accent />
-        <StatCard label="Total payé"        value="10 000 DH" sub="Sur 25 000 DH"      icon="check_circle" />
-        <StatCard label="Prochaine échéance" value="2 500 DH"  sub="Dans 28 jours"    icon="event" />
-        <StatCard label="Versements effectués" value="3 / 6"  sub="Taux : 50%"         icon="receipt_long" />
-      </div>
+          <div className="pay-hero-side">
+            <div className="pay-chip">
+              <span className="pay-chip-dot" />
+              {summary.nextDueLabel}
+            </div>
+            <div className="pay-chip pay-chip--soft">Transactions securisees SSL 256 bits</div>
+          </div>
+        </section>
 
-      {/* ══════════════════════════════════════
-          PROGRESS BAR
-      ══════════════════════════════════════ */}
-      <div className="p-progress-card">
-        <div className="p-progress-header">
-          <p className="p-progress-label">Progression de paiement annuel</p>
-          <span className="p-progress-amounts">10 000 / 25 000 DH payés</span>
-        </div>
-        <div className="p-progress-track">
-          <div className="p-progress-fill" style={{ width: '40%' }} />
-        </div>
-        <p className="p-progress-note">
-          40 % de la scolarité annuelle couverte. Maintenir ce rythme garantit l'accès aux examens finaux.
-        </p>
-      </div>
-
-      {/* ══════════════════════════════════════
-          CHARTS ROW
-      ══════════════════════════════════════ */}
-      <div className="p-grid-2" style={{ marginBottom: 24 }}>
-
-        {/* Bar chart — paiements mensuels */}
-        <div className="p-card p-chart-2col" style={{ gridColumn: 'span 1' }}>
-          <div className="p-card-header">
-            <h2 className="p-card-title">Versements mensuels</h2>
-            <div className="p-legend">
-              <div className="p-legend-item">
-                <div className="p-legend-dot" style={{ background: '#c2652a' }} />
-                Payé
+        <section className="pay-top-grid">
+          <div className="pay-balance-card">
+            <div className="pay-balance-head">
+              <div>
+                <p className="pay-eyebrow">Solde restant</p>
+                <h3 className="pay-balance-value">{summary.remaining}</h3>
               </div>
-              <div className="p-legend-item">
-                <div className="p-legend-dot" style={{ background: '#e8c9b0' }} />
-                À payer
-              </div>
+              <span className="pay-badge pay-badge--highlight">{summary.nextDueLabel}</span>
+            </div>
+
+            <p className="pay-balance-text">
+              Votre dossier est a jour a {summary.completion} %. Il reste une partie du montant annuel
+              a regler pour finaliser la scolarite.
+            </p>
+
+            <div className="pay-balance-actions">
+              <button type="button" className="pay-btn pay-btn--primary">
+                Regler maintenant
+              </button>
+              <button type="button" className="pay-btn pay-btn--secondary">
+                Voir les echeances
+              </button>
             </div>
           </div>
-          <div className="p-card-body" style={{ paddingTop: 16 }}>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={monthlyData} barSize={14} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ede9e4" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#b0a49a', fontFamily: 'Manrope' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#b0a49a', fontFamily: 'Manrope' }} axisLine={false} tickLine={false} tickFormatter={v => v > 0 ? `${v/1000}k` : '0'} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: '#fff3ec', radius: 4 }} />
-                <Bar dataKey="paid"    fill="#c2652a" radius={[4,4,0,0]} name="paid" />
-                <Bar dataKey="pending" fill="#e8c9b0" radius={[4,4,0,0]} name="pending" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        {/* Donut — répartition */}
-        <div className="p-card">
-          <div className="p-card-header">
-            <h2 className="p-card-title">Répartition</h2>
-          </div>
-          <div className="p-card-body" style={{ paddingTop: 8 }}>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%" cy="50%"
-                  innerRadius={62} outerRadius={90}
-                  paddingAngle={3}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: any) => [`${fmt(v)} DH`]} />
-                <Legend
-                  iconType="circle" iconSize={9}
-                  formatter={(v) => <span style={{ fontSize: '0.78rem', color: '#6b5f55', fontFamily: 'Manrope' }}>{v}</span>}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Centre label */}
-            <div style={{ textAlign: 'center', marginTop: -8 }}>
-              <p style={{ fontFamily: "'EB Garamond', serif", fontSize: '1.5rem', fontWeight: 600, color: '#1a1612', margin: 0 }}>40%</p>
-              <p style={{ fontSize: '.72rem', color: '#b0a49a', fontFamily: 'Manrope' }}>couvert</p>
+          <div className="pay-progress-card">
+            <div className="pay-progress-head">
+              <div>
+                <p className="pay-eyebrow">Progression annuelle</p>
+                <h3 className="pay-progress-value">{summary.paid}</h3>
+              </div>
+              <span className="pay-badge pay-badge--success">{summary.completion}% regle</span>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ══════════════════════════════════════
-          TRANSACTIONS + INVOICES
-      ══════════════════════════════════════ */}
-      <div className="p-grid-3col">
+            <div className="pay-progress-track" aria-hidden="true">
+              <div className="pay-progress-fill" style={{ width: `${summary.completion}%` }} />
+            </div>
 
-        {/* Table transactions — 2/3 */}
-        <div className="p-card" style={{ gridColumn: 'span 2' }}>
-          <div className="p-card-header">
-            <h2 className="p-card-title">Historique des paiements</h2>
-            <a href="#" className="p-card-link">
-              Voir tout
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_right</span>
-            </a>
+            <p className="pay-muted">
+              Une lecture claire de vos versements pour garder un suivi financier stable tout au long de la formation.
+            </p>
           </div>
-          <div className="p-card-body" style={{ padding: 0 }}>
-            <div className="p-table-wrap">
-              <table className="p-table">
+        </section>
+
+        <section className="pay-stats-grid">
+          {stats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))}
+        </section>
+
+        <section className="pay-content-grid">
+          <div className="pay-panel">
+            <div className="pay-panel-head">
+              <div>
+                <h3 className="pay-panel-title">Historique des paiements</h3>
+                <p className="pay-muted">Vue detaillee des reglements deja enregistres.</p>
+              </div>
+            </div>
+
+            <div className="pay-table-wrap">
+              <table className="pay-table">
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Méthode</th>
+                    <th>Mode</th>
                     <th>Montant</th>
                     <th>Statut</th>
-                    <th className="p-table-actions">Reçu</th>
+                    <th className="pay-align-right">Recu</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map(tx => (
-                    <tr key={tx.id}>
-                      <td style={{ color: '#6b5f55', whiteSpace: 'nowrap' }}>{tx.date}</td>
-                      <td>
-                        <div className="p-table-method">
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#b0a49a' }}>
-                            {tx.methodIcon}
-                          </span>
-                          {tx.method}
-                        </div>
-                      </td>
-                      <td className="p-table-amount">{fmt(tx.amount)} DH</td>
-                      <td><StatusBadge status={tx.status} /></td>
-                      <td className="p-table-actions">
-                        {tx.status === 'paid'
-                          ? (
-                            <button className="p-dl-btn" aria-label="Télécharger">
-                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
-                            </button>
-                          ) : (
-                            <span style={{ color: '#b0a49a', display: 'flex', justifyContent: 'flex-end' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>hourglass_empty</span>
-                            </span>
-                          )}
-                      </td>
-                    </tr>
-                  ))}
+                  {paymentHistory.map((item) => {
+                    const status = statusMeta(item.status);
+
+                    return (
+                      <tr key={`${item.date}-${item.method}`}>
+                        <td>{item.date}</td>
+                        <td>
+                          <div className="pay-method">
+                            <span className="pay-method-icon">{methodIcon(item.type)}</span>
+                            <span>{item.method}</span>
+                          </div>
+                        </td>
+                        <td className="pay-amount">{item.amount}</td>
+                        <td>
+                          <span className={status.className}>{status.label}</span>
+                        </td>
+                        <td className="pay-align-right">
+                          <button type="button" className="pay-icon-btn" disabled={item.status === 'pending'}>
+                            <IconDownload />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
 
-        {/* Invoices — 1/3 */}
-        <div className="p-card">
-          <div className="p-card-header">
-            <h2 className="p-card-title">Factures officielles</h2>
-          </div>
-          <div className="p-card-body">
-            {[
-              { name: 'Facture Semestre Automne', date: 'Émise le 01 Sep 2024' },
-              { name: 'Reçu droits d\'inscription', date: 'Émis le 15 Jun 2024' },
-            ].map(inv => (
-              <div key={inv.name} className="p-invoice-item">
-                <div className="p-invoice-icon">
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>description</span>
-                </div>
+          <div className="pay-side-stack">
+            <div className="pay-panel">
+              <div className="pay-panel-head">
                 <div>
-                  <p className="p-invoice-name">{inv.name}</p>
-                  <p className="p-invoice-date">{inv.date}</p>
+                  <h3 className="pay-panel-title">Repartition du budget</h3>
+                  <p className="pay-muted">Lecture rapide entre le montant deja regle et le reste a solder.</p>
                 </div>
-                <button className="p-invoice-dl" aria-label="Télécharger">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
-                </button>
               </div>
-            ))}
-            <div className="p-invoice-missing">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px', display: 'block', marginBottom: 6 }}>help_outline</span>
-              Facture manquante ?<br />
-              <a href="#">Contacter l'administration</a>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ══════════════════════════════════════
-          INSTALLMENT TIMELINE
-      ══════════════════════════════════════ */}
-      <div className="p-card" style={{ marginBottom: 24 }}>
-        <div className="p-card-header">
-          <h2 className="p-card-title">Calendrier des versements</h2>
-          <div className="p-legend">
-            <div className="p-legend-item">
-              <div className="p-legend-dot" style={{ background: '#c2652a' }} />Payé
-            </div>
-            <div className="p-legend-item">
-              <div className="p-legend-dot" style={{ background: '#ede9e4' }} />À venir
-            </div>
-          </div>
-        </div>
-        <div className="p-card-body">
-          <div className="p-timeline-wrap">
-            <div className="p-timeline">
-              <div className="p-timeline-track" />
-              <div className="p-timeline-fill" />
-              <div className="p-timeline-items">
-                {installments.map(inst => (
-                  <div key={inst.month} className="p-tl-item">
-                    <p className={`p-tl-label ${inst.status === 'current' ? 'p-tl-label--active' : ''}`}>
-                      {inst.month}
-                    </p>
+              <div className="pay-chart-donut">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={distributionChart}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={62}
+                      outerRadius={92}
+                      paddingAngle={3}
+                      stroke="none"
+                    >
+                      {distributionChart.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatDh(value as number | string | undefined)} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pay-chart-center">
+                  <strong>{summary.completion}%</strong>
+                  <span>deja regle</span>
+                </div>
+              </div>
 
-                    {inst.status === 'paid' && <div className="p-tl-dot p-tl-dot--paid" />}
-                    {inst.status === 'current' && (
-                      <div className="p-tl-dot p-tl-dot--current">
-                        <span className="p-tl-dot-inner" />
-                      </div>
-                    )}
-                    {inst.status === 'upcoming' && <div className="p-tl-dot" />}
-
-                    <div className="p-tl-info">
-                      <p className={`p-tl-amount ${inst.status === 'current' ? 'p-tl-amount--active' : inst.status === 'upcoming' ? 'p-tl-amount--dim' : ''}`}>
-                        {fmt(inst.amount)} DH
-                      </p>
-                      <p style={{ fontSize: '.63rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: inst.status === 'current' ? '#c2652a' : inst.status === 'paid' ? '#15803d' : '#b0a49a', fontFamily: 'Manrope', marginTop: 2 }}>
-                        {inst.label}
-                      </p>
-                    </div>
+              <div className="pay-legend">
+                {distributionChart.map((entry) => (
+                  <div key={entry.name} className="pay-legend-item">
+                    <span className="pay-legend-dot" style={{ background: entry.color }} />
+                    <span>{entry.name}</span>
+                    <strong>{entry.value.toLocaleString('fr-FR')} DH</strong>
                   </div>
                 ))}
               </div>
             </div>
+
+            <div className="pay-panel">
+              <div className="pay-panel-head">
+                <div>
+                  <h3 className="pay-panel-title">Factures officielles</h3>
+                  <p className="pay-muted">Documents disponibles au telechargement.</p>
+                </div>
+              </div>
+
+              <div className="pay-doc-list">
+                {invoices.map((invoice) => (
+                  <div className="pay-doc-card" key={`${invoice.title}-${invoice.issuedAt}`}>
+                    <div className="pay-doc-icon">
+                      <IconDocument />
+                    </div>
+                    <div className="pay-doc-copy">
+                      <p className="pay-doc-title">{invoice.title}</p>
+                      <p className="pay-muted">Edite le {invoice.issuedAt}</p>
+                    </div>
+                    <button type="button" className="pay-icon-btn">
+                      <IconDownload />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pay-help-card">
+              <div className="pay-help-icon">
+                <IconHelp />
+              </div>
+              <div>
+                <h3 className="pay-panel-title">Besoin d une facture manquante ?</h3>
+                <p className="pay-muted">
+                  Contactez l administration pour demander un duplicata ou un justificatif supplementaire.
+                </p>
+              </div>
+              <Link href={route('contact')} className="pay-text-link pay-text-link--strong">
+                Contacter le centre
+              </Link>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="pay-panel">
+          <div className="pay-panel-head">
+            <div>
+              <h3 className="pay-panel-title">Calendrier des echeances</h3>
+              <p className="pay-muted">Suivi mois par mois des versements de l annee.</p>
+            </div>
+          </div>
+
+          <div className="pay-chart-block">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyChart} barGap={10}>
+                <CartesianGrid vertical={false} stroke="rgba(15,23,42,0.08)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12 }} />
+                <Tooltip formatter={(value) => formatDh(value as number | string | undefined)} />
+                <Bar dataKey="expected" fill="#f2d7c7" radius={[8, 8, 0, 0]} name="Prevu" />
+                <Bar dataKey="paid" fill="#ff6b2b" radius={[8, 8, 0, 0]} name="Regle" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="pay-timeline">
+            <div className="pay-timeline-line" aria-hidden="true" />
+            {installments.map((installment, index) => (
+              <div className={`pay-step pay-step--${installment.state}`} key={`${installment.month}-${index}`}>
+                <p className="pay-step-month">{installment.month}</p>
+                <div className="pay-step-dot" />
+                <div className="pay-step-card">
+                  <p className="pay-step-amount">{installment.amount}</p>
+                  <p className="pay-step-state">
+                    {installment.state === 'paid' && 'Regle'}
+                    {installment.state === 'current' && 'En cours'}
+                    {installment.state === 'upcoming' && 'Programme'}
+                    {installment.state === 'final' && 'Final'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="pay-footer">
+          Toutes les operations financieres sont protegees et archivees dans votre espace etudiant.
+        </footer>
       </div>
 
-      {/* ══════════════════════════════════════
-          ACTIONS RAPIDES
-      ══════════════════════════════════════ */}
-      <div className="p-card" style={{ marginBottom: 0 }}>
-        <div className="p-card-header">
-          <h2 className="p-card-title">Actions rapides</h2>
-        </div>
-        <div className="p-card-body" style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          <button className="p-btn-primary">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>payment</span>
-            Effectuer un paiement
-          </button>
-          <button className="p-btn-secondary">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
-            Prendre un rendez-vous
-          </button>
-          <button className="p-btn-secondary">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
-            Télécharger le relevé
-          </button>
-          <button className="p-btn-secondary">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>support_agent</span>
-            Contacter l'administration
-          </button>
-        </div>
-      </div>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        .pay-root { display: flex; flex-direction: column; gap: 24px; font-family: 'Manrope', sans-serif; color: #18181b; }
+        .pay-hero, .pay-panel, .pay-balance-card, .pay-progress-card, .pay-help-card, .pay-stat-card {
+          background: #fff; border: 1px solid rgba(15, 23, 42, 0.07); box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+        }
+        .pay-hero {
+          position: relative; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 28px;
+          border-radius: 22px; overflow: hidden;
+          background: radial-gradient(circle at top right, rgba(255, 154, 86, 0.16), transparent 28%), linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+        }
+        .pay-hero::before {
+          content: ''; position: absolute; inset: 0 auto auto 0; width: 100%; height: 4px;
+          background: linear-gradient(90deg, #ff6b2b, #ff9a56, #ffbf7a);
+        }
+        .pay-hero-copy { max-width: 760px; position: relative; z-index: 1; }
+        .pay-section-kicker, .pay-eyebrow {
+          margin: 0 0 8px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #ff6b2b;
+        }
+        .pay-hero-title {
+          margin: 0; font-family: 'EB Garamond', serif; font-size: clamp(2rem, 3vw, 3rem); line-height: 1; letter-spacing: -0.03em; color: #151515;
+        }
+        .pay-hero-title span { color: #ff6b2b; }
+        .pay-hero-text { margin: 14px 0 0; max-width: 640px; font-size: 0.95rem; line-height: 1.7; color: #666; }
+        .pay-hero-side { display: flex; flex-direction: column; gap: 12px; min-width: 240px; position: relative; z-index: 1; }
+        .pay-chip {
+          display: inline-flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 999px;
+          background: rgba(255, 255, 255, 0.84); border: 1px solid rgba(255, 107, 43, 0.12); color: #6b4b3e;
+          font-size: 0.82rem; font-weight: 700; width: fit-content; max-width: 100%;
+        }
+        .pay-chip--soft { border-radius: 16px; color: #757575; font-weight: 600; border-color: rgba(15, 23, 42, 0.08); }
+        .pay-chip-dot {
+          width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.14);
+        }
+        .pay-top-grid, .pay-content-grid, .pay-stats-grid { display: grid; gap: 18px; }
+        .pay-top-grid { grid-template-columns: 1.8fr 1fr; }
+        .pay-stats-grid { grid-template-columns: repeat(3, 1fr); }
+        .pay-content-grid { grid-template-columns: 1.55fr 1fr; align-items: start; }
+        .pay-balance-card, .pay-progress-card, .pay-panel, .pay-help-card, .pay-stat-card { border-radius: 20px; padding: 24px; }
+        .pay-balance-card {
+          position: relative; overflow: hidden; background: radial-gradient(circle at bottom right, rgba(255, 107, 43, 0.12), transparent 30%), #fff;
+        }
+        .pay-balance-head, .pay-progress-head, .pay-panel-head {
+          display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+        }
+        .pay-balance-value, .pay-progress-value, .pay-stat-value { margin: 0; line-height: 1; color: #171717; }
+        .pay-balance-value { font-family: 'EB Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.5rem); color: #ff6b2b; }
+        .pay-progress-value { font-size: 1.4rem; font-weight: 800; }
+        .pay-stat-value { font-size: 1.5rem; font-weight: 800; }
+        .pay-balance-text, .pay-muted { margin: 0; color: #7a7a7a; line-height: 1.6; font-size: 0.86rem; }
+        .pay-balance-text { margin-top: 18px; max-width: 620px; }
+        .pay-balance-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+        .pay-btn, .pay-text-link, .pay-icon-btn { transition: all 0.18s ease; }
+        .pay-btn {
+          border: none; border-radius: 12px; padding: 13px 18px; font-family: 'Manrope', sans-serif;
+          font-size: 0.88rem; font-weight: 800; cursor: pointer;
+        }
+        .pay-btn--primary {
+          background: linear-gradient(135deg, #ff7a35, #ff5b14); color: #fff; box-shadow: 0 12px 24px rgba(255, 107, 43, 0.22);
+        }
+        .pay-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 16px 32px rgba(255, 107, 43, 0.28); }
+        .pay-btn--secondary { background: #fff7f1; color: #8f4c2d; border: 1px solid rgba(255, 107, 43, 0.18); }
+        .pay-btn--secondary:hover { background: #fff1e7; }
+        .pay-progress-track {
+          width: 100%; height: 12px; border-radius: 999px; background: #f1f1f1; overflow: hidden; margin: 18px 0 14px;
+        }
+        .pay-progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff9a56, #ff6b2b); }
+        .pay-stat-card { display: flex; align-items: flex-start; gap: 16px; }
+        .pay-stat-icon, .pay-method-icon, .pay-doc-icon, .pay-help-icon {
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .pay-stat-icon { width: 46px; height: 46px; border-radius: 14px; }
+        .pay-panel-title, .pay-doc-title, .pay-step-amount { margin: 0; color: #18181b; font-weight: 800; }
+        .pay-panel-title { font-size: 1rem; }
+        .pay-text-link {
+          padding: 0; background: transparent; border: none; color: #ff6b2b; font-weight: 800; font-size: 0.82rem; cursor: pointer; text-decoration: none;
+        }
+        .pay-text-link:hover { color: #e25817; }
+        .pay-text-link--strong { margin-top: 2px; }
+        .pay-table-wrap { overflow-x: auto; margin-top: 18px; border-radius: 16px; border: 1px solid rgba(15, 23, 42, 0.06); }
+        .pay-table { width: 100%; min-width: 620px; border-collapse: collapse; background: #fff; }
+        .pay-table thead tr { background: #faf7f4; }
+        .pay-table th, .pay-table td {
+          padding: 16px 18px; text-align: left; border-bottom: 1px solid rgba(15, 23, 42, 0.06); font-size: 0.86rem;
+        }
+        .pay-table th {
+          color: #8b8b8b; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+        }
+        .pay-table tbody tr:hover { background: #fffaf6; }
+        .pay-align-right { text-align: right !important; }
+        .pay-method { display: inline-flex; align-items: center; gap: 10px; }
+        .pay-method-icon, .pay-doc-icon, .pay-help-icon {
+          width: 40px; height: 40px; border-radius: 12px; background: #faf7f4; color: #ff6b2b;
+        }
+        .pay-amount { font-weight: 800; color: #161616; }
+        .pay-icon-btn {
+          width: 38px; height: 38px; border: 1px solid rgba(255, 107, 43, 0.14); border-radius: 12px; background: #fff7f1;
+          color: #ff6b2b; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .pay-icon-btn:hover:not(:disabled) { background: #ffefe3; }
+        .pay-icon-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .pay-badge {
+          display: inline-flex; align-items: center; border-radius: 999px; padding: 7px 11px; font-size: 0.68rem;
+          font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .pay-badge--highlight { background: rgba(255, 107, 43, 0.1); color: #ff6b2b; }
+        .pay-badge--success { background: rgba(16, 185, 129, 0.12); color: #0f9d70; }
+        .pay-badge--pending { background: rgba(120, 113, 108, 0.12); color: #6b6762; }
+        .pay-side-stack, .pay-doc-list { display: flex; flex-direction: column; gap: 16px; }
+        .pay-chart-donut { position: relative; width: 100%; height: 240px; margin-top: 10px; }
+        .pay-chart-center {
+          position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
+        }
+        .pay-chart-center strong { font-size: 2rem; line-height: 1; color: #18181b; }
+        .pay-chart-center span {
+          margin-top: 6px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #8b8b8b;
+        }
+        .pay-legend { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .pay-legend-item {
+          display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; font-size: 0.84rem; color: #666;
+        }
+        .pay-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .pay-legend-item strong { color: #18181b; font-size: 0.82rem; }
+        .pay-doc-card {
+          display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: #fafafa; border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .pay-doc-copy { flex: 1; min-width: 0; }
+        .pay-doc-title { font-size: 0.9rem; margin-bottom: 2px; }
+        .pay-help-card { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+        .pay-chart-block {
+          width: 100%; height: 280px; margin-top: 18px; padding: 12px 8px 0; border-radius: 18px;
+          background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%); border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .pay-timeline {
+          position: relative; display: grid; grid-template-columns: repeat(6, minmax(140px, 1fr)); gap: 14px;
+          overflow-x: auto; padding-top: 8px; margin-top: 18px;
+        }
+        .pay-timeline-line {
+          position: absolute; top: 38px; left: 0; right: 0; height: 4px; border-radius: 999px;
+          background: linear-gradient(90deg, #ff6b2b 0%, #ff6b2b 48%, #ece7e3 48%, #ece7e3 100%);
+        }
+        .pay-step { position: relative; min-width: 140px; z-index: 1; }
+        .pay-step-month {
+          margin: 0 0 12px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #8f8f8f;
+        }
+        .pay-step-dot {
+          width: 18px; height: 18px; border-radius: 50%; margin-bottom: 14px; border: 4px solid #fff;
+          box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12); background: #dbd6d1;
+        }
+        .pay-step-card {
+          padding: 14px; border-radius: 16px; background: #fbfbfb; border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .pay-step-state {
+          margin: 4px 0 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #8c8c8c;
+        }
+        .pay-step--paid .pay-step-dot, .pay-step--current .pay-step-dot { background: #ff6b2b; }
+        .pay-step--paid .pay-step-state { color: #10b981; }
+        .pay-step--current .pay-step-month, .pay-step--current .pay-step-amount, .pay-step--current .pay-step-state { color: #ff6b2b; }
+        .pay-step--current .pay-step-card { background: #fff7f1; border-color: rgba(255, 107, 43, 0.18); }
+        .pay-step--final .pay-step-state { color: #a16207; }
+        .pay-footer { text-align: center; color: #8a8a8a; font-size: 0.8rem; padding: 4px 0 8px; }
+        @media (max-width: 1100px) {
+          .pay-top-grid, .pay-content-grid, .pay-stats-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+          .pay-hero, .pay-balance-card, .pay-progress-card, .pay-panel, .pay-help-card, .pay-stat-card {
+            padding: 18px; border-radius: 18px;
+          }
+          .pay-hero-title { font-size: 2rem; }
+          .pay-balance-actions { flex-direction: column; }
+          .pay-btn { width: 100%; }
+          .pay-help-card { grid-template-columns: 1fr; }
+        }
+      `}</style>
+    </AuthenticatedLayout>
+  );
+}
 
-      {/* Footer */}
-      <div className="p-footer">
-        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>lock</span>
-        Toutes les transactions sont sécurisées par chiffrement SSL 256 bits. © 2024 Centre Informatique.
-      </div>
-
-    </Authenticated>
-  )
+function IconWallet() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" /><path d="M18 9h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2" /><circle cx="16" cy="12" r="1" /></svg>;
+}
+function IconCheck() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7" /></svg>;
+}
+function IconReceipt() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 3v18l3-2 2 2 2-2 2 2 2-2 2 2 3-2V3z" /><path d="M8 7h8" /><path d="M8 11h8" /><path d="M8 15h5" /></svg>;
+}
+function IconCard() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>;
+}
+function IconBank() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10 12 4l9 6" /><path d="M4 10h16" /><path d="M6 10v8" /><path d="M10 10v8" /><path d="M14 10v8" /><path d="M18 10v8" /><path d="M3 21h18" /></svg>;
+}
+function IconCash() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /><path d="M6 12h.01" /><path d="M18 12h.01" /></svg>;
+}
+function IconDownload() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>;
+}
+function IconDocument() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M8 13h8" /><path d="M8 17h6" /></svg>;
+}
+function IconHelp() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg>;
 }

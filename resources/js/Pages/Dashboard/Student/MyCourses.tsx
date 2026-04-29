@@ -1,206 +1,505 @@
-import Authenticated from '@/Layouts/AuthenticatedLayout'
-import React from 'react'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, usePage } from '@inertiajs/react';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
-const MyCourses = () => {
+type CourseCard = {
+  category: string;
+  title: string;
+  description: string;
+  price: string;
+  duration: string;
+  group: string | null;
+  progress: number;
+  payment: string;
+  nextSession: string | null;
+  nextTime: string | null;
+  room: string | null;
+  status: string;
+  accent: string;
+};
+
+type WeeklyMetric = {
+  week: string;
+  hours: number;
+  projects: number;
+};
+
+type ScheduleItem = {
+  day: string;
+  month: string;
+  course: string;
+  time: string;
+  room: string | null;
+  active: boolean;
+};
+
+type Stat = {
+  label: string;
+  value: string;
+  sub: string;
+};
+
+type PageProps = {
+  auth: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+  };
+  stats: Stat[];
+  featuredCourse: CourseCard | null;
+  sideCourses: CourseCard[];
+  weeklyMetrics: WeeklyMetric[];
+  schedule: ScheduleItem[];
+};
+
+function formatMetric(value: number | string | undefined) {
+  return Number(value ?? 0).toLocaleString('fr-FR');
+}
+
+export default function MyCourses() {
+  const { props } = usePage<PageProps>();
+  const { stats, featuredCourse, sideCourses, weeklyMetrics, schedule } = props;
+  const user = props.auth.user;
+  const firstName = user.name.split(' ')[0];
+
   return (
-    <Authenticated header={<h2>Formations</h2>}>
-      <div className="bg-background text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed">
-      <main className="pt-14 pb-12 px-8 min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <header className="mb-12">
-            <h2 className="text-5xl font-display font-medium text-on-background mb-2">Mes Formations</h2>
-            <p className="text-on-surface-variant font-body max-w-2xl leading-relaxed">
-              Bienvenue dans votre espace d'apprentissage. Retrouvez ici vos cours en Bureautique, Infographie et Langues.
+    <AuthenticatedLayout header={<h2>Mes formations</h2>}>
+      <Head title="Mes formations" />
+
+      <div className="courses-root">
+        <section className="courses-hero">
+          <div className="courses-hero-copy">
+            <p className="courses-kicker">Parcours etudiant</p>
+            <h1 className="courses-hero-title">
+              Vos formations en cours, <span>{firstName}</span>
+            </h1>
+            <p className="courses-hero-text">
+              Suivez votre progression, vos prochaines seances et votre rythme d apprentissage sur
+              l ensemble de vos modules actifs.
             </p>
-          </header>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 group bg-surface-container-low rounded-3xl overflow-hidden flex flex-col md:flex-row border border-outline-variant/30 shadow-[0_2px_16px_rgba(58,48,42,0.04)]">
-              <div className="md:w-1/2 relative overflow-hidden h-64 md:h-auto">
-                <img alt="Design workflow" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="high-end minimalist graphic design studio workspace with large monitor displaying creative digital artwork and warm ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0_Q3R2P_9XHaQDE0JVaBAJaJW9XXI2a86t8Q2lWQHQqODNeRqGRB3_gDtNMBmmu9wOsHobL8uex5hw5vlrPzn3-vl1kTtskbvUlI60tFVif_UhGBQWL7FXxtpExx_G5MD7xbKl8nQw9YxH-mhZcfElGTkOaMazZe85ojAgHH_rlwZy1MBEuXoT4vVd16Dg2_ItEIs6EnMrOeNE5Wr2MRx0iY-KfgZCWykin98w7ewLkvTo2KDpZunWJ8COJ9JHFTguqHEtfl-p7A2" />
-                <div className="absolute top-4 left-4 bg-primary text-on-primary px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">Infographie Digitale</div>
+          </div>
+
+          <div className="courses-hero-badges">
+            <div className="courses-chip">
+              <span className="courses-chip-dot" />
+              {stats[0]?.value ?? '0'} parcours actifs
+            </div>
+            <div className="courses-chip courses-chip--soft">Planning mis a jour en temps reel</div>
+          </div>
+        </section>
+
+        <section className="courses-stats-grid">
+          {stats.map((stat) => (
+            <div className="courses-stat-card" key={stat.label}>
+              <p className="courses-kicker">{stat.label}</p>
+              <p className="courses-stat-value">{stat.value}</p>
+              <p className="courses-muted">{stat.sub}</p>
+            </div>
+          ))}
+        </section>
+
+        {featuredCourse && (
+          <section className="courses-main-grid">
+            <article className="courses-featured-card">
+              <div className="courses-featured-top">
+                <div>
+                  <span className="courses-badge">{featuredCourse.category}</span>
+                  <h2 className="courses-featured-title">{featuredCourse.title}</h2>
+                </div>
+                <div className="courses-price-block">
+                  <strong>{featuredCourse.price}</strong>
+                  <span>{featuredCourse.payment}</span>
+                </div>
               </div>
-              <div className="md:w-1/2 p-8 flex flex-col justify-between">
+
+              <p className="courses-featured-text">{featuredCourse.description}</p>
+
+              <div className="courses-meta-grid">
+                <div className="courses-meta-card">
+                  <span className="courses-meta-label">Duree</span>
+                  <strong>{featuredCourse.duration}</strong>
+                </div>
+                <div className="courses-meta-card">
+                  <span className="courses-meta-label">Groupe</span>
+                  <strong>{featuredCourse.group ?? 'Non defini'}</strong>
+                </div>
+                <div className="courses-meta-card">
+                  <span className="courses-meta-label">Prochaine seance</span>
+                  <strong>{featuredCourse.nextSession ?? 'A programmer'}</strong>
+                </div>
+                <div className="courses-meta-card">
+                  <span className="courses-meta-label">Horaire</span>
+                  <strong>{featuredCourse.nextTime ?? 'Non defini'}</strong>
+                </div>
+              </div>
+
+              <div className="courses-session-card">
                 <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-3xl font-display text-on-background italic">Maîtrise Adobe Creative Suite</h3>
-                    <div className="text-right">
-                      <p className="text-primary font-bold text-xl">4500 DH</p>
-                      <p className="text-[10px] text-outline uppercase">Paiement Validé</p>
+                  <p className="courses-kicker">Salle et suivi</p>
+                  <h3 className="courses-session-title">{featuredCourse.room ?? 'A confirmer'}</h3>
+                </div>
+                <div className="courses-progress-side">
+                  <span className="courses-progress-percent">{featuredCourse.progress}%</span>
+                  <span className="courses-muted">module valide</span>
+                </div>
+              </div>
+
+              <div className="courses-progress-block">
+                <div className="courses-progress-head">
+                  <span>Progression generale</span>
+                  <strong>{featuredCourse.progress}%</strong>
+                </div>
+                <div className="courses-progress-track">
+                  <div className="courses-progress-fill" style={{ width: `${featuredCourse.progress}%` }} />
+                </div>
+              </div>
+            </article>
+
+            <div className="courses-side-stack">
+              {sideCourses.map((course) => (
+                <article className="courses-side-card" key={course.title}>
+                  <div className="courses-side-head">
+                    <span className="courses-side-category" style={{ color: course.accent }}>
+                      {course.category}
+                    </span>
+                    <span className="courses-side-status">{course.status}</span>
+                  </div>
+
+                  <h3 className="courses-side-title">{course.title}</h3>
+                  <p className="courses-muted">{course.description}</p>
+
+                  <div className="courses-side-details">
+                    <span>{course.price}</span>
+                    <span>{course.duration}</span>
+                    <span>{course.room ?? 'Salle a definir'}</span>
+                  </div>
+
+                  <div className="courses-progress-head">
+                    <span>Progression</span>
+                    <strong>{course.progress}%</strong>
+                  </div>
+                  <div className="courses-progress-track courses-progress-track--sm">
+                    <div
+                      className="courses-progress-fill"
+                      style={{ width: `${course.progress}%`, background: course.accent }}
+                    />
+                  </div>
+
+                  <div className="courses-next-row">
+                    <div>
+                      <span className="courses-meta-label">Seance</span>
+                      <strong>{course.nextSession ?? 'A programmer'}</strong>
+                    </div>
+                    <div>
+                      <span className="courses-meta-label">Horaire</span>
+                      <strong>{course.nextTime ?? 'Non defini'}</strong>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-on-surface-variant mb-6 font-body">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm" data-icon="schedule">schedule</span> 12 Semaines</span>
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm" data-icon="group">group</span> Groupe A2</span>
-                  </div>
-                  <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 mb-6">
-                    <p className="text-[10px] uppercase font-bold text-primary mb-1 tracking-widest">Prochaine Séance</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-primary" data-icon="event">event</span>
-                        <span className="text-sm font-semibold">Lundi, 14 Octobre</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-primary" data-icon="alarm">alarm</span>
-                        <span className="text-sm font-semibold">14:00 - 17:00</span>
-                      </div>
-                      <div className="text-sm font-bold text-on-surface">Salle 302</div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-outline">Progression</span>
-                    <span className="text-xs font-bold text-primary">68%</span>
-                  </div>
-                  <div className="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-primary h-full rounded-full w-[68%] transition-all duration-1000"></div>
-                  </div>
-                </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="courses-bottom-grid">
+          <div className="courses-panel">
+            <div className="courses-panel-head">
+              <div>
+                <h3 className="courses-panel-title">Rythme hebdomadaire</h3>
+                <p className="courses-muted">
+                  Visualisation de votre charge de travail et des projets finalises au fil des semaines.
+                </p>
               </div>
             </div>
-            <div className="lg:col-span-4 flex flex-col gap-8">
-              <div className="bg-surface-container-low rounded-3xl overflow-hidden border border-outline-variant/30 group shadow-[0_2px_16px_rgba(58,48,42,0.04)]">
-                <div className="relative h-40">
-                  <img alt="Modern office" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="clean desk with aluminum laptop, glasses, and a notebook in a bright high-end corporate office with floor to ceiling windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXkVw74TfRa86Va9tIiJXmrJJlHpufDdhho512D2AxwehuS6qYuINDrRNAw1nBCptDZLl3TVuGf0oYSDVB6HnlkW1eXaAFazgIEDtNTloH8gVbk2xNpUK_RgRUexKgBefYH5Xo5kxkL75_cnpHThQb1X9uy-YD9FqmZz7ggjMSBDvCU3rX77m80qI0fmXSTgrsPwieIudr4Uzc63LbOAgo8SvSDDtNR4zWuyCAeLW6-hYv9FfaX4UN0nH8qj5dMf7yqvCQ5E9UUzTH" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <p className="text-[10px] uppercase font-bold tracking-widest opacity-80">Bureautique</p>
-                    <h3 className="text-xl font-display italic">Expertise Microsoft Office</h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-primary font-bold">2800 DH</span>
-                    <span className="text-xs text-on-surface-variant font-medium">8 Semaines</span>
-                  </div>
-                  <div className="bg-stone-100 dark:bg-stone-900 rounded-xl p-3 mb-6 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-xs" data-icon="calendar_today">calendar_today</span>
-                      <span>Mercredi, 09:00</span>
-                    </div>
-                    <span className="font-bold text-primary">Lab 1</span>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-[10px] font-bold text-outline">Progression</span>
-                      <span className="text-[10px] font-bold">92%</span>
-                    </div>
-                    <div className="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
-                      <div className="bg-primary h-full rounded-full w-[92%]"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-on-background text-surface-container-lowest rounded-3xl p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 className="font-display text-2xl italic mb-4">Résumé Hebdomadaire</h4>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <span className="text-sm opacity-60">Heures de cours</span>
-                      <span className="font-bold">12h</span>
-                    </div>
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <span className="text-sm opacity-60">Projets rendus</span>
-                      <span className="font-bold">04</span>
-                    </div>
-                  </div>
-                </div>
-                <button className="mt-6 flex items-center justify-center gap-2 w-full py-3 border border-white/20 rounded-xl text-sm font-semibold hover:bg-white/5 transition-colors">
-                  <span className="material-symbols-outlined" data-icon="file_download">file_download</span>
-                  Télécharger l'emploi du temps
-                </button>
-              </div>
+
+            <div className="courses-chart-block">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={weeklyMetrics}>
+                  <defs>
+                    <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ff6b2b" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#ff6b2b" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="rgba(15,23,42,0.08)" />
+                  <XAxis dataKey="week" tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12 }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12 }} />
+                  <Tooltip formatter={(value) => formatMetric(value as number | string | undefined)} />
+                  <Area
+                    type="monotone"
+                    dataKey="hours"
+                    stroke="#ff6b2b"
+                    strokeWidth={3}
+                    fill="url(#hoursGradient)"
+                    name="Heures"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="projects"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    fill="url(#projectsGradient)"
+                    name="Projets"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
-            <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-8 mt-4">
-              <div className="md:col-span-2 bg-primary/5 rounded-3xl p-1 border border-primary/10">
-                <div className="bg-background rounded-[calc(1.5rem-4px)] p-8 h-full flex flex-col md:flex-row gap-8 items-center">
-                  <div className="w-full md:w-1/3">
-                    <img alt="Students" className="w-full aspect-square object-cover rounded-2xl shadow-lg" data-alt="a group of diverse students sitting around a table in a bright library with architectural design features, engaged in warm conversation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI2Fr0Rf0x1JLm8_t9wdkOBXetND2Lo6_5SskjQY_ywxbScHF2STbqGyrc8AGR4YYmygs_f2YwmuQ1MNPMIlEu5wZEK3yKYsE8pOoBfstwZ6duNmvZo32hOOgDQAK6gSZXz4UYvrpgwLv6rNlTT0V5XTQ6aQ3j2qVjYM2SwijkVPJ0pXGGzpzyEPRbPOqQBEN_qs1cL4lK_1uJpP1TPw8EaeSFRR7HTT4Nrnpkza1LtunRPO4YqFYmSUjLwIpCKo5Bz_x1S9QFE5fr" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                      <span className="text-xs font-bold text-primary uppercase tracking-widest">En cours</span>
-                    </div>
-                    <h3 className="text-4xl font-display text-on-background italic mb-4">Anglais des Affaires - Niveau B2</h3>
-                    <p className="text-on-surface-variant font-body mb-6 text-sm leading-relaxed">
-                      Développez votre aisance orale et écrite dans un contexte professionnel international. Focus sur la négociation et la communication stratégique.
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                      <div className="text-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
-                        <p className="text-[10px] text-outline uppercase mb-1">Prix</p>
-                        <p className="font-bold">3200 DH</p>
-                      </div>
-                      <div className="text-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
-                        <p className="text-[10px] text-outline uppercase mb-1">Salles</p>
-                        <p className="font-bold">Lab 4</p>
-                      </div>
-                      <div className="text-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
-                        <p className="text-[10px] text-outline uppercase mb-1">Durée</p>
-                        <p className="font-bold">60h</p>
-                      </div>
-                      <div className="text-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
-                        <p className="text-[10px] text-outline uppercase mb-1">Note</p>
-                        <p className="font-bold">16/20</p>
-                      </div>
-                    </div>
-                    <div className="w-full bg-surface-variant h-1 rounded-full overflow-hidden mb-2">
-                      <div className="bg-primary h-full rounded-full w-[45%]"></div>
-                    </div>
-                    <p className="text-[10px] text-outline font-bold">Progression: 45% du module validé</p>
-                  </div>
+          </div>
+
+          <div className="courses-aside-stack">
+            <div className="courses-panel courses-panel--dark">
+              <div className="courses-panel-head">
+                <div>
+                  <h3 className="courses-panel-title courses-panel-title--light">Resume de la semaine</h3>
+                  <p className="courses-muted courses-muted--light">
+                    Un apercu rapide pour garder votre organisation sous controle.
+                  </p>
                 </div>
               </div>
-              <div className="bg-stone-50 dark:bg-stone-900/50 rounded-3xl p-8 border border-stone-200/60 flex flex-col justify-between">
+
+              <div className="courses-summary-list">
+                {stats.slice(0, 3).map((stat) => (
+                  <div className="courses-summary-row" key={stat.label}>
+                    <span>{stat.label}</span>
+                    <strong>{stat.value}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <button type="button" className="courses-dark-btn">
+                Telecharger l emploi du temps
+              </button>
+            </div>
+
+            <div className="courses-panel">
+              <div className="courses-panel-head">
                 <div>
-                  <h4 className="font-display text-3xl italic mb-6">Agenda Immédiat</h4>
-                  <div className="space-y-6">
-                    <div className="flex gap-4">
-                      <div className="flex flex-col items-center justify-center w-12 h-12 bg-primary rounded-xl text-on-primary">
-                        <span className="text-xs font-bold">OCT</span>
-                        <span className="text-xl font-bold leading-none">12</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Anglais des Affaires</p>
-                        <p className="text-xs text-outline">10:00 • Salle Lab 4</p>
-                      </div>
+                  <h3 className="courses-panel-title">Agenda immediat</h3>
+                  <p className="courses-muted">Vos prochaines seances a ne pas manquer.</p>
+                </div>
+              </div>
+
+              <div className="courses-agenda-list">
+                {schedule.map((item) => (
+                  <div className={`courses-agenda-item ${item.active ? 'courses-agenda-item--active' : ''}`} key={`${item.day}-${item.course}`}>
+                    <div className="courses-date-box">
+                      <span>{item.month}</span>
+                      <strong>{item.day}</strong>
                     </div>
-                    <div className="flex gap-4 opacity-50">
-                      <div className="flex flex-col items-center justify-center w-12 h-12 bg-outline-variant rounded-xl text-on-surface-variant">
-                        <span className="text-xs font-bold">OCT</span>
-                        <span className="text-xl font-bold leading-none">14</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Infographie Digitale</p>
-                        <p className="text-xs text-outline">14:00 • Salle 302</p>
-                      </div>
+                    <div className="courses-agenda-copy">
+                      <p>{item.course}</p>
+                      <span>
+                        {item.time} · {item.room ?? 'Salle a definir'}
+                      </span>
                     </div>
                   </div>
-                </div>
-                <button className="mt-8 text-primary font-bold text-sm flex items-center gap-2 group">
-                  Voir tout le calendrier
-                  <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
-                </button>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </main>
-      <button className="fixed bottom-8 right-8 h-14 w-14 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
-        <span className="material-symbols-outlined" data-icon="add">add</span>
-      </button>
-    </div>
+        </section>
+      </div>
 
-    <style>
-        {`.material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        .courses-root {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          font-family: 'Manrope', sans-serif;
+          color: #18181b;
         }
-        body { font-family: 'Manrope', sans-serif; }
-        h1, h2, h3, .serif-font { font-family: 'EB Garamond', serif; }`}
-    </style>
-    </Authenticated>
-  )
+        .courses-hero,
+        .courses-stat-card,
+        .courses-featured-card,
+        .courses-side-card,
+        .courses-panel {
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+        }
+        .courses-hero {
+          position: relative;
+          display: flex;
+          justify-content: space-between;
+          gap: 22px;
+          flex-wrap: wrap;
+          padding: 28px;
+          border-radius: 22px;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at top right, rgba(255, 154, 86, 0.16), transparent 28%),
+            linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+        }
+        .courses-hero::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 4px;
+          background: linear-gradient(90deg, #ff6b2b, #ff9a56, #ffbf7a);
+        }
+        .courses-hero-copy { max-width: 760px; position: relative; z-index: 1; }
+        .courses-kicker, .courses-meta-label {
+          margin: 0; font-size: 0.73rem; font-weight: 800; letter-spacing: 0.13em;
+          text-transform: uppercase; color: #ff6b2b;
+        }
+        .courses-hero-title {
+          margin: 6px 0 0; font-family: 'EB Garamond', serif;
+          font-size: clamp(2rem, 3vw, 3rem); line-height: 1; letter-spacing: -0.03em;
+        }
+        .courses-hero-title span { color: #ff6b2b; }
+        .courses-hero-text, .courses-muted {
+          margin: 0; color: #717171; line-height: 1.7; font-size: 0.88rem;
+        }
+        .courses-hero-text { max-width: 620px; margin-top: 14px; }
+        .courses-hero-badges {
+          display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;
+        }
+        .courses-chip {
+          display: inline-flex; align-items: center; gap: 10px; padding: 12px 14px;
+          border-radius: 999px; background: rgba(255, 255, 255, 0.84);
+          border: 1px solid rgba(255, 107, 43, 0.12); color: #6b4b3e;
+          font-size: 0.82rem; font-weight: 700; width: fit-content; max-width: 100%;
+        }
+        .courses-chip--soft { border-radius: 16px; color: #757575; border-color: rgba(15, 23, 42, 0.08); }
+        .courses-chip-dot {
+          width: 10px; height: 10px; border-radius: 50%; background: #10b981;
+          box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.14);
+        }
+        .courses-stats-grid, .courses-main-grid, .courses-bottom-grid { display: grid; gap: 18px; }
+        .courses-stats-grid { grid-template-columns: repeat(3, 1fr); }
+        .courses-main-grid { grid-template-columns: 1.6fr 1fr; align-items: start; }
+        .courses-bottom-grid { grid-template-columns: 1.4fr 1fr; align-items: start; }
+        .courses-stat-card, .courses-featured-card, .courses-side-card, .courses-panel {
+          border-radius: 20px; padding: 24px;
+        }
+        .courses-stat-value, .courses-price-block strong, .courses-progress-percent {
+          color: #18181b; font-weight: 800;
+        }
+        .courses-stat-value { font-size: 1.65rem; margin: 10px 0 4px; }
+        .courses-featured-card {
+          background: radial-gradient(circle at bottom right, rgba(255, 107, 43, 0.12), transparent 30%), #fff;
+        }
+        .courses-featured-top, .courses-panel-head, .courses-side-head, .courses-progress-head, .courses-next-row {
+          display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+        }
+        .courses-badge, .courses-side-status {
+          display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px;
+          background: rgba(255, 107, 43, 0.1); color: #ff6b2b; font-size: 0.68rem;
+          font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .courses-side-status { background: #f6f6f6; color: #707070; }
+        .courses-featured-title, .courses-side-title, .courses-panel-title, .courses-session-title {
+          margin: 0; color: #18181b;
+        }
+        .courses-featured-title {
+          margin-top: 12px; font-family: 'EB Garamond', serif;
+          font-size: clamp(2rem, 3vw, 2.7rem); line-height: 1.05;
+        }
+        .courses-side-title, .courses-panel-title { font-size: 1rem; font-weight: 800; }
+        .courses-session-title { margin-top: 4px; font-size: 1.35rem; font-weight: 800; }
+        .courses-featured-text { margin: 16px 0 0; max-width: 760px; color: #666; line-height: 1.7; font-size: 0.9rem; }
+        .courses-price-block { text-align: right; }
+        .courses-price-block strong { display: block; font-size: 1.2rem; color: #ff6b2b; }
+        .courses-price-block span {
+          font-size: 0.72rem; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .courses-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 22px; }
+        .courses-meta-card, .courses-session-card, .courses-agenda-item {
+          border-radius: 16px; border: 1px solid rgba(15, 23, 42, 0.06); background: #fafafa;
+        }
+        .courses-meta-card { padding: 14px; }
+        .courses-meta-card strong, .courses-next-row strong, .courses-agenda-copy p {
+          display: block; margin-top: 6px; color: #18181b; font-size: 0.9rem;
+        }
+        .courses-session-card {
+          margin-top: 18px; padding: 18px; display: flex; justify-content: space-between; gap: 16px; align-items: center;
+          background: linear-gradient(135deg, #fff7f1, #ffffff);
+        }
+        .courses-progress-side { text-align: right; }
+        .courses-progress-percent { display: block; font-size: 1.5rem; color: #ff6b2b; }
+        .courses-progress-block { margin-top: 18px; }
+        .courses-progress-head { margin-bottom: 8px; color: #666; font-size: 0.82rem; font-weight: 700; }
+        .courses-progress-head strong { color: #18181b; }
+        .courses-progress-track {
+          width: 100%; height: 11px; border-radius: 999px; overflow: hidden; background: #ece8e4;
+        }
+        .courses-progress-track--sm { height: 9px; }
+        .courses-progress-fill {
+          height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff9a56, #ff6b2b);
+        }
+        .courses-side-stack, .courses-aside-stack, .courses-summary-list, .courses-agenda-list {
+          display: flex; flex-direction: column; gap: 16px;
+        }
+        .courses-side-card { display: flex; flex-direction: column; gap: 14px; }
+        .courses-side-category {
+          font-size: 0.74rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+        }
+        .courses-side-details { display: flex; flex-wrap: wrap; gap: 10px; color: #7a7a7a; font-size: 0.8rem; font-weight: 700; }
+        .courses-next-row > div { flex: 1; min-width: 120px; }
+        .courses-chart-block {
+          width: 100%; height: 290px; margin-top: 18px; padding: 10px 6px 0; border-radius: 18px;
+          background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .courses-panel--dark { background: #111111; border-color: rgba(255, 255, 255, 0.06); box-shadow: none; }
+        .courses-panel-title--light, .courses-muted--light, .courses-summary-row, .courses-dark-btn { color: #fff; }
+        .courses-muted--light { opacity: 0.66; }
+        .courses-summary-row {
+          display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.88rem;
+        }
+        .courses-summary-row span { opacity: 0.7; }
+        .courses-dark-btn {
+          margin-top: 6px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.14);
+          background: rgba(255, 255, 255, 0.04); border-radius: 14px; padding: 13px 16px;
+          font-family: 'Manrope', sans-serif; font-size: 0.86rem; font-weight: 800; cursor: pointer;
+          transition: background 0.18s ease;
+        }
+        .courses-dark-btn:hover { background: rgba(255, 255, 255, 0.08); }
+        .courses-agenda-item { display: flex; align-items: center; gap: 14px; padding: 14px; }
+        .courses-agenda-item--active { background: #fff7f1; border-color: rgba(255, 107, 43, 0.16); }
+        .courses-date-box {
+          width: 56px; height: 56px; border-radius: 16px; background: #ff6b2b; color: #fff;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .courses-date-box span { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; }
+        .courses-date-box strong { font-size: 1.15rem; line-height: 1; }
+        .courses-agenda-copy p { margin: 0; }
+        .courses-agenda-copy span { display: block; margin-top: 4px; color: #7a7a7a; font-size: 0.78rem; }
+        @media (max-width: 1150px) {
+          .courses-main-grid, .courses-bottom-grid, .courses-stats-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 780px) {
+          .courses-meta-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+          .courses-hero, .courses-stat-card, .courses-featured-card, .courses-side-card, .courses-panel {
+            padding: 18px; border-radius: 18px;
+          }
+          .courses-hero-title, .courses-featured-title { font-size: 2rem; }
+          .courses-meta-grid { grid-template-columns: 1fr; }
+          .courses-session-card { flex-direction: column; align-items: flex-start; }
+          .courses-progress-side { text-align: left; }
+        }
+      `}</style>
+    </AuthenticatedLayout>
+  );
 }
-
-export default MyCourses

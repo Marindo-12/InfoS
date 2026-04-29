@@ -2,9 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Course;
+use App\Models\Enrollment;
+use App\Models\Payment;
+use App\Models\PaymentInstallment;
+use App\Models\PortalNotification;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +21,280 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $admin = User::factory()->admin()->create([
+            'name' => 'Admin Info Saloua',
+            'email' => 'admin@infosaloua.test',
         ]);
+
+        $student = User::factory()->create([
+            'name' => 'Sara Bennani',
+            'email' => 'student@infosaloua.test',
+            'phone' => '+212600000000',
+        ]);
+
+        $courses = collect([
+            [
+                'title' => 'Maitrise Adobe Creative Suite',
+                'slug' => 'maitrise-adobe-creative-suite',
+                'category' => 'Infographie',
+                'level' => 'Intermediaire',
+                'description' => 'Parcours pratique sur Photoshop, Illustrator et InDesign.',
+                'duration_hours' => 72,
+                'duration_weeks' => 12,
+                'price' => 4500,
+                'capacity' => 20,
+                'status' => 'active',
+                'starts_at' => now()->subWeeks(3),
+                'ends_at' => now()->addWeeks(9),
+            ],
+            [
+                'title' => 'Expertise Microsoft Office',
+                'slug' => 'expertise-microsoft-office',
+                'category' => 'Bureautique',
+                'level' => 'Avance',
+                'description' => 'Word, Excel et PowerPoint orientes productivite et entreprise.',
+                'duration_hours' => 48,
+                'duration_weeks' => 8,
+                'price' => 2800,
+                'capacity' => 18,
+                'status' => 'active',
+                'starts_at' => now()->subWeeks(6),
+                'ends_at' => now()->addWeeks(2),
+            ],
+            [
+                'title' => 'Anglais des affaires - Niveau B2',
+                'slug' => 'anglais-des-affaires-b2',
+                'category' => 'Langues',
+                'level' => 'B2',
+                'description' => 'Communication professionnelle ecrite et orale en anglais.',
+                'duration_hours' => 60,
+                'duration_weeks' => 10,
+                'price' => 3200,
+                'capacity' => 16,
+                'status' => 'active',
+                'starts_at' => now()->subWeeks(2),
+                'ends_at' => now()->addWeeks(8),
+            ],
+        ])->map(fn (array $course) => Course::create($course));
+
+        $enrollments = [
+            [
+                'course' => $courses[0],
+                'group_name' => 'Groupe A2',
+                'room' => 'Salle 302',
+                'progress' => 68,
+                'payment_status' => 'paid',
+                'next_session_at' => now()->addDays(2)->setTime(14, 0),
+            ],
+            [
+                'course' => $courses[1],
+                'group_name' => 'Lab 1',
+                'room' => 'Lab 1',
+                'progress' => 92,
+                'payment_status' => 'paid',
+                'next_session_at' => now()->addDays(4)->setTime(9, 0),
+            ],
+            [
+                'course' => $courses[2],
+                'group_name' => 'Lab 4',
+                'room' => 'Lab 4',
+                'progress' => 45,
+                'payment_status' => 'partial',
+                'next_session_at' => now()->addDay()->setTime(10, 0),
+            ],
+        ];
+
+        foreach ($enrollments as $index => $entry) {
+            $enrollment = Enrollment::create([
+                'user_id' => $student->id,
+                'course_id' => $entry['course']->id,
+                'reference' => 'ENR-'.Str::padLeft((string) ($index + 1), 4, '0'),
+                'group_name' => $entry['group_name'],
+                'room' => $entry['room'],
+                'progress' => $entry['progress'],
+                'status' => 'active',
+                'payment_status' => $entry['payment_status'],
+                'enrolled_at' => now()->subWeeks($index + 1),
+                'next_session_at' => $entry['next_session_at'],
+            ]);
+
+            $payments = match ($entry['course']->slug) {
+                'maitrise-adobe-creative-suite' => [
+                    ['reference' => 'PAY-1001', 'method' => 'card', 'amount' => 2500, 'status' => 'paid', 'paid_at' => now()->subMonths(2)],
+                    ['reference' => 'PAY-1002', 'method' => 'bank_transfer', 'amount' => 2000, 'status' => 'paid', 'paid_at' => now()->subMonth()],
+                ],
+                'expertise-microsoft-office' => [
+                    ['reference' => 'PAY-1003', 'method' => 'cash', 'amount' => 2800, 'status' => 'paid', 'paid_at' => now()->subWeeks(3)],
+                ],
+                default => [
+                    ['reference' => 'PAY-1004', 'method' => 'card', 'amount' => 1500, 'status' => 'paid', 'paid_at' => now()->subWeeks(2)],
+                    ['reference' => 'PAY-1005', 'method' => 'bank_transfer', 'amount' => 1700, 'status' => 'pending', 'paid_at' => null],
+                ],
+            };
+
+            foreach ($payments as $payment) {
+                Payment::create([
+                    'enrollment_id' => $enrollment->id,
+                    ...$payment,
+                    'notes' => null,
+                ]);
+            }
+
+            $installments = match ($entry['course']->slug) {
+                'anglais-des-affaires-b2' => [
+                    ['title' => 'Acompte initial', 'amount' => 1500, 'due_date' => now()->subWeeks(2)->toDateString(), 'status' => 'paid', 'paid_at' => now()->subWeeks(2)],
+                    ['title' => 'Deuxieme versement', 'amount' => 1700, 'due_date' => now()->addWeeks(2)->toDateString(), 'status' => 'pending', 'paid_at' => null],
+                ],
+                default => [
+                    ['title' => 'Paiement unique', 'amount' => $entry['course']->price, 'due_date' => now()->subMonth()->toDateString(), 'status' => 'paid', 'paid_at' => now()->subMonth()],
+                ],
+            };
+
+            foreach ($installments as $installment) {
+                PaymentInstallment::create([
+                    'enrollment_id' => $enrollment->id,
+                    ...$installment,
+                ]);
+            }
+        }
+
+        collect([
+            [
+                'category' => 'academic',
+                'title' => 'Resultat valide pour votre module de bureautique',
+                'message' => 'Votre progression dans le module Expertise Microsoft Office a ete mise a jour. Vous etes proche de la validation finale.',
+                'icon' => 'school',
+                'action_label' => 'Voir mes formations',
+                'action_url' => route('student.courses', absolute: false),
+                'published_at' => now()->subMinutes(12),
+            ],
+            [
+                'category' => 'financial',
+                'title' => 'Deuxieme versement en attente',
+                'message' => 'Le prochain versement pour Anglais des affaires reste a regler afin de finaliser votre dossier administratif.',
+                'icon' => 'account_balance_wallet',
+                'action_label' => 'Voir mes paiements',
+                'action_url' => route('student.payment', absolute: false),
+                'published_at' => now()->subHours(2),
+            ],
+            [
+                'category' => 'news',
+                'title' => 'Atelier special portfolio cette semaine',
+                'message' => 'Un atelier exceptionnel sera organise vendredi pour optimiser vos presentations et dossiers de projets.',
+                'icon' => 'campaign',
+                'action_label' => 'Voir mes formations',
+                'action_url' => route('student.courses', absolute: false),
+                'published_at' => now()->subDay(),
+                'read_at' => now()->subHours(20),
+            ],
+            [
+                'category' => 'academic',
+                'title' => 'Changement de salle pour la prochaine seance',
+                'message' => 'La prochaine session d infographie aura lieu en Salle 302. Merci de mettre votre agenda a jour.',
+                'icon' => 'calendar_month',
+                'action_label' => 'Consulter le planning',
+                'action_url' => route('student.courses', absolute: false),
+                'published_at' => now()->subDays(2),
+                'read_at' => now()->subDay(),
+            ],
+        ])->each(function (array $notification) use ($student) {
+            PortalNotification::create([
+                'user_id' => $student->id,
+                'category' => $notification['category'],
+                'title' => $notification['title'],
+                'message' => $notification['message'],
+                'icon' => $notification['icon'],
+                'action_label' => $notification['action_label'],
+                'action_url' => $notification['action_url'],
+                'published_at' => $notification['published_at'],
+                'read_at' => $notification['read_at'] ?? null,
+            ]);
+        });
+
+        $extraStudents = [
+            [
+                'name' => 'Omar Drissi',
+                'email' => 'omar.drissi@infosaloua.test',
+                'phone' => '+212600000001',
+                'course_slug' => 'anglais-des-affaires-b2',
+                'progress' => 32,
+                'payment_status' => 'partial',
+                'group_name' => 'Lab 4',
+                'room' => 'Lab 4',
+                'paid_amounts' => [1200],
+            ],
+            [
+                'name' => 'Ines Benjelloun',
+                'email' => 'ines.benjelloun@infosaloua.test',
+                'phone' => '+212600000002',
+                'course_slug' => 'maitrise-adobe-creative-suite',
+                'progress' => 90,
+                'payment_status' => 'retard',
+                'group_name' => 'Groupe A2',
+                'room' => 'Salle 302',
+                'paid_amounts' => [],
+            ],
+            [
+                'name' => 'Anas Filali',
+                'email' => 'anas.filali@infosaloua.test',
+                'phone' => '+212600000003',
+                'course_slug' => 'expertise-microsoft-office',
+                'progress' => 15,
+                'payment_status' => 'paid',
+                'group_name' => 'Lab 1',
+                'room' => 'Lab 1',
+                'paid_amounts' => [2800],
+            ],
+            [
+                'name' => 'Sofia El Alami',
+                'email' => 'sofia.elalami@infosaloua.test',
+                'phone' => '+212600000004',
+                'course_slug' => 'maitrise-adobe-creative-suite',
+                'progress' => 75,
+                'payment_status' => 'paid',
+                'group_name' => 'Groupe A2',
+                'room' => 'Salle 302',
+                'paid_amounts' => [2500, 2000],
+            ],
+        ];
+
+        foreach ($extraStudents as $index => $studentData) {
+            $extraStudent = User::factory()->create([
+                'name' => $studentData['name'],
+                'email' => $studentData['email'],
+                'phone' => $studentData['phone'],
+                'created_at' => now()->subDays($index + 2),
+                'updated_at' => now()->subHours(($index + 1) * 6),
+            ]);
+
+            $course = $courses->firstWhere('slug', $studentData['course_slug']);
+
+            $extraEnrollment = Enrollment::create([
+                'user_id' => $extraStudent->id,
+                'course_id' => $course->id,
+                'reference' => 'ENR-'.Str::padLeft((string) ($index + 10), 4, '0'),
+                'group_name' => $studentData['group_name'],
+                'room' => $studentData['room'],
+                'progress' => $studentData['progress'],
+                'status' => 'active',
+                'payment_status' => $studentData['payment_status'],
+                'enrolled_at' => now()->subWeeks($index + 1),
+                'next_session_at' => now()->addDays($index + 1)->setTime(10 + $index, 0),
+                'created_at' => now()->subDays($index + 2),
+                'updated_at' => now()->subHours(($index + 1) * 6),
+            ]);
+
+            foreach ($studentData['paid_amounts'] as $paymentIndex => $amount) {
+                Payment::create([
+                    'enrollment_id' => $extraEnrollment->id,
+                    'reference' => 'PAY-20'.($index + 1).($paymentIndex + 1),
+                    'method' => $paymentIndex % 2 === 0 ? 'card' : 'bank_transfer',
+                    'amount' => $amount,
+                    'status' => 'paid',
+                    'paid_at' => now()->subDays(($index + 1) * 3 + $paymentIndex),
+                    'notes' => null,
+                ]);
+            }
+        }
     }
 }

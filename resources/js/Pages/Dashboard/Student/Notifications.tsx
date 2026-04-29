@@ -1,165 +1,530 @@
-import Authenticated from '@/Layouts/AuthenticatedLayout'
-import React from 'react'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 
-const Notifications = () => {
-  return (
-    <Authenticated header={<h2>Notifications</h2>}>
-      <main className="min-h-screen">
-        <div className="p-8 max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h3 className="font-serif text-4xl text-on-surface tracking-tight">Recent Activity</h3>
-              <p className="text-stone-500 mt-1">You have 4 unread messages from 'Info Saloua'</p>
-            </div>
-            <button className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline decoration-2 underline-offset-4 transition-all">
-              <span className="material-symbols-outlined text-lg" data-icon="done_all">done_all</span>
-              mark all as read
-            </button>
-          </div>
-          <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-12 lg:col-span-8 space-y-6">
-              <div className="flex gap-4 border-b border-outline-variant/40 pb-px mb-8">
-                <button className="px-4 py-2 border-b-2 border-primary text-primary font-bold text-sm tracking-wide">All Activity</button>
-                <button className="px-4 py-2 text-stone-500 font-medium text-sm hover:text-primary transition-colors">Academic</button>
-                <button className="px-4 py-2 text-stone-500 font-medium text-sm hover:text-primary transition-colors">Financial</button>
-                <button className="px-4 py-2 text-stone-500 font-medium text-sm hover:text-primary transition-colors">Center News</button>
-              </div>
-              <div className="space-y-4">
-                <div className="bg-surface-container-lowest p-6 rounded-2xl soft-elevation flex gap-5 border-l-4 border-primary group hover:bg-surface transition-colors cursor-pointer">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-primary">
-                    <span className="material-symbols-outlined text-2xl" data-icon="school" /* style="font-variation-settings: 'FILL' 1;" */>school</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-serif text-xl text-on-surface group-hover:text-primary transition-colors">Final Grade Published: Intro to Design</h4>
-                      <span className="text-xs text-stone-400 font-medium">2 mins ago</span>
-                    </div>
-                    <p className="text-stone-600 text-sm leading-relaxed mb-3">Your final results for DES101 have been validated by the department. You can now view them in your academic transcript.</p>
-                    <div className="flex gap-3">
-                      <span className="px-3 py-1 bg-surface-container text-[10px] font-bold uppercase tracking-widest text-stone-500 rounded-full">Academic</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-surface-container-lowest p-6 rounded-2xl soft-elevation flex gap-5 border-l-4 border-primary group hover:bg-surface transition-colors cursor-pointer">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-tertiary">
-                    <span className="material-symbols-outlined text-2xl" data-icon="account_balance_wallet" /* style="font-variation-settings: 'FILL' 1;" */>account_balance_wallet</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-serif text-xl text-on-surface group-hover:text-primary transition-colors">Scholarship Disbursement Confirmed</h4>
-                      <span className="text-xs text-stone-400 font-medium">1 hour ago</span>
-                    </div>
-                    <p className="text-stone-600 text-sm leading-relaxed mb-3">The second installment of your Excellence Scholarship has been processed and sent to your registered bank account.</p>
-                    <div className="flex gap-3">
-                      <span className="px-3 py-1 bg-surface-container text-[10px] font-bold uppercase tracking-widest text-stone-500 rounded-full">Financial</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-surface-container-low p-6 rounded-2xl opacity-80 flex gap-5 group hover:opacity-100 transition-all cursor-pointer">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-stone-200 flex items-center justify-center text-stone-500">
-                    <span className="material-symbols-outlined text-2xl" data-icon="campaign">campaign</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-serif text-xl text-on-surface">New Workshop: Portfolio MasterclassName</h4>
-                      <span className="text-xs text-stone-400 font-medium">Yesterday</span>
-                    </div>
-                    <p className="text-stone-500 text-sm leading-relaxed mb-3">Join us this Friday for an exclusive session on building industry-standard portfolios with our guest speakers.</p>
-                    <div className="flex gap-3">
-                      <span className="px-3 py-1 bg-surface-container-high text-[10px] font-bold uppercase tracking-widest text-stone-400 rounded-full">Center News</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-surface-container-low p-6 rounded-2xl opacity-80 flex gap-5 group hover:opacity-100 transition-all cursor-pointer">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-stone-200 flex items-center justify-center text-stone-500">
-                    <span className="material-symbols-outlined text-2xl" data-icon="calendar_month">calendar_month</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-serif text-xl text-on-surface">Schedule Update: Advanced Typography</h4>
-                      <span className="text-xs text-stone-400 font-medium">Oct 24</span>
-                    </div>
-                    <p className="text-stone-500 text-sm leading-relaxed mb-3">The session scheduled for Monday at 10:00 AM has been moved to Room 402. Please update your planners.</p>
-                    <div className="flex gap-3">
-                      <span className="px-3 py-1 bg-surface-container-high text-[10px] font-bold uppercase tracking-widest text-stone-400 rounded-full">Academic</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="py-10 text-center">
-                <button className="inline-flex items-center gap-2 text-stone-400 font-medium hover:text-on-surface transition-colors">
-                  <span className="material-symbols-outlined" data-icon="history">history</span>
-                  View Archive (24 older notifications)
-                </button>
-              </div>
-            </div>
-            <aside className="col-span-12 lg:col-span-4 space-y-8">
-              <section className="bg-primary-container/20 p-8 rounded-3xl border border-primary-container/30 relative overflow-hidden">
-                <div className="absolute -right-4 -top-4 opacity-10">
-                  <span className="material-symbols-outlined text-8xl" data-icon="stars">stars</span>
-                </div>
-                <h5 className="font-serif text-2xl text-on-primary-fixed-variant mb-4">Important Notice</h5>
-                <p className="text-sm text-on-surface/80 leading-relaxed mb-6">
-                  Campus registration for the Spring semester closes in <strong>3 days</strong>. Ensure all financial clearances are complete to avoid delays.
-                </p>
-                <a className="inline-block w-full py-3 bg-primary text-white text-center text-sm font-bold rounded-lg hover:bg-orange-700 transition-colors shadow-lg shadow-primary/20" href="#">
-                  Complete Registration
-                </a>
-              </section>
-              <section className="bg-surface-container-lowest p-8 rounded-3xl soft-elevation border border-outline-variant/30">
-                <div className="flex justify-between items-center mb-6">
-                  <h5 className="font-serif text-2xl text-on-surface">Upcoming</h5>
-                  <span className="text-xs font-bold text-primary tracking-widest uppercase">View All</span>
-                </div>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4 group cursor-pointer">
-                    <div className="w-14 h-14 rounded-2xl bg-surface-container flex flex-col items-center justify-center text-on-surface-variant flex-shrink-0 group-hover:bg-primary transition-colors group-hover:text-white">
-                      <span className="text-xs font-bold uppercase">Oct</span>
-                      <span className="text-lg font-bold font-serif leading-none">28</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-on-surface mb-0.5">Design Thinking Forum</p>
-                      <p className="text-xs text-stone-500">Main Auditorium · 09:00 AM</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 group cursor-pointer">
-                    <div className="w-14 h-14 rounded-2xl bg-surface-container flex flex-col items-center justify-center text-on-surface-variant flex-shrink-0 group-hover:bg-primary transition-colors group-hover:text-white">
-                      <span className="text-xs font-bold uppercase">Nov</span>
-                      <span className="text-lg font-bold font-serif leading-none">02</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-on-surface mb-0.5">Global Internship Fair</p>
-                      <p className="text-xs text-stone-500">Virtual Session · 02:00 PM</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 group cursor-pointer">
-                    <div className="w-14 h-14 rounded-2xl bg-surface-container flex flex-col items-center justify-center text-on-surface-variant flex-shrink-0 group-hover:bg-primary transition-colors group-hover:text-white">
-                      <span className="text-xs font-bold uppercase">Nov</span>
-                      <span className="text-lg font-bold font-serif leading-none">05</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-on-surface mb-0.5">Typography Showcase</p>
-                      <p className="text-xs text-stone-500">Library Gallery · 11:00 AM</p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-              <div className="relative h-48 rounded-3xl overflow-hidden group">
-                <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="collaborative group of students working together in a bright modern workspace with warm natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjIJcSCuky3qy_RVJj59zsfQdaL4eJh-qwRkch6VAYJ9oo7kOznKOpIiyMZbbJKpXycDH1_g54_baEmtVVjqJzcETdiapkz44MguN0Fl__RDGKW52Zz2BO4NS7BsisUnqYIU6RTvjmi96BiaAramA3lZWB1YU17Z9uX_scyLunqjayY-l9NJScHuvKL3pmlSJ7rXp1R5R3n23xrH0feVYiVe6Ni_EXlmY9bWrmr5FvpAII0b95b56JvPM9L40kJ0AacadyvZarDnNV" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                  <h6 className="text-white font-serif text-xl mb-1">Need Assistance?</h6>
-                  <p className="text-stone-300 text-xs mb-3">Our student support team is online.</p>
-                  <button className="bg-white/20 backdrop-blur-md text-white border border-white/30 py-2 px-4 rounded-lg text-xs font-bold hover:bg-white hover:text-black transition-colors w-fit">
-                    Start Live Chat
-                  </button>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </main>
-    </Authenticated>
-  )
+type NotificationItem = {
+  id: number;
+  category: 'academic' | 'financial' | 'news';
+  title: string;
+  message: string;
+  icon: string;
+  isRead: boolean;
+  timeLabel: string | null;
+  actionLabel?: string | null;
+  actionUrl?: string | null;
+};
+
+type FilterItem = {
+  key: string;
+  label: string;
+  count: number;
+};
+
+type ImportantNotice = {
+  title: string;
+  message: string;
+  actionLabel: string;
+  actionUrl: string;
+};
+
+type UpcomingItem = {
+  day: string;
+  month: string;
+  title: string;
+  meta: string;
+};
+
+type PageProps = {
+  auth: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+  };
+  filters: FilterItem[];
+  activeFilter: string;
+  unreadCount: number;
+  notifications: NotificationItem[];
+  importantNotice: ImportantNotice;
+  upcoming: UpcomingItem[];
+};
+
+function categoryLabel(category: NotificationItem['category']) {
+  if (category === 'academic') return 'Academique';
+  if (category === 'financial') return 'Financier';
+  return 'Actualites';
 }
 
-export default Notifications
+function categoryTone(category: NotificationItem['category']) {
+  if (category === 'academic') {
+    return {
+      card: 'notif-item notif-item--academic',
+      icon: 'notif-icon notif-icon--academic',
+    };
+  }
+
+  if (category === 'financial') {
+    return {
+      card: 'notif-item notif-item--financial',
+      icon: 'notif-icon notif-icon--financial',
+    };
+  }
+
+  return {
+    card: 'notif-item notif-item--news',
+    icon: 'notif-icon notif-icon--news',
+  };
+}
+
+export default function Notifications() {
+  const { props } = usePage<PageProps>();
+  const { filters, activeFilter, unreadCount, notifications, importantNotice, upcoming } = props;
+
+  return (
+    <AuthenticatedLayout header={<h2>Notifications</h2>}>
+      <Head title="Notifications" />
+
+      <div className="notif-root">
+        <section className="notif-hero">
+          <div>
+            <p className="notif-kicker">Centre etudiant</p>
+            <h1 className="notif-title">Activite recente</h1>
+            <p className="notif-subtitle">
+              {unreadCount > 0
+                ? `Vous avez ${unreadCount} notification(s) non lue(s) de Info Saloua.`
+                : 'Toutes vos notifications ont ete consultees.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="notif-mark-btn"
+            onClick={() => router.post(route('student.notifications.read-all'))}
+          >
+            Tout marquer comme lu
+          </button>
+        </section>
+
+        <div className="notif-grid">
+          <section className="notif-main">
+            <div className="notif-filters">
+              {filters.map((filter) => (
+                <button
+                  type="button"
+                  key={filter.key}
+                  className={`notif-filter ${activeFilter === filter.key ? 'notif-filter--active' : ''}`}
+                  onClick={() => router.get(route('student.notifications'), { filter: filter.key }, { preserveState: true, preserveScroll: true })}
+                >
+                  {filter.label}
+                  <span>{filter.count}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="notif-list">
+              {notifications.map((notification) => {
+                const tone = categoryTone(notification.category);
+
+                return (
+                  <article key={notification.id} className={tone.card}>
+                    <div className={tone.icon}>
+                      <span className="material-symbols-outlined">{notification.icon}</span>
+                    </div>
+
+                    <div className="notif-item-copy">
+                      <div className="notif-item-head">
+                        <h3>{notification.title}</h3>
+                        <span>{notification.timeLabel ?? 'Recemment'}</span>
+                      </div>
+                      <p>{notification.message}</p>
+
+                      <div className="notif-item-meta">
+                        <span className={`notif-badge ${notification.isRead ? 'notif-badge--read' : 'notif-badge--unread'}`}>
+                          {notification.isRead ? 'Lu' : 'Non lu'}
+                        </span>
+                        <span className="notif-category">{categoryLabel(notification.category)}</span>
+                        {notification.actionLabel && notification.actionUrl && (
+                          <Link href={notification.actionUrl} className="notif-action-link">
+                            {notification.actionLabel}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+
+              {notifications.length === 0 && (
+                <div className="notif-empty">
+                  <span className="material-symbols-outlined">notifications_off</span>
+                  <p>Aucune notification pour ce filtre.</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <aside className="notif-side">
+            <section className="notif-panel notif-panel--accent">
+              <h3>{importantNotice.title}</h3>
+              <p>{importantNotice.message}</p>
+              <Link href={importantNotice.actionUrl} className="notif-primary-link">
+                {importantNotice.actionLabel}
+              </Link>
+            </section>
+
+            <section className="notif-panel">
+              <div className="notif-panel-head">
+                <h3>Prochaines seances</h3>
+              </div>
+              <div className="notif-upcoming-list">
+                {upcoming.map((item) => (
+                  <div key={`${item.day}-${item.title}`} className="notif-upcoming-item">
+                    <div className="notif-date-box">
+                      <span>{item.month}</span>
+                      <strong>{item.day}</strong>
+                    </div>
+                    <div>
+                      <p>{item.title}</p>
+                      <span>{item.meta}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 24;
+          font-family: 'Material Symbols Outlined';
+          line-height: 1;
+        }
+
+        .notif-root {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          font-family: 'Manrope', sans-serif;
+          color: #18181b;
+        }
+        .notif-hero,
+        .notif-panel,
+        .notif-item {
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+        }
+        .notif-hero {
+          position: relative;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 20px;
+          flex-wrap: wrap;
+          padding: 28px;
+          border-radius: 22px;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at top right, rgba(255, 154, 86, 0.16), transparent 28%),
+            linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+        }
+        .notif-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0 auto auto 0;
+          width: 100%;
+          height: 4px;
+          background: linear-gradient(90deg, #ff6b2b, #ff9a56, #ffbf7a);
+        }
+        .notif-kicker {
+          margin: 0 0 8px;
+          font-size: 0.74rem;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #ff6b2b;
+        }
+        .notif-title {
+          margin: 0;
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(2rem, 3vw, 3rem);
+          line-height: 1;
+        }
+        .notif-subtitle {
+          margin: 12px 0 0;
+          color: #717171;
+          font-size: 0.92rem;
+          line-height: 1.7;
+        }
+        .notif-mark-btn,
+        .notif-primary-link,
+        .notif-action-link {
+          transition: all 0.18s ease;
+        }
+        .notif-mark-btn {
+          border: none;
+          border-radius: 12px;
+          padding: 12px 16px;
+          background: linear-gradient(135deg, #ff7a35, #ff5b14);
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
+          font-size: 0.86rem;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 12px 24px rgba(255, 107, 43, 0.2);
+        }
+        .notif-mark-btn:hover {
+          transform: translateY(-1px);
+        }
+
+        .notif-grid {
+          display: grid;
+          grid-template-columns: 1.55fr 1fr;
+          gap: 18px;
+          align-items: start;
+        }
+        .notif-main,
+        .notif-side {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+        .notif-filters {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .notif-filter {
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #fff;
+          color: #777;
+          border-radius: 999px;
+          padding: 10px 14px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .notif-filter span {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 20px;
+          height: 20px;
+          border-radius: 999px;
+          background: #f5f5f5;
+          font-size: 0.72rem;
+        }
+        .notif-filter--active {
+          border-color: rgba(255, 107, 43, 0.18);
+          background: #fff7f1;
+          color: #ff6b2b;
+        }
+        .notif-filter--active span {
+          background: rgba(255, 107, 43, 0.12);
+        }
+
+        .notif-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .notif-item {
+          display: flex;
+          gap: 16px;
+          padding: 22px;
+          border-radius: 20px;
+        }
+        .notif-item--academic { border-left: 4px solid #ff6b2b; }
+        .notif-item--financial { border-left: 4px solid #ef4444; }
+        .notif-item--news { border-left: 4px solid #94a3b8; }
+        .notif-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .notif-icon--academic { background: #fff3ec; color: #ff6b2b; }
+        .notif-icon--financial { background: #fff1f2; color: #ef4444; }
+        .notif-icon--news { background: #f3f4f6; color: #64748b; }
+        .notif-item-copy { flex: 1; min-width: 0; }
+        .notif-item-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        .notif-item-head h3 {
+          margin: 0;
+          font-family: 'EB Garamond', serif;
+          font-size: 1.35rem;
+          line-height: 1.1;
+        }
+        .notif-item-head span {
+          color: #a3a3a3;
+          font-size: 0.76rem;
+          font-weight: 700;
+        }
+        .notif-item-copy p {
+          margin: 10px 0 0;
+          color: #666;
+          line-height: 1.7;
+          font-size: 0.88rem;
+        }
+        .notif-item-meta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-top: 14px;
+        }
+        .notif-badge,
+        .notif-category {
+          display: inline-flex;
+          align-items: center;
+          border-radius: 999px;
+          padding: 6px 10px;
+          font-size: 0.68rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+        .notif-badge--unread { background: rgba(255, 107, 43, 0.12); color: #ff6b2b; }
+        .notif-badge--read { background: #f4f4f5; color: #777; }
+        .notif-category { background: #faf5f0; color: #8b6b56; }
+        .notif-action-link {
+          color: #ff6b2b;
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-decoration: none;
+        }
+        .notif-action-link:hover { color: #e25817; }
+
+        .notif-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 40px 20px;
+          border-radius: 20px;
+          border: 1px dashed rgba(15, 23, 42, 0.12);
+          background: #fafafa;
+          color: #8b8b8b;
+        }
+
+        .notif-panel {
+          border-radius: 20px;
+          padding: 22px;
+        }
+        .notif-panel--accent {
+          background: linear-gradient(180deg, #fff7f1 0%, #ffffff 100%);
+          border-color: rgba(255, 107, 43, 0.12);
+        }
+        .notif-panel-head h3,
+        .notif-panel--accent h3 {
+          margin: 0;
+          font-family: 'EB Garamond', serif;
+          font-size: 1.4rem;
+        }
+        .notif-panel--accent p {
+          margin: 12px 0 18px;
+          color: #666;
+          line-height: 1.7;
+          font-size: 0.88rem;
+        }
+        .notif-primary-link {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 16px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #ff7a35, #ff5b14);
+          color: #fff;
+          font-size: 0.84rem;
+          font-weight: 800;
+          text-decoration: none;
+          box-shadow: 0 12px 24px rgba(255, 107, 43, 0.18);
+        }
+        .notif-primary-link:hover { transform: translateY(-1px); }
+
+        .notif-upcoming-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin-top: 16px;
+        }
+        .notif-upcoming-item {
+          display: flex;
+          gap: 14px;
+          align-items: center;
+          padding: 14px;
+          border-radius: 16px;
+          background: #fafafa;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .notif-date-box {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          background: #ff6b2b;
+          color: #fff;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .notif-date-box span {
+          font-size: 0.62rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+        .notif-date-box strong {
+          font-size: 1.15rem;
+          line-height: 1;
+        }
+        .notif-upcoming-item p {
+          margin: 0;
+          font-size: 0.88rem;
+          font-weight: 800;
+          color: #18181b;
+        }
+        .notif-upcoming-item span {
+          display: block;
+          margin-top: 4px;
+          color: #7a7a7a;
+          font-size: 0.78rem;
+        }
+
+        @media (max-width: 1100px) {
+          .notif-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        @media (max-width: 640px) {
+          .notif-hero,
+          .notif-panel,
+          .notif-item {
+            padding: 18px;
+            border-radius: 18px;
+          }
+          .notif-title {
+            font-size: 2rem;
+          }
+        }
+      `}</style>
+    </AuthenticatedLayout>
+  );
+}

@@ -1,8 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\DashboardController;
+use App\Http\Controllers\Student\NotificationController;
+use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /*
@@ -57,8 +64,12 @@ Route::get('/inscriptions', function () {
 
 require __DIR__.'/auth.php';
 
-Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
-    return Inertia::render('Dashboard/Student/Dashboard');
+Route::middleware(['auth', 'verified'])->get('/dashboard', function (Request $request) {
+    // Rediriger vers le bon dashboard selon le rôle
+    if ($request->user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('student.dashboard');
 })->name('dashboard');
 
 /*
@@ -68,13 +79,9 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 */
 
 Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard/Student/Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/courses', function () {
-        return Inertia::render('Dashboard/Student/MyCourses');
-    })->name('courses');
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 
     Route::get('/progress', function () {
         return Inertia::render('Student/Progress');
@@ -84,13 +91,10 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
         return Inertia::render('Student/Schedule');
     })->name('schedule');
 
-    Route::get('/notifications', function() {
-        return Inertia::render('Dashboard/Student/Notifications');
-    })->name('notifications');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
-    Route::get('/payment', function () {
-        return Inertia::render('Dashboard/Student/Payment');
-    })->name('payment');
+    Route::get('/payment', [PaymentController::class, 'index'])->name('payment');
 });
 
 /*
@@ -101,27 +105,23 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
+        return Inertia::render('Dashboard/Admin/Dashboard');
     })->name('dashboard');
 
     Route::get('/applications', function () {
-        return Inertia::render('Admin/Applications');
+        return Inertia::render('Dashboard/Admin/Applications');
     })->name('applications');
 
-    Route::get('/students', function () {
-        return Inertia::render('Dashboard/Admin/Students');
-    })->name('students');
+    Route::get('/students', [StudentController::class, 'index'])->name('students');
 
     Route::get('/courses', function () {
-        return Inertia::render('Admin/Courses');
+        return Inertia::render('Dashboard/Admin/Courses');
     })->name('courses');
 
-    Route::get('/payments', function () {
-        return Inertia::render('Admin/Payments');
-    })->name('payments');
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments');
 
     Route::get('/reports', function () {
-        return Inertia::render('Admin/Reports');
+        return Inertia::render('Dashboard/Admin/Reports');
     })->name('reports');
 });
 
