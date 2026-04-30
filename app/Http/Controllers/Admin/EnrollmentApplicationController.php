@@ -9,10 +9,13 @@ use App\Models\EnrollmentApplication;
 use App\Models\Payment;
 use App\Models\PortalNotification;
 use App\Support\EnrollmentAccess;
+use App\Support\EmailMessageTemplate;
+use Throwable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -57,10 +60,10 @@ class EnrollmentApplicationController extends Controller
     public function approve(Request $request, EnrollmentApplication $application): RedirectResponse
     {
         if ($application->status === 'approved') {
-            return back()->with('success', 'Cette demande est deja validee.');
+            return $this->resendAccess($application);
         }
 
-        DB::transaction(function () use ($request, $application) {
+        $emailSent = DB::transaction(function () use ($request, $application) {
             $course = $application->course ?: Course::query()
                 ->where('category', $application->category)
                 ->where('status', 'active')
@@ -134,12 +137,74 @@ class EnrollmentApplicationController extends Controller
                 'published_at' => now(),
             ]);
 
-            Mail::raw(
-                "Bonjour {$user->name},\n\nVotre acces Info Saloua est active.\nEmail: {$user->email}\nMot de passe: {$plainPassword}\n\nLors de la connexion, un code de verification vous sera envoye par email avant l acces au dashboard.",
-                fn ($message) => $message->to($user->email)->subject('Votre acces etudiant Info Saloua'),
-            );
+            return $this->sendAccessEmail($application, $user, $plainPassword);
         });
 
-        return back()->with('success', 'Compte etudiant active et identifiants envoyes.');
+        return back()->with(
+            $emailSent ? 'success' : 'warning',
+            $emailSent
+                ? 'Compte etudiant active et identifiants envoyes a '.$application->email.'.'
+                : 'Compte etudiant active, mais l email n a pas ete envoye. Verifiez la configuration SMTP/Docker.'
+        );
+    }
+
+    public function resendAccess(EnrollmentApplication $application): RedirectResponse
+    {
+        $user = $application->user;
+
+        if (! $user) {
+            return back()->with('success', 'Aucun compte etudiant associe a cette demande.');
+        }
+
+        $plainPassword = EnrollmentAccess::generatedPassword($application->first_name, $application->last_name);
+
+        $user->forceFill([
+            'email' => $application->email,
+            'password' => Hash::make($plainPassword),
+            'status' => 'active',
+            'email_verified_at' => $user->email_verified_at ?? now(),
+        ])->save();
+
+        $emailSent = $this->sendAccessEmail($application, $user, $plainPassword);
+
+        return back()->with(
+            $emailSent ? 'success' : 'warning',
+            $emailSent
+                ? 'Identifiants renvoyes a '.$application->email.'.'
+                : 'Identifiants regeneres, mais l email n a pas ete envoye. Verifiez la configuration SMTP/Docker.'
+        );
+    }
+
+    private function sendAccessEmail(EnrollmentApplication $application, $user, string $plainPassword): bool
+    {
+        $email = EmailMessageTemplate::render('access_activated', [
+            'name' => trim($application->first_name.' '.$application->last_name),
+            'email' => $application->email,
+            'password' => $plainPassword,
+        ]);
+
+        try {
+            Mail::raw(
+                $email['body'],
+                fn ($message) => $message->to($application->email)->subject($email['subject']),
+            );
+
+            Log::info('Email d acces etudiant envoye.', [
+                'user_id' => $user->id,
+                'application_id' => $application->id,
+                'email' => $application->email,
+            ]);
+
+            return true;
+        } catch (Throwable $exception) {
+            Log::warning('Impossible d envoyer l email d acces etudiant.', [
+                'user_id' => $user->id,
+                'application_id' => $application->id,
+                'email' => $application->email,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 }

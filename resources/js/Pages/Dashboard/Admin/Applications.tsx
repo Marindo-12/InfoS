@@ -22,7 +22,7 @@ type PageProps = {
   auth: { user: { id: number; name: string; email: string } };
   applications: ApplicationRow[];
   stats: { pending: number; approved: number; onlinePaid: number; onsitePending: number };
-  flash?: { success?: string };
+  flash?: { success?: string; warning?: string };
 };
 
 function badge(label: string, tone: 'green' | 'amber' | 'slate') {
@@ -34,6 +34,10 @@ export default function Applications() {
 
   const approve = (application: ApplicationRow) => {
     router.post(route('admin.applications.approve', application.id), {}, { preserveScroll: true });
+  };
+
+  const resendAccess = (application: ApplicationRow) => {
+    router.post(route('admin.applications.resend-access', application.id), {}, { preserveScroll: true });
   };
 
   return (
@@ -49,6 +53,7 @@ export default function Applications() {
         </header>
 
         {flash?.success && <div className="appa-flash">{flash.success}</div>}
+        {flash?.warning && <div className="appa-flash appa-flash--warning">{flash.warning}</div>}
 
         <section className="appa-stats">
           <article><strong>{stats.pending}</strong><span>En attente</span></article>
@@ -100,8 +105,11 @@ export default function Applications() {
                     <td><small>{application.certificateReference ?? '-'}</small></td>
                     <td>{application.status === 'approved' ? badge('Validee', 'green') : badge('En attente', 'slate')}</td>
                     <td>
-                      <button className="appa-action" disabled={application.status === 'approved'} onClick={() => approve(application)}>
-                        Donner l'acces
+                      <button
+                        className={`appa-action ${application.status === 'approved' ? 'appa-action--ghost' : ''}`}
+                        onClick={() => application.status === 'approved' ? resendAccess(application) : approve(application)}
+                      >
+                        {application.status === 'approved' ? "Renvoyer l'acces" : "Donner l'acces"}
                       </button>
                     </td>
                   </tr>
@@ -122,6 +130,7 @@ export default function Applications() {
         .appa-header h1 { margin: 0; font-family: "EB Garamond", serif; font-size: 2.5rem; }
         .appa-header p { margin: 10px 0 0; max-width: 720px; color: #6b7280; line-height: 1.7; }
         .appa-flash { padding: 12px 16px; color: #047857; background: #ecfdf5; margin-bottom: 18px; font-weight: 700; }
+        .appa-flash--warning { color: #92400e; background: #fffbeb; border-color: #fde68a; }
         .appa-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 18px; }
         .appa-stats article { padding: 18px; }
         .appa-stats strong { display: block; font-size: 2rem; font-family: "EB Garamond", serif; }
@@ -142,7 +151,7 @@ export default function Applications() {
         .appa-badge--amber { background: rgba(245,158,11,.14); color: #b45309; }
         .appa-badge--slate { background: rgba(100,116,139,.12); color: #475569; }
         .appa-action { border: 0; border-radius: 10px; padding: 9px 12px; background: #c2652a; color: white; font-weight: 800; cursor: pointer; white-space: nowrap; }
-        .appa-action:disabled { background: #d1d5db; cursor: default; }
+        .appa-action--ghost { background: #fff7ed; color: #c2652a; border: 1px solid rgba(194,101,42,.24); }
         @media (max-width: 900px) { .appa-stats { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 640px) { .appa-root { padding: 16px; } .appa-stats { grid-template-columns: 1fr; } }
       `}</style>

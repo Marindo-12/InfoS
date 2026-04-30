@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\EnrollmentApplicationController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\DashboardController;
@@ -119,6 +120,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::get('/applications', [EnrollmentApplicationController::class, 'index'])->name('applications');
     Route::post('/applications/{application}/approve', [EnrollmentApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{application}/resend-access', [EnrollmentApplicationController::class, 'resendAccess'])->name('applications.resend-access');
+    Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/students', [StudentController::class, 'index'])->name('students');
 
