@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   CardCvcElement,
@@ -457,6 +457,11 @@ const InscriptionInfographie: React.FC<Props> = ({
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [submittedRef, setSubmittedRef] = useState('');
+  const defaultPaymentDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  }, []);
 
   const clearErr = (f: keyof FormErrors) => setErrors((p) => ({ ...p, [f]: undefined }));
 
@@ -550,7 +555,27 @@ const InscriptionInfographie: React.FC<Props> = ({
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    setSubmittedRef(secureRef('INF'));
+    setSubmitting(true);
+    const reference = secureRef('INF');
+    router.post(route('applications.store'), {
+      first_name: form.prenom,
+      last_name: form.nom,
+      email: form.email,
+      phone: form.telephone,
+      category: 'Infographie',
+      training_label: 'Maitrise Adobe Creative Suite',
+      course_slug: 'maitrise-adobe-creative-suite',
+      amount: TRAINING_PRICE,
+      payment_method: form.payment,
+      payment_reference: onlinePaymentReference,
+      preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
+      certificate_reference: reference,
+      form_data: { ...form },
+    }, {
+      preserveScroll: true,
+      onSuccess: () => setSubmittedRef(reference),
+      onFinish: () => setSubmitting(false),
+    });
   };
 
   /* Field class */

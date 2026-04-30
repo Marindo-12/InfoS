@@ -50,6 +50,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->status !== 'active') {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Votre compte est en attente de validation par l administration.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

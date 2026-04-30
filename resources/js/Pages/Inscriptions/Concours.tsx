@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   CardCvcElement,
@@ -402,6 +402,11 @@ const InscriptionConcours: React.FC<Props> = ({
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [submittedReference,     setSubmittedReference]     = useState('');
+  const defaultPaymentDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  }, []);
 
   const selectedConcours = useMemo(
     () => CONCOURS_OPTIONS.find((item) => item.value === formData.concours) ?? CONCOURS_OPTIONS[0],
@@ -498,7 +503,26 @@ const InscriptionConcours: React.FC<Props> = ({
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    setSubmittedReference(secureRef('CON'));
+    setSubmitting(true);
+    const reference = secureRef('CON');
+    router.post(route('applications.store'), {
+      first_name: formData.prenom,
+      last_name: formData.nom,
+      email: formData.email,
+      phone: formData.telephone,
+      category: 'Concours',
+      training_label: selectedConcours.label,
+      amount: totalAmount,
+      payment_method: formData.paymentMethod,
+      payment_reference: onlinePaymentReference,
+      preferred_payment_date: formData.paymentMethod === 'onsite' ? defaultPaymentDate : undefined,
+      certificate_reference: reference,
+      form_data: { ...formData },
+    }, {
+      preserveScroll: true,
+      onSuccess: () => setSubmittedReference(reference),
+      onFinish: () => setSubmitting(false),
+    });
   };
 
   /* ════════════════════════════════════════════════

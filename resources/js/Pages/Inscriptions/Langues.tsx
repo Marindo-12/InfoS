@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   CardCvcElement,
@@ -402,6 +402,11 @@ const InscriptionLangues: React.FC<Props> = ({
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const defaultPaymentDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  }, []);
 
   const clearErr = (field: keyof FormErrors) => setErrors((prev) => ({ ...prev, [field]: undefined }));
 
@@ -492,7 +497,26 @@ const InscriptionLangues: React.FC<Props> = ({
       document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    setSubmitted(true);
+    setSubmitting(true);
+    router.post(route('applications.store'), {
+      first_name: form.prenom,
+      last_name: form.nom,
+      email: form.email,
+      phone: form.telephone,
+      category: 'Langues',
+      training_label: LANGUAGE_LABELS[form.language] || 'Langues',
+      course_slug: form.language === 'anglais' ? 'anglais-des-affaires-b2' : undefined,
+      amount: TRAINING_PRICE,
+      payment_method: form.payment,
+      payment_reference: onlinePaymentReference,
+      preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
+      certificate_reference: secureRef('CERT'),
+      form_data: { ...form },
+    }, {
+      preserveScroll: true,
+      onSuccess: () => setSubmitted(true),
+      onFinish: () => setSubmitting(false),
+    });
   };
 
   return (
