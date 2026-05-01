@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, FormEventHandler } from 'react';
 import InputError from '@/Components/InputError';
 import { Head, Link, useForm } from '@inertiajs/react';
 import logo from '../../../../public/infos-logo.png';
+import login_code from '../../../../public/images/login_code.png'
 
 export default function LoginCode({ email, status }: { email: string; status?: string }) {
   const { data, setData, post, processing, errors } = useForm({ code: '' });
@@ -135,13 +136,7 @@ export default function LoginCode({ email, status }: { email: string; status?: s
 
           {/* Icon */}
           <div className="lc-icon-wrap">
-            <div className="lc-icon-ring" />
-            <div className="lc-icon-inner">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/>
-              </svg>
-            </div>
+            <img src={login_code} alt="Login code" />
           </div>
 
           <h1 className="lc-title">Code de vérification</h1>
