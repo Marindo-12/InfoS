@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\EnrollmentApplicationController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicEnrollmentApplicationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -56,6 +59,9 @@ Route::get('/inscriptions', function () {
     return Inertia::render('Inscriptions/Index');
 })->name('inscriptions');
 
+Route::post('/inscriptions/demandes', [PublicEnrollmentApplicationController::class, 'store'])
+    ->name('applications.store');
+
 /*
 |--------------------------------------------------------------------------
 | Routes Auth (générées par Breeze)
@@ -65,6 +71,10 @@ Route::get('/inscriptions', function () {
 require __DIR__.'/auth.php';
 
 Route::middleware(['auth', 'verified'])->get('/dashboard', function (Request $request) {
+    if ($request->user()->isStudent() && ! $request->session()->get('login_code_verified')) {
+        return redirect()->route('login-code.create');
+    }
+
     // Rediriger vers le bon dashboard selon le rôle
     if ($request->user()->role === 'admin') {
         return redirect()->route('admin.dashboard');
@@ -78,7 +88,7 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function (Request $re
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'verified', 'login.code'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/courses', [CourseController::class, 'index'])->name('courses');
@@ -108,9 +118,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         return Inertia::render('Dashboard/Admin/Dashboard');
     })->name('dashboard');
 
-    Route::get('/applications', function () {
-        return Inertia::render('Dashboard/Admin/Applications');
-    })->name('applications');
+    Route::get('/applications', [EnrollmentApplicationController::class, 'index'])->name('applications');
+    Route::post('/applications/{application}/approve', [EnrollmentApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{application}/resend-access', [EnrollmentApplicationController::class, 'resendAccess'])->name('applications.resend-access');
+    Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/students', [StudentController::class, 'index'])->name('students');
 

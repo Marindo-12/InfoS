@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   CardCvcElement,
@@ -694,6 +694,11 @@ const InscriptionBureautique: React.FC<Props> = ({
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const defaultPaymentDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  }, []);
 
   const selectedModules = useMemo(
     () => MODULE_CARDS.filter((m) => form.modules[m.key]),
@@ -821,17 +826,37 @@ const InscriptionBureautique: React.FC<Props> = ({
 
     setSubmitting(true);
     try {
+      const reference = secureRef('INS');
+      const processingCode = secureRef('TRT');
       setCertificate({
         learnerName: `${form.prenom.trim()} ${form.nom.trim()}`,
-        reference: secureRef('INS'),
-        processingCode: secureRef('TRT'),
+        reference,
+        processingCode,
         paymentMode: form.payment === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
         amount: fmtAmount(totalAmount),
         modules: selectedModules.map((m) => m.title),
         level: LEVEL_OPTIONS.find((l) => l.value === form.level)?.label ?? form.level,
         issuedAt: new Date().toLocaleString('fr-MA'),
       });
-      setShowModal(true);
+      router.post(route('applications.store'), {
+        first_name: form.prenom,
+        last_name: form.nom,
+        email: form.email,
+        phone: form.telephone,
+        category: 'Bureautique',
+        training_label: selectedModules.map((m) => m.title).join(', ') || 'Bureautique',
+        course_slug: 'expertise-microsoft-office',
+        amount: totalAmount,
+        payment_method: form.payment,
+        payment_reference: onlinePaymentReference,
+        preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
+        certificate_reference: reference,
+        form_data: { ...form, processingCode },
+      }, {
+        preserveScroll: true,
+        onSuccess: () => setShowModal(true),
+        onFinish: () => setSubmitting(false),
+      });
     } finally {
       setSubmitting(false);
     }

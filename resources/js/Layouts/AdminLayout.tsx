@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
 
 /* ═══════════════════════════════════════════════
@@ -35,7 +35,7 @@ interface NavItem {
 
 const NAV_CORE: NavItem[] = [
   { label: 'Vue d\'ensemble', icon: <I.Dashboard />,    route: route('admin.dashboard'),    routeName: 'admin.dashboard'    },
-  { label: 'Candidatures',    icon: <I.Applications />, route: route('admin.applications'), routeName: 'admin.applications', badge: 5 },
+  { label: 'Candidatures',    icon: <I.Applications />, route: route('admin.applications'), routeName: 'admin.applications' },
   { label: 'Étudiants',       icon: <I.Students />,     route: route('admin.students'),     routeName: 'admin.students'     },
   { label: 'Formations',      icon: <I.Courses />,      route: route('admin.courses'),      routeName: 'admin.courses'      },
   { label: 'Planning',        icon: <I.Schedule />,     route: route('admin.dashboard'),    routeName: 'planning'           },
@@ -49,7 +49,7 @@ const NAV_FINANCE: NavItem[] = [
 const NAV_SYSTEM: NavItem[] = [
   { label: 'Site public',  icon: <I.Globe />,    route: route('home'),         routeName: 'home'         },
   { label: 'Paramètres',   icon: <I.Settings />, route: route('admin.dashboard'), routeName: 'settings'  },
-  { label: 'Notifications',icon: <I.Bell />,     route: route('admin.dashboard'), routeName: 'admin.notif', badge: 3 },
+  { label: 'Notifications',icon: <I.Bell />,     route: route('admin.applications'), routeName: 'admin.notif' },
 ]
 
 /* ═══════════════════════════════════════════════
@@ -100,13 +100,27 @@ export default function AdminLayout({
   children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
 
-  const user                            = (usePage().props as any).auth.user
+  const pageProps                       = usePage().props as any
+  const user                            = pageProps.auth.user
+  const adminHeader                     = pageProps.adminHeader ?? { unreadNotifications: 0, pendingApplications: 0, recentNotifications: [] }
   const [collapsed, setCollapsed]       = useState(false)
   const [mobileOpen, setMobileOpen]     = useState(false)
   const [scrolled, setScrolled]         = useState(false)
   const [searchQuery, setSearchQuery]   = useState('')
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   const initials = user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+  const navCore = NAV_CORE.map(item =>
+    item.routeName === 'admin.applications'
+      ? { ...item, badge: adminHeader.pendingApplications || undefined }
+      : item,
+  )
+  const navSystem = NAV_SYSTEM.map(item =>
+    item.routeName === 'admin.notif'
+      ? { ...item, badge: adminHeader.unreadNotifications || undefined }
+      : item,
+  )
+  const totalHeaderNotifications = Number(adminHeader.unreadNotifications ?? 0)
 
   useEffect(() => {
     const el = document.querySelector('.al-content')
@@ -445,11 +459,57 @@ export default function AdminLayout({
         }
         .al-tb-badge {
           position: absolute; top: -4px; right: -4px;
-          width: 16px; height: 16px; border-radius: 50%;
-          background: var(--al-orange); color: #fff;
+          min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+          background: #dc2626; color: #fff;
           font-size: .58rem; font-weight: 800;
           display: flex; align-items: center; justify-content: center;
           border: 2px solid var(--al-page);
+        }
+        .al-notif-wrap { position: relative; }
+        .al-notif-menu {
+          position: absolute; top: 44px; right: 0;
+          width: min(360px, calc(100vw - 32px));
+          background: #fff;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 14px;
+          box-shadow: 0 18px 50px rgba(15,23,42,.16);
+          z-index: 80;
+          overflow: hidden;
+        }
+        .al-notif-head {
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+          padding: 14px 16px;
+          border-bottom: 1px solid rgba(15,23,42,.07);
+        }
+        .al-notif-head strong { font-size: .86rem; color: #18181b; }
+        .al-notif-head button {
+          border: none; background: transparent; color: var(--al-orange);
+          font-size: .72rem; font-weight: 800; cursor: pointer;
+        }
+        .al-notif-list { max-height: 320px; overflow-y: auto; }
+        .al-notif-item {
+          display: block;
+          padding: 13px 16px;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(15,23,42,.06);
+          background: #fff;
+        }
+        .al-notif-item:hover { background: #fffaf6; }
+        .al-notif-item--unread { background: #fff7ed; }
+        .al-notif-item strong {
+          display: block; color: #18181b; font-size: .8rem; margin-bottom: 4px;
+        }
+        .al-notif-item span {
+          display: block; color: #6b7280; font-size: .73rem; line-height: 1.45;
+        }
+        .al-notif-item small {
+          display: block; color: #a1a1aa; font-size: .67rem; margin-top: 6px;
+        }
+        .al-notif-empty { padding: 18px 16px; color: #6b7280; font-size: .8rem; }
+        .al-notif-foot {
+          display: block; padding: 12px 16px; color: var(--al-orange);
+          background: #faf8f5; text-decoration: none; font-size: .78rem; font-weight: 800;
+          border-top: 1px solid rgba(15,23,42,.07);
         }
 
         /* Admin tag on topbar */
@@ -541,9 +601,9 @@ export default function AdminLayout({
 
           {/* Nav */}
           <nav className="al-nav">
-            <NavSection title="Gestion"   items={NAV_CORE}    collapsed={collapsed} />
+            <NavSection title="Gestion"   items={navCore}    collapsed={collapsed} />
             <NavSection title="Finances"  items={NAV_FINANCE} collapsed={collapsed} />
-            <NavSection title="Système"   items={NAV_SYSTEM}  collapsed={collapsed} />
+            <NavSection title="Système"   items={navSystem}  collapsed={collapsed} />
           </nav>
 
           {/* Logout */}
@@ -600,10 +660,53 @@ export default function AdminLayout({
               </div>
 
               {/* Notifications */}
-              <button className="al-tb-btn" aria-label="Notifications">
-                <I.Bell />
-                <span className="al-tb-badge">3</span>
-              </button>
+              <div className="al-notif-wrap">
+                <button
+                  className="al-tb-btn"
+                  aria-label="Notifications"
+                  onClick={() => setNotificationsOpen(open => !open)}
+                  type="button"
+                >
+                  <I.Bell />
+                  {totalHeaderNotifications > 0 && <span className="al-tb-badge">{totalHeaderNotifications}</span>}
+                </button>
+                {notificationsOpen && (
+                  <div className="al-notif-menu">
+                    <div className="al-notif-head">
+                      <strong>Notifications</strong>
+                      {totalHeaderNotifications > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => router.post(route('admin.notifications.read-all'), {}, { preserveScroll: true })}
+                        >
+                          Tout lire
+                        </button>
+                      )}
+                    </div>
+                    <div className="al-notif-list">
+                      {adminHeader.recentNotifications?.length ? (
+                        adminHeader.recentNotifications.map((notification: any) => (
+                          <Link
+                            key={notification.id}
+                            href={notification.actionUrl || route('admin.applications')}
+                            className={`al-notif-item ${notification.isRead ? '' : 'al-notif-item--unread'}`}
+                            onClick={() => setNotificationsOpen(false)}
+                          >
+                            <strong>{notification.title}</strong>
+                            <span>{notification.message}</span>
+                            <small>{notification.publishedAt}</small>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="al-notif-empty">Aucune notification pour le moment.</div>
+                      )}
+                    </div>
+                    <Link href={route('admin.applications')} className="al-notif-foot" onClick={() => setNotificationsOpen(false)}>
+                      Voir les candidatures
+                    </Link>
+                  </div>
+                )}
+              </div>
 
               {/* Settings */}
               <button className="al-tb-btn" aria-label="Paramètres">

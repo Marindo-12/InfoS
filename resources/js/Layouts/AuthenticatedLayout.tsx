@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react'
 import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
+import logo from '../../../public/infos-logo.png'
 
 /* ═══════════════════════════════════════════════════════
-   ICONS — custom SVG strokes
+   ICONS — custom SVG strokes (identique à votre version)
 ═══════════════════════════════════════════════════════ */
 const I = {
   Dashboard:     () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
@@ -24,7 +25,7 @@ const I = {
 }
 
 /* ═══════════════════════════════════════════════════════
-   NAV DATA
+   DONNÉES DE NAVIGATION
 ═══════════════════════════════════════════════════════ */
 interface NavItem {
   label:     string
@@ -53,7 +54,7 @@ const NAV_ACCOUNT: NavItem[] = [
 ]
 
 /* ═══════════════════════════════════════════════════════
-   SUB-COMPONENTS
+   SOUS-COMPOSANTS
 ═══════════════════════════════════════════════════════ */
 function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const active = route().current(item.routeName)
@@ -64,23 +65,16 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
       title={collapsed ? item.label : undefined}
       className={`a-nav-item ${active ? 'a-nav-item--active' : ''}`}
     >
-      {/* Colored left bar when active */}
       {active && <span className="a-nav-bar" aria-hidden />}
-
-      {/* Icon wrapper — colored bg when active */}
       <span className={`a-nav-icon-wrap ${active ? 'a-nav-icon-wrap--active' : ''}`}>
         {item.icon}
       </span>
-
       {!collapsed && (
         <>
           <span className="a-nav-label">{item.label}</span>
-          {item.badge != null && (
-            <span className="a-nav-badge">{item.badge}</span>
-          )}
+          {item.badge != null && <span className="a-nav-badge">{item.badge}</span>}
         </>
       )}
-
       {collapsed && item.badge != null && (
         <span className="a-nav-badge-dot" aria-label={`${item.badge} notifications`} />
       )}
@@ -103,17 +97,36 @@ function NavSection({ title, items, collapsed }: { title: string; items: NavItem
 }
 
 /* ═══════════════════════════════════════════════════════
-   MAIN LAYOUT
+   COMPOSANT PRINCIPAL
 ═══════════════════════════════════════════════════════ */
 export default function Authenticated({
   header,
   children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
 
-  const user        = (usePage().props as any).auth.user
-  const [collapsed, setCollapsed]   = useState(false)
+  const user = (usePage().props as any).auth.user
+  const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled]     = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [windowWidth, setWindowWidth] = useState(0)
+
+  // Détection de la largeur d'écran
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Mode réduit effectif : uniquement sur grand écran ET collapsed activé
+  const effectiveCollapsed = collapsed && windowWidth >= 768
+
+  // Reset collapsed sur mobile quand la largeur passe en dessous de 768
+  useEffect(() => {
+    if (windowWidth < 768 && collapsed) {
+      setCollapsed(false)
+    }
+  }, [windowWidth, collapsed])
 
   const initials = user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
 
@@ -133,7 +146,7 @@ export default function Authenticated({
 
         :root {
           --sw:          252px;
-          --sw-col:       68px;
+          --sw-col:       80px;   /* Largeur sidebar réduite (modifié) */
           --th:           64px;
           --orange:       #c2652a;
           --orange-light: #e8915a;
@@ -151,14 +164,12 @@ export default function Authenticated({
           --tr:           .2s cubic-bezier(.4,0,.2,1);
         }
 
-        /* ── Root ── */
         .a-root {
           display: flex; min-height: 100vh;
           background: var(--page-bg);
           font-family: var(--font);
         }
 
-        /* ── Overlay mobile ── */
         .a-overlay {
           position: fixed; inset: 0;
           background: rgba(0,0,0,.35);
@@ -166,9 +177,7 @@ export default function Authenticated({
           z-index: 39;
         }
 
-        /* ════════════════════════════════════════
-           SIDEBAR
-        ════════════════════════════════════════ */
+        /* SIDEBAR */
         .a-sidebar {
           position: fixed; top: 0; left: 0; bottom: 0;
           width: var(--sw);
@@ -194,19 +203,31 @@ export default function Authenticated({
           }
         }
 
-        /* ── Brand ── */
+        /* BRAND */
         .a-brand {
           display: flex; align-items: center; justify-content: space-between;
           height: var(--th);
           padding: 0 16px;
           border-bottom: 1px solid var(--border);
           flex-shrink: 0;
+          transition: flex-direction var(--tr), padding var(--tr);
+        }
+        /* Mode réduit : colonne */
+        .a-brand--col {
+          flex-direction: column;
+          justify-content: center;
+          gap: 8px;
+          height: auto;
+          padding: 12px 0;
         }
         .a-brand-inner {
           display: flex; align-items: center; gap: 10px;
           text-decoration: none; overflow: hidden; flex: 1;
         }
-        /* Logo placeholder circle */
+        .a-brand--col .a-brand-inner {
+          justify-content: center;
+          flex: none;
+        }
         .a-brand-logo {
           width: 32px; height: 32px; flex-shrink: 0;
           border-radius: 10px;
@@ -226,17 +247,24 @@ export default function Authenticated({
         .a-brand-name span { color: var(--orange); }
 
         .a-collapse-btn {
-          width: 28px; height: 28px; flex-shrink: 0;
+          width: 38px; height: 38px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          border-radius: 7px; border: 1px solid var(--border);
           background: transparent; color: var(--text-3);
           cursor: pointer;
+          border-radius: 10px;
           transition: background var(--tr), color var(--tr), transform var(--tr);
         }
         .a-collapse-btn:hover { background: var(--orange-pale); color: var(--orange); border-color: var(--orange-pale2); }
-        .a-sidebar--col .a-collapse-btn { transform: rotate(180deg); }
+        /* Rotation de la flèche en mode réduit */
+        .a-brand--col .a-collapse-btn { transform: rotate(180deg); }
 
-        /* ── User card ── */
+        /* Cacher le bouton sur mobile (sécurité) */
+        @media (max-width: 767px) {
+          .a-collapse-btn {
+            display: none;
+          }
+        }
+
         .a-user-card {
           display: flex; align-items: center; gap: 10px;
           padding: 14px 16px;
@@ -257,23 +285,12 @@ export default function Authenticated({
         .a-avatar--sm { width: 32px; height: 32px; border-radius: 9px; font-size: .68rem; }
 
         .a-user-info { overflow: hidden; flex: 1; }
-        .a-user-name {
-          font-size: .82rem; font-weight: 700; color: var(--text-1);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .a-user-role {
-          font-size: .7rem; color: var(--text-3);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+        .a-user-name { font-size: .82rem; font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .a-user-role { font-size: .7rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* ── Divider ── */
-        .a-divider {
-          height: 1px; background: var(--border);
-          margin: 0 16px 8px;
-          flex-shrink: 0;
-        }
+        .a-divider { height: 1px; background: var(--border); margin: 0 16px 8px; flex-shrink: 0; }
 
-        /* ── Nav ── */
+        /* NAVIGATION */
         .a-nav {
           flex: 1; overflow-y: auto; overflow-x: hidden;
           padding: 4px 0 8px;
@@ -289,10 +306,7 @@ export default function Authenticated({
           text-transform: uppercase; color: var(--text-3);
           padding: 10px 20px 4px; white-space: nowrap;
         }
-        .a-nav-section-line {
-          height: 1px; background: var(--border);
-          margin: 10px 14px 8px;
-        }
+        .a-nav-section-line { height: 1px; background: var(--border); margin: 10px 14px 8px; }
 
         .a-nav-item {
           position: relative;
@@ -311,15 +325,8 @@ export default function Authenticated({
           padding: 8px 0;
           margin: 2px 10px;
         }
-        .a-nav-item:hover {
-          background: var(--orange-pale);
-          color: var(--orange);
-        }
-        .a-nav-item--active {
-          background: var(--orange-pale);
-          color: var(--orange);
-          font-weight: 600;
-        }
+        .a-nav-item:hover { background: var(--orange-pale); color: var(--orange); }
+        .a-nav-item--active { background: var(--orange-pale); color: var(--orange); font-weight: 600; }
 
         .a-nav-bar {
           position: absolute; left: 0; top: 20%; bottom: 20%;
@@ -340,9 +347,7 @@ export default function Authenticated({
           color: #fff !important;
           box-shadow: 0 2px 8px rgba(194,101,42,.3);
         }
-        .a-nav-item:hover .a-nav-icon-wrap:not(.a-nav-icon-wrap--active) {
-          background: var(--orange-pale2);
-        }
+        .a-nav-item:hover .a-nav-icon-wrap:not(.a-nav-icon-wrap--active) { background: var(--orange-pale2); }
 
         .a-nav-label { flex: 1; }
 
@@ -361,7 +366,6 @@ export default function Authenticated({
           border: 2px solid var(--sidebar-bg);
         }
 
-        /* ── Logout ── */
         .a-logout-wrap {
           padding: 10px 10px 14px;
           border-top: 1px solid var(--border);
@@ -382,9 +386,7 @@ export default function Authenticated({
         .a-sidebar--col .a-logout-btn {
           justify-content: center; padding: 8px 0;
         }
-        .a-logout-btn:hover {
-          background: #fff0f0; color: #e05252;
-        }
+        .a-logout-btn:hover { background: #fff0f0; color: #e05252; }
         .a-logout-icon {
           width: 32px; height: 32px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
@@ -392,9 +394,7 @@ export default function Authenticated({
         }
         .a-logout-btn:hover .a-logout-icon { background: #ffe4e4; }
 
-        /* ════════════════════════════════════════
-           MAIN AREA
-        ════════════════════════════════════════ */
+        /* MAIN */
         .a-main {
           flex: 1;
           margin-left: var(--sw);
@@ -407,49 +407,35 @@ export default function Authenticated({
           .a-main { margin-left: 0 !important; }
         }
 
-        /* ── Topbar ── */
         .a-topbar {
           position: sticky; top: 0; z-index: 30;
           height: var(--th);
           background: rgba(246,244,240,.92);
           backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
           border-bottom: 1px solid transparent;
           display: flex; align-items: center;
           padding: 0 28px;
           gap: 14px;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
-        .a-topbar--scrolled {
-          border-bottom-color: var(--border);
-          box-shadow: 0 1px 12px rgba(0,0,0,0.06);
-        }
+        .a-topbar--scrolled { border-bottom-color: var(--border); box-shadow: 0 1px 12px rgba(0,0,0,0.06); }
 
         .a-mobile-menu {
           display: none;
           align-items: center; justify-content: center;
           width: 36px; height: 36px;
           border-radius: 9px; border: 1px solid var(--border);
-          background: #fff; color: var(--text-2);
+          background: #fff;
+          color: var(--text-2);
           cursor: pointer; flex-shrink: 0;
         }
         @media (max-width: 767px) { .a-mobile-menu { display: flex; } }
 
-        /* Breadcrumb / title */
-        .a-topbar-title {
-          flex: 1;
-          display: flex; align-items: center; gap: 8px;
-        }
-        .a-topbar-title h2 {
-          margin: 0;
-          font-family: var(--font);
-          font-size: .95rem; font-weight: 700;
-          color: var(--text-1);
-        }
+        .a-topbar-title { flex: 1; display: flex; align-items: center; gap: 8px; }
+        .a-topbar-title h2 { margin: 0; font-size: .95rem; font-weight: 700; color: var(--text-1); }
 
-        /* Search */
         .a-search {
-          display: flex; align-items: center; gap-8px: 8px;
+          display: flex; align-items: center;
           height: 36px; padding: 0 12px;
           border-radius: 10px;
           border: 1px solid var(--border);
@@ -457,39 +443,26 @@ export default function Authenticated({
           gap: 8px;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
-        .a-search:focus-within {
-          border-color: var(--orange);
-          box-shadow: 0 0 0 3px rgba(194,101,42,.1);
-        }
-        .a-search input {
-          border: none; outline: none; background: transparent;
-          font-family: var(--font); font-size: .82rem;
-          color: var(--text-1); width: 160px;
-        }
+        .a-search:focus-within { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(194,101,42,.1); }
+        .a-search input { border: none; outline: none; background: transparent; font-family: var(--font); font-size: .82rem; color: var(--text-1); width: 160px; }
         .a-search input::placeholder { color: var(--text-3); }
         @media (max-width: 639px) { .a-search { display: none; } }
 
-        /* Topbar right */
-        .a-topbar-right {
-          display: flex; align-items: center; gap: 8px;
-        }
+        .a-topbar-right { display: flex; align-items: center; gap: 8px; }
 
         .a-tb-btn {
           position: relative;
           width: 36px; height: 36px;
           border-radius: 10px;
           border: 1px solid var(--border);
-          background: #fff; color: var(--text-2);
+          background: #fff;
+          color: var(--text-2);
           display: flex; align-items: center; justify-content: center;
           cursor: pointer;
           transition: background var(--tr), color var(--tr), border-color var(--tr);
           flex-shrink: 0;
         }
-        .a-tb-btn:hover {
-          background: var(--orange-pale);
-          border-color: var(--orange-pale2);
-          color: var(--orange);
-        }
+        .a-tb-btn:hover { background: var(--orange-pale); border-color: var(--orange-pale2); color: var(--orange); }
         .a-tb-badge {
           position: absolute; top: -4px; right: -4px;
           width: 16px; height: 16px;
@@ -509,20 +482,10 @@ export default function Authenticated({
           cursor: pointer;
           transition: background var(--tr), border-color var(--tr);
         }
-        .a-tb-user:hover {
-          background: var(--orange-pale);
-          border-color: var(--orange-pale2);
-        }
-        .a-tb-username {
-          font-size: .82rem; font-weight: 600; color: var(--text-1);
-          white-space: nowrap;
-        }
-        .a-tb-role {
-          font-size: .68rem; color: var(--text-3);
-          white-space: nowrap;
-        }
+        .a-tb-user:hover { background: var(--orange-pale); border-color: var(--orange-pale2); }
+        .a-tb-username { font-size: .82rem; font-weight: 600; color: var(--text-1); white-space: nowrap; }
+        .a-tb-role { font-size: .68rem; color: var(--text-3); white-space: nowrap; }
 
-        /* ── Content ── */
         .a-content {
           flex: 1;
           padding: 28px 28px 40px;
@@ -534,40 +497,39 @@ export default function Authenticated({
       `}</style>
 
       <div className="a-root">
+        {mobileOpen && <div className="a-overlay" onClick={() => setMobileOpen(false)} aria-hidden />}
 
-        {/* Mobile overlay */}
-        {mobileOpen && (
-          <div className="a-overlay" onClick={() => setMobileOpen(false)} aria-hidden />
-        )}
-
-        {/* ══════════════════════════════════════
-            SIDEBAR
-        ══════════════════════════════════════ */}
-        <aside className={`a-sidebar ${collapsed ? 'a-sidebar--col' : ''} ${mobileOpen ? 'a-sidebar--open' : ''}`}>
-
+        {/* SIDEBAR */}
+        <aside className={`a-sidebar ${effectiveCollapsed ? 'a-sidebar--col' : ''} ${mobileOpen ? 'a-sidebar--open' : ''}`}>
           {/* Brand */}
-          <div className="a-brand">
+          <div className={`a-brand ${effectiveCollapsed ? 'a-brand--col' : ''}`}>
             <Link href={route('home')} className="a-brand-inner">
-              <div className="a-brand-logo">CI</div>
-              {!collapsed && (
-                <span className="a-brand-name">
-                  Centre<span>Info</span>
-                </span>
+              {effectiveCollapsed ? (
+                <img src={logo} alt="Logo" style={{ width: 32, height: 32 }} />
+              ) : (
+                <>
+                  <img src={logo} alt="Logo" style={{ width: 32, height: 32 }} />
+                  <span className="a-brand-name">Info<span>Saloua</span></span>
+                </>
               )}
             </Link>
-            <button
-              onClick={() => setCollapsed(c => !c)}
-              className="a-collapse-btn"
-              aria-label={collapsed ? 'Développer' : 'Réduire'}
-            >
-              <I.Chevron />
-            </button>
+            {windowWidth >= 768 && (
+              <button
+                onClick={() => setCollapsed(c => !c)}
+                className="a-collapse-btn"
+                aria-label={collapsed ? 'Développer' : 'Réduire'}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M9.67272 0.522841C10.8339 0.522841 11.76 0.522714 12.4963 0.602493C13.2453 0.683657 13.8789 0.854248 14.4264 1.25197C14.7504 1.48739 15.0355 1.77247 15.2709 2.0965C15.6686 2.64394 15.8392 3.27758 15.9204 4.02655C16.0002 4.7629 16 5.68895 16 6.85014V9.14986C16 10.3111 16.0002 11.2371 15.9204 11.9735C15.8392 12.7224 15.6686 13.3561 15.2709 13.9035C15.0355 14.2275 14.7504 14.5126 14.4264 14.748C13.8789 15.1458 13.2453 15.3163 12.4963 15.3975C11.76 15.4773 10.8339 15.4772 9.67272 15.4772H6.3273C5.16611 15.4772 4.24006 15.4773 3.50371 15.3975C2.75474 15.3163 2.1211 15.1458 1.57366 14.748C1.24963 14.5126 0.964549 14.2275 0.729131 13.9035C0.331407 13.3561 0.160817 12.7224 0.0796529 11.9735C-0.000126137 11.2371 1.25338e-09 10.3111 1.25338e-09 9.14986V6.85014C1.25329e-09 5.68895 -0.000126137 4.7629 0.0796529 4.02655C0.160817 3.27758 0.331407 2.64394 0.729131 2.0965C0.964549 1.77247 1.24963 1.48739 1.57366 1.25197C2.1211 0.854248 2.75474 0.683657 3.50371 0.602493C4.24006 0.522714 5.16611 0.522841 6.3273 0.522841H9.67272ZM5.54303 1.88715V14.1118C5.78636 14.1128 6.04709 14.1169 6.3273 14.1169H9.67272C10.8639 14.1169 11.7032 14.1164 12.3493 14.0465C12.9824 13.9779 13.3497 13.8494 13.6268 13.6482C13.8354 13.4966 14.0195 13.3125 14.1711 13.1039C14.3723 12.8268 14.5007 12.4595 14.5693 11.8264C14.6393 11.1803 14.6398 10.341 14.6398 9.14986V6.85014C14.6398 5.65896 14.6393 4.81967 14.5693 4.1736C14.5007 3.54048 14.3723 3.17318 14.1711 2.89609C14.0195 2.68747 13.8354 2.50337 13.6268 2.35179C13.3497 2.1506 12.9824 2.02212 12.3493 1.95353C11.7032 1.88358 10.8639 1.88307 9.67272 1.88307H6.3273C6.04709 1.88307 5.78636 1.8862 5.54303 1.88715ZM4.1828 1.91166C3.99125 1.9216 3.8148 1.93577 3.65076 1.95353C3.01764 2.02212 2.65034 2.1506 2.37325 2.35179C2.16463 2.50337 1.98052 2.68747 1.82895 2.89609C1.62776 3.17318 1.49928 3.54048 1.43069 4.1736C1.36074 4.81967 1.36023 5.65896 1.36023 6.85014V9.14986C1.36023 10.341 1.36074 11.1803 1.43069 11.8264C1.49928 12.4595 1.62776 12.8268 1.82895 13.1039C1.98052 13.3125 2.16463 13.4966 2.37325 13.6482C2.65034 13.8494 3.01764 13.9779 3.65076 14.0465C3.81478 14.0642 3.99127 14.0774 4.1828 14.0873V1.91166Z" fill="currentColor" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* User card */}
-          <div className={`a-user-card ${collapsed ? 'a-user-card--col' : ''}`}>
+          <div className={`a-user-card ${effectiveCollapsed ? 'a-user-card--col' : ''}`}>
             <div className="a-avatar">{initials}</div>
-            {!collapsed && (
+            {!effectiveCollapsed && (
               <div className="a-user-info">
                 <p className="a-user-name">{user.name}</p>
                 <p className="a-user-role">Étudiant · Actif</p>
@@ -577,11 +539,11 @@ export default function Authenticated({
 
           <div className="a-divider" />
 
-          {/* Nav */}
+          {/* Navigation */}
           <nav className="a-nav">
-            <NavSection title="Menu principal" items={NAV_MAIN}    collapsed={collapsed} />
-            <NavSection title="Finances"       items={NAV_FINANCE} collapsed={collapsed} />
-            <NavSection title="Mon compte"     items={NAV_ACCOUNT} collapsed={collapsed} />
+            <NavSection title="Menu principal" items={NAV_MAIN}    collapsed={effectiveCollapsed} />
+            <NavSection title="Finances"       items={NAV_FINANCE} collapsed={effectiveCollapsed} />
+            <NavSection title="Mon compte"     items={NAV_ACCOUNT} collapsed={effectiveCollapsed} />
           </nav>
 
           {/* Logout */}
@@ -591,72 +553,40 @@ export default function Authenticated({
               method="post"
               as="button"
               className="a-logout-btn"
-              title={collapsed ? 'Déconnexion' : undefined}
+              title={effectiveCollapsed ? 'Déconnexion' : undefined}
             >
               <span className="a-logout-icon"><I.Logout /></span>
-              {!collapsed && <span>Déconnexion</span>}
+              {!effectiveCollapsed && <span>Déconnexion</span>}
             </Link>
           </div>
-
         </aside>
 
-        {/* ══════════════════════════════════════
-            MAIN
-        ══════════════════════════════════════ */}
+        {/* MAIN */}
         <div className="a-main">
-
-          {/* Topbar */}
           <header className={`a-topbar ${scrolled ? 'a-topbar--scrolled' : ''}`}>
-
-            {/* Mobile menu toggle */}
-            <button
-              className="a-mobile-menu"
-              onClick={() => setMobileOpen(o => !o)}
-              aria-label="Menu"
-            >
+            <button className="a-mobile-menu" onClick={() => setMobileOpen(o => !o)} aria-label="Menu">
               {mobileOpen ? <I.Close /> : <I.Menu />}
             </button>
-
-            {/* Title / breadcrumb */}
-            <div className="a-topbar-title">
-              {header}
-            </div>
-
-            {/* Search */}
+            <div className="a-topbar-title">{header}</div>
             <div className="a-search">
               <I.Search />
               <input type="text" placeholder="Rechercher…" aria-label="Rechercher" />
             </div>
-
-            {/* Right actions */}
             <div className="a-topbar-right">
-
-              {/* Settings */}
               <button className="a-tb-btn" aria-label="Paramètres">
                 <I.Settings />
               </button>
-
-              {/* Notifications */}
               <button className="a-tb-btn" aria-label="Notifications">
                 <I.Bell />
                 <span className="a-tb-badge">3</span>
               </button>
-
-              {/* User pill */}
               <div className="a-tb-user">
                 <div className="a-avatar a-avatar--sm">{initials}</div>
-                <div>
-                  <p className="a-tb-username">{user.name.split(' ')[0]}</p>
-                </div>
+                <div><p className="a-tb-username">{user.name.split(' ')[0]}</p></div>
               </div>
             </div>
           </header>
-
-          {/* Page content */}
-          <main className="a-content">
-            {children}
-          </main>
-
+          <main className="a-content">{children}</main>
         </div>
       </div>
     </>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<messages>
+    <message key="access_activated">
+        <subject>Votre acces etudiant Info Saloua</subject>
+        <body><![CDATA[
+Bonjour {{name}},
+
+Votre acces Info Saloua est active.
+
+Email: {{email}}
+Mot de passe: {{password}}
+
+Lors de la connexion, un code de verification vous sera envoye par email avant l acces au dashboard.
+        ]]></body>
+    </message>
+    <message key="login_code">
+        <subject>Code de verification Info Saloua</subject>
+        <body><![CDATA[
+Votre code de verification Info Saloua est: {{code}}
+
+Il expire dans 10 minutes.
+        ]]></body>
+    </message>
+</messages>

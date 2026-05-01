@@ -7,7 +7,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(false) // pour mobile
   const [scrolled, setScrolled] = useState(false)
-  const { url } = usePage()
+  const { url, props } = usePage()
+  const authUser = (props as any).auth?.user
 
   // Détecter le scroll pour changer le background
   useEffect(() => {
@@ -145,10 +146,10 @@ const Navbar = () => {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/login"
+            href={authUser ? route('dashboard') : route('login')}
             className="inline-block px-6 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold tracking-wide hover:brightness-110 active:scale-95 transition-all shadow-sm"
           >
-            S'inscrire
+            {authUser ? 'Dashboard' : "S'inscrire"}
           </Link>
 
           {/* Mobile menu button */}
