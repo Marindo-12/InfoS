@@ -1,118 +1,505 @@
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 
-export default function UpdateProfileInformation({
-    mustVerifyEmail,
-    status,
-    className = '',
+export default function UpdateProfileInformationForm({
+  mustVerifyEmail,
+  status,
 }: {
-    mustVerifyEmail: boolean;
-    status?: string;
-    className?: string;
+  mustVerifyEmail: boolean;
+  status?: string;
+  className?: string;
 }) {
-    const user = usePage().props.auth.user;
+  const user = usePage().props.auth.user as {
+    name: string;
+    email: string;
+    email_verified_at: string | null;
+    phone?: string;
+    address?: string;
+    city?: string;
+    avatar?: string;
+  };
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
-        useForm({
-            name: user.name,
-            email: user.email,
-        });
+  const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
+    name:    user.name,
+    email:   user.email,
+    phone:   user.phone   ?? '',
+    address: user.address ?? '',
+    city:    user.city    ?? '',
+  });
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
+  /* Avatar preview */
+  const avatarRef  = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(user.avatar ?? null);
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setPreview(URL.createObjectURL(file));
+  };
 
-        patch(route('profile.update'));
-    };
+  const [firstName, ...rest] = data.name.split(' ');
+  const lastName = rest.join(' ');
 
-    return (
-        <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Profile Information
-                </h2>
+  const submit: FormEventHandler = (e) => {
+    e.preventDefault();
+    patch(route('profile.update'));
+  };
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Update your account's profile information and email address.
-                </p>
-            </header>
+  /* Initials for avatar fallback */
+  const initials = user.name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
-            <form onSubmit={submit} className="mt-6 space-y-6">
+  return (
+    <div className="pf-wrap">
+      {/* ── Header ── */}
+      <div className="pf-header">
+        <div>
+          <p className="pf-kicker">Informations personnelles</p>
+          <h2 className="pf-title">Modifier le profil</h2>
+        </div>
+        <div className="pf-header-actions">
+          <Transition
+            show={recentlySuccessful}
+            enter="transition ease-out duration-200"
+            enterFrom="opacity-0 translate-y-1"
+            enterTo="opacity-100 translate-y-0"
+            leave="transition ease-in duration-150"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <span className="pf-saved-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m5 12 5 5L20 7"/>
+              </svg>
+              Enregistré
+            </span>
+          </Transition>
+          <button
+            type="submit"
+            form="profile-form"
+            disabled={processing}
+            className="pf-save-btn"
+          >
+            {processing ? (
+              <svg className="pf-spinner" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"
+                  strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+            )}
+            Enregistrer
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <form id="profile-form" onSubmit={submit}>
+        <div className="pf-body">
+
+          {/* LEFT — avatar + basic fields */}
+          <div className="pf-left">
+            {/* Avatar */}
+            <div className="pf-avatar-wrap">
+              <div className="pf-avatar">
+                {preview
+                  ? <img src={preview} alt="Avatar" className="pf-avatar-img" />
+                  : <span className="pf-avatar-initials">{initials}</span>
+                }
+              </div>
+              <button
+                type="button"
+                className="pf-avatar-btn"
+                onClick={() => avatarRef.current?.click()}
+                title="Changer la photo"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <input
+                ref={avatarRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={handleAvatarChange}
+              />
+            </div>
+
+            {/* Name row */}
+            <div className="pf-row-2">
+              <div className="pf-field">
+                <label className="pf-label">Prénom</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setData('name', `${e.target.value} ${lastName}`.trim())}
+                  className={`pf-input ${errors.name ? 'pf-input--err' : ''}`}
+                  placeholder="Prénom"
+                  autoComplete="given-name"
+                />
+              </div>
+              <div className="pf-field">
+                <label className="pf-label">Nom</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setData('name', `${firstName} ${e.target.value}`.trim())}
+                  className={`pf-input ${errors.name ? 'pf-input--err' : ''}`}
+                  placeholder="Nom de famille"
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
+            {errors.name && <p className="pf-error">{errors.name}</p>}
+
+            {/* Email */}
+            <div className="pf-field">
+              <label className="pf-label">Email</label>
+              <div className="pf-input-icon-wrap">
+                <span className="pf-input-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <path d="m2 7 10 7 10-7"/>
+                  </svg>
+                </span>
+                <TextInput
+                  type="email"
+                  value={data.email}
+                  onChange={(e) => setData('email', e.target.value)}
+                  className={`pf-input pf-input--icon ${errors.email ? 'pf-input--err' : ''}`}
+                  placeholder="votre@email.com"
+                  autoComplete="username"
+                />
+              </div>
+              {errors.email && <p className="pf-error">{errors.email}</p>}
+            </div>
+
+            {/* Phone */}
+            <div className="pf-field">
+              <label className="pf-label">Téléphone</label>
+              <div className="pf-input-icon-wrap">
+                <span className="pf-input-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.6 19a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 3.12 4.18 2 2 0 0 1 5.09 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L9.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
+                </span>
+                <input
+                  type="tel"
+                  value={data.phone}
+                  onChange={(e) => setData('phone', e.target.value)}
+                  className="pf-input pf-input--icon"
+                  placeholder="+212 6..."
+                  autoComplete="tel"
+                />
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="pf-field">
+              <label className="pf-label">Adresse</label>
+              <input
+                type="text"
+                value={data.address}
+                onChange={(e) => setData('address', e.target.value)}
+                className="pf-input"
+                placeholder="Rue, numéro, quartier..."
+              />
+            </div>
+
+            {/* City */}
+            <div className="pf-field">
+              <label className="pf-label">Ville</label>
+              <input
+                type="text"
+                value={data.city}
+                onChange={(e) => setData('city', e.target.value)}
+                className="pf-input"
+                placeholder="Meknès, Rabat..."
+              />
+            </div>
+          </div>
+
+          {/* DIVIDER */}
+          <div className="pf-divider" aria-hidden="true" />
+
+          {/* RIGHT — extra fields */}
+          <div className="pf-right">
+
+            {/* Email verification notice */}
+            {mustVerifyEmail && !user.email_verified_at && (
+              <div className="pf-verify-notice">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
                 <div>
-                    <InputLabel htmlFor="name" value="Name" />
-
-                    <TextInput
-                        id="name"
-                        className="mt-1 block w-full"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                        isFocused
-                        autoComplete="name"
-                    />
-
-                    <InputError className="mt-2" message={errors.name} />
+                  <p className="pf-verify-text">Adresse email non vérifiée.</p>
+                  <Link
+                    href={route('verification.send')}
+                    method="post"
+                    as="button"
+                    className="pf-verify-link"
+                  >
+                    Renvoyer l'email de vérification →
+                  </Link>
                 </div>
+              </div>
+            )}
 
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
+            {status === 'verification-link-sent' && (
+              <div className="pf-success-notice">
+                Un nouveau lien de vérification a été envoyé à votre adresse email.
+              </div>
+            )}
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        className="mt-1 block w-full"
-                        value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                        autoComplete="username"
-                    />
+            {/* Account info card */}
+            <div className="pf-info-card">
+              <p className="pf-info-title">Informations du compte</p>
+              <div className="pf-info-row">
+                <span className="pf-info-label">Identifiant</span>
+                <span className="pf-info-val">{user.name}</span>
+              </div>
+              <div className="pf-info-row">
+                <span className="pf-info-label">Email</span>
+                <span className="pf-info-val">{user.email}</span>
+              </div>
+              <div className="pf-info-row">
+                <span className="pf-info-label">Statut</span>
+                <span className={`pf-status-badge ${user.email_verified_at ? 'pf-status-badge--ok' : 'pf-status-badge--warn'}`}>
+                  {user.email_verified_at ? 'Vérifié' : 'Non vérifié'}
+                </span>
+              </div>
+            </div>
 
-                    <InputError className="mt-2" message={errors.email} />
-                </div>
+            {/* Tips */}
+            <div className="pf-tip-card">
+              <div className="pf-tip-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/><path d="M12 8h.01"/>
+                </svg>
+              </div>
+              <div>
+                <p className="pf-tip-title">Conseils</p>
+                <ul className="pf-tip-list">
+                  <li>Utilisez un email valide pour recevoir vos notifications.</li>
+                  <li>Renseignez votre téléphone pour être contacté par le centre.</li>
+                  <li>Votre adresse permet de générer vos documents officiels.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
 
-                {mustVerifyEmail && user.email_verified_at === null && (
-                    <div>
-                        <p className="mt-2 text-sm text-gray-800">
-                            Your email address is unverified.
-                            <Link
-                                href={route('verification.send')}
-                                method="post"
-                                as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                            >
-                                Click here to re-send the verification email.
-                            </Link>
-                        </p>
+      <style>{`
+        .pf-wrap { font-family: 'Manrope', sans-serif; }
 
-                        {status === 'verification-link-sent' && (
-                            <div className="mt-2 text-sm font-medium text-green-600">
-                                A new verification link has been sent to your
-                                email address.
-                            </div>
-                        )}
-                    </div>
-                )}
+        /* ── Header ── */
+        .pf-header {
+          display: flex; align-items: flex-start; justify-content: space-between;
+          gap: 16px; flex-wrap: wrap;
+          padding: 28px 32px 24px;
+          border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .pf-kicker {
+          font-size: .72rem; font-weight: 800; letter-spacing: .12em;
+          text-transform: uppercase; color: #ff6b2b; margin: 0 0 4px;
+        }
+        .pf-title {
+          margin: 0; font-size: 1.25rem; font-weight: 800; color: #111;
+          letter-spacing: -.02em;
+        }
+        .pf-header-actions { display: flex; align-items: center; gap: 12px; }
+        .pf-saved-badge {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: .78rem; font-weight: 700; color: #059669;
+          background: #f0fdf4; border: 1px solid #bbf7d0;
+          border-radius: 99px; padding: 5px 12px;
+        }
+        .pf-save-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 10px 20px;
+          background: linear-gradient(135deg,#ff7a35,#ff5500);
+          color: #fff; border: none; border-radius: 12px;
+          font-family: 'Manrope',sans-serif; font-size: .88rem; font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(255,107,43,.3);
+          transition: opacity .15s, transform .1s, box-shadow .15s;
+        }
+        .pf-save-btn:hover:not(:disabled) {
+          opacity: .92; transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(255,107,43,.4);
+        }
+        .pf-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+        .pf-spinner { width: 16px; height: 16px; animation: pf-spin .7s linear infinite; }
+        @keyframes pf-spin { to { transform: rotate(360deg); } }
 
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+        /* ── Body layout ── */
+        .pf-body {
+          display: grid;
+          grid-template-columns: 1fr 1px 1fr;
+          gap: 0;
+        }
+        .pf-left, .pf-right {
+          padding: 28px 32px;
+          display: flex; flex-direction: column; gap: 18px;
+        }
+        .pf-divider { background: rgba(0,0,0,0.06); width: 1px; }
 
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">
-                            Saved.
-                        </p>
-                    </Transition>
-                </div>
-            </form>
-        </section>
-    );
+        /* ── Avatar ── */
+        .pf-avatar-wrap {
+          position: relative; width: 90px; margin: 0 auto 6px;
+        }
+        .pf-avatar {
+          width: 90px; height: 90px; border-radius: 50%;
+          background: linear-gradient(135deg,#ff7a35,#ff9a56);
+          display: flex; align-items: center; justify-content: center;
+          overflow: hidden;
+          border: 3px solid rgba(255,107,43,.2);
+          box-shadow: 0 4px 16px rgba(255,107,43,.2);
+        }
+        .pf-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        .pf-avatar-initials {
+          font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: .03em;
+        }
+        .pf-avatar-btn {
+          position: absolute; bottom: 2px; right: 2px;
+          width: 26px; height: 26px; border-radius: 50%;
+          background: #ff6b2b; color: #fff;
+          border: 2px solid #fff;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(255,107,43,.4);
+          transition: background .15s, transform .1s;
+        }
+        .pf-avatar-btn:hover { background: #e05a20; transform: scale(1.1); }
+
+        /* ── Fields ── */
+        .pf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .pf-field { display: flex; flex-direction: column; gap: 6px; }
+        .pf-label { font-size: .78rem; font-weight: 700; color: #555; letter-spacing: .02em; }
+
+        .pf-input {
+          width: 100%; padding: 10px 14px;
+          border: 1.5px solid #e2e2e2; border-radius: 10px;
+          background: #fafafa;
+          font-family: 'Manrope',sans-serif; font-size: .88rem; color: #111;
+          outline: none;
+          transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        .pf-input:focus {
+          border-color: #ff6b2b; background: #fff;
+          box-shadow: 0 0 0 3px rgba(255,107,43,.11);
+        }
+        .pf-input--err { border-color: #ef4444 !important; background: #fff8f8 !important; }
+        .pf-input--icon { padding-left: 2.6rem !important; }
+
+        .pf-input-icon-wrap { position: relative; }
+        .pf-input-icon {
+          position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+          color: #bbb; display: flex; align-items: center; pointer-events: none;
+        }
+
+        .pf-error {
+          font-size: .75rem; color: #ef4444; font-weight: 500; margin: 0;
+        }
+
+        /* ── Right side cards ── */
+        .pf-verify-notice {
+          display: flex; align-items: flex-start; gap: 10px;
+          padding: 12px 14px; border-radius: 12px;
+          background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+        }
+        .pf-verify-text { margin: 0 0 4px; font-size: .82rem; font-weight: 600; }
+        .pf-verify-link {
+          font-size: .78rem; font-weight: 700; color: #d97706;
+          text-decoration: underline; cursor: pointer;
+          background: none; border: none; padding: 0;
+        }
+        .pf-success-notice {
+          padding: 12px 14px; border-radius: 12px;
+          background: #f0fdf4; border: 1px solid #bbf7d0;
+          font-size: .82rem; color: #166534; font-weight: 500;
+        }
+
+        .pf-info-card {
+          border-radius: 14px; border: 1px solid rgba(0,0,0,0.07);
+          background: #fafafa; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .pf-info-title {
+          font-size: .72rem; font-weight: 800; text-transform: uppercase;
+          letter-spacing: .1em; color: #ff6b2b; margin: 0;
+        }
+        .pf-info-row {
+          display: flex; align-items: center; justify-content: space-between;
+          font-size: .82rem; gap: 8px;
+        }
+        .pf-info-label { color: #9ca3af; font-weight: 500; }
+        .pf-info-val   { color: #111; font-weight: 600; word-break: break-all; text-align: right; }
+        .pf-status-badge {
+          display: inline-flex; align-items: center;
+          padding: 3px 9px; border-radius: 99px;
+          font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+        }
+        .pf-status-badge--ok   { background: rgba(16,185,129,.12); color: #059669; }
+        .pf-status-badge--warn { background: rgba(234,179,8,.12);  color: #b45309; }
+
+        .pf-tip-card {
+          display: flex; gap: 12px; padding: 16px;
+          border-radius: 14px; border: 1px solid rgba(255,107,43,.15);
+          background: #fff9f5;
+        }
+        .pf-tip-icon {
+          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+          background: rgba(255,107,43,.1); color: #ff6b2b;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .pf-tip-title {
+          font-size: .78rem; font-weight: 800; color: #ff6b2b;
+          text-transform: uppercase; letter-spacing: .08em; margin: 0 0 6px;
+        }
+        .pf-tip-list {
+          margin: 0; padding-left: 16px;
+          display: flex; flex-direction: column; gap: 4px;
+        }
+        .pf-tip-list li { font-size: .78rem; color: #777; line-height: 1.5; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+          .pf-body { grid-template-columns: 1fr; }
+          .pf-divider { width: 100%; height: 1px; }
+          .pf-left, .pf-right { padding: 24px 20px; }
+        }
+        @media (max-width: 500px) {
+          .pf-header { padding: 20px 20px 18px; }
+          .pf-row-2  { grid-template-columns: 1fr; }
+          .pf-save-btn span:last-child { display: none; }
+        }
+      `}</style>
+    </div>
+  );
 }
