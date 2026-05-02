@@ -3,7 +3,7 @@ import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
 import logo from '../../../public/infos-logo.png'
 
 /* ═══════════════════════════════════════════════
-   ICONS
+   ICONS (identique à votre version)
 ═══════════════════════════════════════════════ */
 const I = {
   Dashboard:    () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
@@ -109,6 +109,25 @@ export default function AdminLayout({
   const [scrolled, setScrolled]         = useState(false)
   const [searchQuery, setSearchQuery]   = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [windowWidth, setWindowWidth]   = useState(0)
+
+  // Détection largeur écran
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Mode réduit effectif : uniquement sur grand écran ET collapsed activé
+  const effectiveCollapsed = collapsed && windowWidth >= 768
+
+  // Forcer collapsed à false sur mobile
+  useEffect(() => {
+    if (windowWidth < 768 && collapsed) {
+      setCollapsed(false)
+    }
+  }, [windowWidth, collapsed])
 
   const initials = user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
   const avatarUrl = user.avatar_url ?? null
@@ -132,6 +151,13 @@ export default function AdminLayout({
     return () => el.removeEventListener('scroll', fn)
   }, [])
 
+  // SVG double flèche pour réduction (identique au layout étudiant)
+  const CollapseIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M9.67272 0.522841C10.8339 0.522841 11.76 0.522714 12.4963 0.602493C13.2453 0.683657 13.8789 0.854248 14.4264 1.25197C14.7504 1.48739 15.0355 1.77247 15.2709 2.0965C15.6686 2.64394 15.8392 3.27758 15.9204 4.02655C16.0002 4.7629 16 5.68895 16 6.85014V9.14986C16 10.3111 16.0002 11.2371 15.9204 11.9735C15.8392 12.7224 15.6686 13.3561 15.2709 13.9035C15.0355 14.2275 14.7504 14.5126 14.4264 14.748C13.8789 15.1458 13.2453 15.3163 12.4963 15.3975C11.76 15.4773 10.8339 15.4772 9.67272 15.4772H6.3273C5.16611 15.4772 4.24006 15.4773 3.50371 15.3975C2.75474 15.3163 2.1211 15.1458 1.57366 14.748C1.24963 14.5126 0.964549 14.2275 0.729131 13.9035C0.331407 13.3561 0.160817 12.7224 0.0796529 11.9735C-0.000126137 11.2371 1.25338e-09 10.3111 1.25338e-09 9.14986V6.85014C1.25329e-09 5.68895 -0.000126137 4.7629 0.0796529 4.02655C0.160817 3.27758 0.331407 2.64394 0.729131 2.0965C0.964549 1.77247 1.24963 1.48739 1.57366 1.25197C2.1211 0.854248 2.75474 0.683657 3.50371 0.602493C4.24006 0.522714 5.16611 0.522841 6.3273 0.522841H9.67272ZM5.54303 1.88715V14.1118C5.78636 14.1128 6.04709 14.1169 6.3273 14.1169H9.67272C10.8639 14.1169 11.7032 14.1164 12.3493 14.0465C12.9824 13.9779 13.3497 13.8494 13.6268 13.6482C13.8354 13.4966 14.0195 13.3125 14.1711 13.1039C14.3723 12.8268 14.5007 12.4595 14.5693 11.8264C14.6393 11.1803 14.6398 10.341 14.6398 9.14986V6.85014C14.6398 5.65896 14.6393 4.81967 14.5693 4.1736C14.5007 3.54048 14.3723 3.17318 14.1711 2.89609C14.0195 2.68747 13.8354 2.50337 13.6268 2.35179C13.3497 2.1506 12.9824 2.02212 12.3493 1.95353C11.7032 1.88358 10.8639 1.88307 9.67272 1.88307H6.3273C6.04709 1.88307 5.78636 1.8862 5.54303 1.88715ZM4.1828 1.91166C3.99125 1.9216 3.8148 1.93577 3.65076 1.95353C3.01764 2.02212 2.65034 2.1506 2.37325 2.35179C2.16463 2.50337 1.98052 2.68747 1.82895 2.89609C1.62776 3.17318 1.49928 3.54048 1.43069 4.1736C1.36074 4.81967 1.36023 5.65896 1.36023 6.85014V9.14986C1.36023 10.341 1.36074 11.1803 1.43069 11.8264C1.49928 12.4595 1.62776 12.8268 1.82895 13.1039C1.98052 13.3125 2.16463 13.4966 2.37325 13.6482C2.65034 13.8494 3.01764 13.9779 3.65076 14.0465C3.81478 14.0642 3.99127 14.0774 4.1828 14.0873V1.91166Z" fill="currentColor" />
+    </svg>
+  )
+
   return (
     <>
       <style>{`
@@ -141,7 +167,7 @@ export default function AdminLayout({
         /* ── Design tokens ── */
         :root {
           --al-sw:          256px;
-          --al-sw-col:       68px;
+          --al-sw-col:       80px;   /* ← modifié 80px au lieu de 68px */
           --al-th:           64px;
 
           /* Brand — orange chaud cohérent avec les pages admin */
@@ -171,14 +197,12 @@ export default function AdminLayout({
           --al-tr:   .2s cubic-bezier(.4,0,.2,1);
         }
 
-        /* ── Root ── */
         .al-root {
           display: flex; min-height: 100vh;
           background: var(--al-page);
           font-family: var(--al-font);
         }
 
-        /* ── Mobile overlay ── */
         .al-overlay {
           position: fixed; inset: 0;
           background: rgba(0,0,0,.5);
@@ -186,9 +210,7 @@ export default function AdminLayout({
           z-index: 39;
         }
 
-        /* ════════════════════════════
-           SIDEBAR — dark
-        ════════════════════════════ */
+        /* SIDEBAR */
         .al-sidebar {
           position: fixed; top:0; left:0; bottom:0;
           width: var(--al-sw);
@@ -206,16 +228,35 @@ export default function AdminLayout({
           .al-sidebar--open { transform: translateX(0); width: var(--al-sw) !important; }
         }
 
-        /* Brand */
+        /* BRAND — version avec flex-col en mode réduit */
         .al-brand {
-          display: flex; align-items: center; justify-content: space-between;
-          height: var(--al-th); padding: 0 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: var(--al-th);
+          padding: 0 16px;
           border-bottom: 1px solid var(--al-sidebar-b);
           flex-shrink: 0;
+          transition: flex-direction var(--al-tr), padding var(--al-tr);
+        }
+        .al-brand--col {
+          flex-direction: column;
+          justify-content: center;
+          gap: 8px;
+          height: auto;
+          padding: 12px 0;
         }
         .al-brand-inner {
-          display: flex; align-items: center; gap: 10px;
-          text-decoration: none; overflow: hidden; flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-decoration: none;
+          overflow: hidden;
+          flex: 1;
+        }
+        .al-brand--col .al-brand-inner {
+          justify-content: center;
+          flex: none;
         }
         .al-brand-logo {
           width: 32px; height: 32px; flex-shrink: 0;
@@ -241,16 +282,24 @@ export default function AdminLayout({
           white-space: nowrap;
         }
         .al-collapse-btn {
-          width: 28px; height: 28px; flex-shrink: 0;
+          width: 32px; height: 32px;
+          flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
           border-radius: 7px; border: 1px solid var(--al-sidebar-b);
           background: transparent; color: var(--al-t3); cursor: pointer;
           transition: background var(--al-tr), color var(--al-tr), transform var(--al-tr);
         }
         .al-collapse-btn:hover { background: var(--al-nav-hover); color: var(--al-t1); }
-        .al-sidebar--col .al-collapse-btn { transform: rotate(180deg); }
+        .al-brand--col .al-collapse-btn { transform: rotate(180deg); }
 
-        /* Admin badge */
+        /* Cacher le bouton sur mobile (sécurité) */
+        @media (max-width: 767px) {
+          .al-collapse-btn {
+            display: none;
+          }
+        }
+
+        /* Admin info */
         .al-admin-info {
           display: flex; align-items: center; gap: 10px;
           padding: 14px 16px;
@@ -258,6 +307,7 @@ export default function AdminLayout({
           flex-shrink: 0; overflow: hidden;
         }
         .al-admin-info--col { justify-content: center; padding: 12px 0; }
+
         .al-av {
           width: 36px; height: 36px; flex-shrink: 0;
           border-radius: 50%;
@@ -279,7 +329,7 @@ export default function AdminLayout({
           white-space: nowrap;
         }
 
-        /* Nav */
+        /* NAVIGATION */
         .al-nav {
           flex: 1; overflow-y: auto; overflow-x: hidden;
           padding: 8px 0;
@@ -317,7 +367,6 @@ export default function AdminLayout({
         }
         .al-nav-item:hover { background: var(--al-nav-hover); color: var(--al-t1); }
         .al-nav-item--active { background: var(--al-nav-active); color: var(--al-nav-active-t); }
-        .al-nav-item--active:hover { background: var(--al-nav-active); }
 
         .al-nav-bar {
           position: absolute; left: 0; top: 22%; bottom: 22%;
@@ -381,9 +430,7 @@ export default function AdminLayout({
         }
         .al-logout-btn:hover .al-logout-icon { background: rgba(239,68,68,.15); }
 
-        /* ════════════════════════════
-           MAIN AREA
-        ════════════════════════════ */
+        /* MAIN AREA */
         .al-main {
           flex: 1;
           margin-left: var(--al-sw);
@@ -400,7 +447,6 @@ export default function AdminLayout({
           height: var(--al-th);
           background: var(--al-topbar);
           backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
           border-bottom: 1px solid transparent;
           display: flex; align-items: center;
           padding: 0 28px; gap: 14px;
@@ -422,7 +468,6 @@ export default function AdminLayout({
 
         .al-topbar-title { flex: 1; }
 
-        /* Search */
         .al-search {
           display: flex; align-items: center; gap: 8px;
           height: 36px; padding: 0 12px;
@@ -516,7 +561,6 @@ export default function AdminLayout({
           border-top: 1px solid rgba(15,23,42,.07);
         }
 
-        /* Admin tag on topbar */
         .al-admin-tag {
           display: flex; align-items: center; gap: 6px;
           padding: 4px 10px; border-radius: 99px;
@@ -558,7 +602,6 @@ export default function AdminLayout({
         }
         .al-tb-role { font-size: .68rem; color: #8b8078; white-space: nowrap; }
 
-        /* Content */
         .al-content {
           flex: 1; padding: 0;
           overflow-y: auto;
@@ -571,37 +614,41 @@ export default function AdminLayout({
           <div className="al-overlay" onClick={() => setMobileOpen(false)} aria-hidden />
         )}
 
-        {/* ════════════════════
-            SIDEBAR
-        ════════════════════ */}
-        <aside className={`al-sidebar ${collapsed ? 'al-sidebar--col' : ''} ${mobileOpen ? 'al-sidebar--open' : ''}`}>
+        {/* SIDEBAR */}
+        <aside className={`al-sidebar ${effectiveCollapsed ? 'al-sidebar--col' : ''} ${mobileOpen ? 'al-sidebar--open' : ''}`}>
 
           {/* Brand */}
-          <div className="al-brand">
+          <div className={`al-brand ${effectiveCollapsed ? 'al-brand--col' : ''}`}>
             <Link href={route('home')} className="al-brand-inner">
-              <img src={logo} alt="InfoSaloua" className="w-9 h-9" />
-              {!collapsed && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span className="al-brand-name">Info<em>Saloua</em></span>
-                  <span className="al-brand-tag">Administration</span>
-                </div>
+              {effectiveCollapsed ? (
+                <img src={logo} alt="InfoSaloua" style={{ width: 32, height: 32 }} />
+              ) : (
+                <>
+                  <img src={logo} alt="InfoSaloua" style={{ width: 32, height: 32 }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span className="al-brand-name">Info<em>Saloua</em></span>
+                    <span className="al-brand-tag">Administration</span>
+                  </div>
+                </>
               )}
             </Link>
-            <button
-              onClick={() => setCollapsed(c => !c)}
-              className="al-collapse-btn"
-              aria-label={collapsed ? 'Développer' : 'Réduire'}
-            >
-              <I.Chevron />
-            </button>
+            {windowWidth >= 768 && (
+              <button
+                onClick={() => setCollapsed(c => !c)}
+                className="al-collapse-btn"
+                aria-label={collapsed ? 'Développer' : 'Réduire'}
+              >
+                <CollapseIcon />
+              </button>
+            )}
           </div>
 
           {/* Admin info */}
-          <div className={`al-admin-info ${collapsed ? 'al-admin-info--col' : ''}`}>
+          <div className={`al-admin-info ${effectiveCollapsed ? 'al-admin-info--col' : ''}`}>
             <div className="al-av">
               {avatarUrl ? <img src={avatarUrl} alt={user.name} className="al-av-img" /> : initials}
             </div>
-            {!collapsed && (
+            {!effectiveCollapsed && (
               <div style={{ overflow: 'hidden', flex: 1 }}>
                 <p className="al-admin-name">{user.name}</p>
                 <p className="al-admin-role">Administrateur</p>
@@ -609,11 +656,11 @@ export default function AdminLayout({
             )}
           </div>
 
-          {/* Nav */}
+          {/* Navigation */}
           <nav className="al-nav">
-            <NavSection title="Gestion"   items={navCore}    collapsed={collapsed} />
-            <NavSection title="Finances"  items={NAV_FINANCE} collapsed={collapsed} />
-            <NavSection title="Système"   items={navSystem}  collapsed={collapsed} />
+            <NavSection title="Gestion"   items={navCore}    collapsed={effectiveCollapsed} />
+            <NavSection title="Finances"  items={NAV_FINANCE} collapsed={effectiveCollapsed} />
+            <NavSection title="Système"   items={navSystem}  collapsed={effectiveCollapsed} />
           </nav>
 
           {/* Logout */}
@@ -623,21 +670,18 @@ export default function AdminLayout({
               method="post"
               as="button"
               className="al-logout-btn"
-              title={collapsed ? 'Déconnexion' : undefined}
+              title={effectiveCollapsed ? 'Déconnexion' : undefined}
             >
               <span className="al-logout-icon"><I.Logout /></span>
-              {!collapsed && <span>Déconnexion</span>}
+              {!effectiveCollapsed && <span>Déconnexion</span>}
             </Link>
           </div>
 
         </aside>
 
-        {/* ════════════════════
-            MAIN
-        ════════════════════ */}
+        {/* MAIN */}
         <div className="al-main">
 
-          {/* Topbar */}
           <header className={`al-topbar ${scrolled ? 'al-topbar--scrolled' : ''}`}>
 
             <button className="al-mobile-btn" onClick={() => setMobileOpen(o => !o)}>
@@ -648,7 +692,6 @@ export default function AdminLayout({
               {header}
             </div>
 
-            {/* Search */}
             <div className="al-search">
               <I.Search />
               <input
@@ -660,16 +703,13 @@ export default function AdminLayout({
               />
             </div>
 
-            {/* Right */}
             <div className="al-topbar-right">
 
-              {/* Admin indicator */}
               <div className="al-admin-tag">
                 <span className="al-admin-tag-dot" />
                 Admin
               </div>
 
-              {/* Notifications */}
               <div className="al-notif-wrap">
                 <button
                   className="al-tb-btn"
@@ -718,12 +758,10 @@ export default function AdminLayout({
                 )}
               </div>
 
-              {/* Settings */}
               <button className="al-tb-btn" aria-label="Paramètres">
                 <I.Settings />
               </button>
 
-              {/* User */}
               <div className="al-tb-user">
                 <div className="al-av al-av--sm">
                   {avatarUrl ? <img src={avatarUrl} alt={user.name} className="al-av-img" /> : initials}
@@ -737,7 +775,6 @@ export default function AdminLayout({
             </div>
           </header>
 
-          {/* Content */}
           <main className="al-content">
             {children}
           </main>
