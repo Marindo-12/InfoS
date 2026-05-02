@@ -1,5 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react'
 import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
+import logo from '../../../public/infos-logo.png'
 
 /* ═══════════════════════════════════════════════
    ICONS
@@ -578,10 +579,10 @@ export default function AdminLayout({
           {/* Brand */}
           <div className="al-brand">
             <Link href={route('home')} className="al-brand-inner">
-              <div className="al-brand-logo">CI</div>
+              <img src={logo} alt="InfoSaloua" className="w-9 h-9" />
               {!collapsed && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span className="al-brand-name">Centre<em>Info</em></span>
+                  <span className="al-brand-name">Info<em>Saloua</em></span>
                   <span className="al-brand-tag">Administration</span>
                 </div>
               )}
