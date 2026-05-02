@@ -268,51 +268,21 @@ export default function Dashboard() {
       <div className="db-root">
 
         {/* ══════════════════════════════════════
-            HERO — gradient card with illustration
+            HERO — clean, minimal, no background
         ══════════════════════════════════════ */}
         <div className="db-hero">
-          {/* Noise/texture overlay */}
-          <div className="db-hero-noise" aria-hidden="true" />
-
-          {/* Floating rings */}
-          <div className="db-hero-ring db-hero-ring-1" aria-hidden="true" />
-          <div className="db-hero-ring db-hero-ring-2" aria-hidden="true" />
-
-          <div className="db-hero-content">
-            {/* Avatar + greeting */}
-            <div className="db-hero-left">
-              <div className="db-hero-avatar">{initials}</div>
-              <div>
-                <p className="db-hero-greeting">{greeting} 👋</p>
-                <h1 className="db-hero-name">{user.name}</h1>
-                <p className="db-hero-sub">
-                  Bienvenue sur votre espace personnel. Voici vos priorités du jour.
-                </p>
-                <div className="db-hero-date">
-                  <IconClock />
-                  {new Date().toLocaleDateString('fr-MA', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Quick badges */}
-            <div className="db-hero-badges">
-              {nextSession && (
-                <div className="db-hero-badge">
-                  <span className="db-hero-badge-dot" />
-                  <span>Séance : {nextSession.date}</span>
-                </div>
-              )}
-              <div className="db-hero-badge db-hero-badge--soft">
-                <IconBell />
-                <span>{notificationCards.length > 0 ? `${notificationCards.length} notification(s)` : 'Aucune notification'}</span>
-              </div>
-            </div>
+          <div className="db-hero-left">
+            <h1 className="db-hero-title">
+              {greeting},{' '}
+              <span className="db-hero-name">{firstName}</span>{' '}
+              <span className="db-hero-wave">👋</span>
+            </h1>
+            <p className="db-hero-sub">
+              Bienvenue sur votre espace personnel. Voici un aperçu de votre activité et de vos prochaines priorités.
+            </p>
           </div>
 
-          {/* Illustration */}
+          {/* Illustration — right side, no card/background */}
           <div className="db-hero-illus-wrap" aria-hidden="true">
             <HeroIllustration />
           </div>
@@ -467,7 +437,7 @@ export default function Dashboard() {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Manrope:wght@400;500;600;700;800&display=swap');
 
         .db-root {
           display: flex; flex-direction: column; gap: 20px;
@@ -475,83 +445,46 @@ export default function Dashboard() {
         }
         .db-root *, .db-root *::before, .db-root *::after { box-sizing: border-box; }
 
-        /* ══ HERO ══ */
+        /* ══ HERO — no background, no card, clean ══ */
         .db-hero {
-          position: relative;
-          border-radius: 22px;
-          overflow: hidden;
-          background: linear-gradient(135deg, #1a0a00 0%, #4a1800 30%, #ff6b2b 80%, #ffb347 100%);
-          padding: 32px 36px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 20px;
-          min-height: 180px;
+          gap: 24px;
+          padding: 8px 4px 4px;
+        }
+        .db-hero-left { flex: 1; min-width: 0; }
+        .db-hero-title {
+          margin: 0 0 10px;
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: clamp(2rem, 4vw, 2.8rem);
+          font-weight: 900;
+          color: #0f0f0f;
+          letter-spacing: -.01em;
+          line-height: 1.1;
+        }
+        .db-hero-name {
+          color: #ff6b2b;
+          font-style: italic;
+        }
+        .db-hero-wave { font-style: normal; font-family: 'Manrope', sans-serif; font-size: .65em; vertical-align: middle; }
+        .db-hero-sub {
+          margin: 0;
+          font-size: .875rem;
+          color: #9ca3af;
+          line-height: 1.6;
+          max-width: 480px;
+          font-weight: 450;
         }
 
-        /* Subtle noise texture overlay */
-        .db-hero-noise {
-          position: absolute; inset: 0; pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-          background-size: 200px;
-          opacity: 0.4;
-        }
-
-        /* Floating rings */
-        .db-hero-ring {
-          position: absolute; border-radius: 50%; pointer-events: none;
-          border: 1px solid rgba(255,255,255,0.10);
-        }
-        .db-hero-ring-1 { width: 350px; height: 350px; top: -120px; right: 80px; }
-        .db-hero-ring-2 { width: 200px; height: 200px; top: -60px;  right: 180px; border-color: rgba(255,255,255,0.06); }
-
-        .db-hero-content {
-          position: relative; z-index: 2;
-          display: flex; align-items: flex-start; gap: 18px; flex: 1;
-          flex-wrap: wrap;
-        }
-        .db-hero-avatar {
-          width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
-          background: rgba(255,255,255,0.18);
-          border: 2px solid rgba(255,255,255,0.3);
-          display: flex; align-items: center; justify-content: center;
-          font-size: .9rem; font-weight: 800; color: #fff; letter-spacing: .04em;
-          backdrop-filter: blur(8px);
-        }
-        .db-hero-greeting { margin: 0 0 2px; font-size: .82rem; color: rgba(255,255,255,.7); font-weight: 500; }
-        .db-hero-name     { margin: 0 0 6px; font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: -.02em; }
-        .db-hero-sub      { margin: 0 0 12px; font-size: .82rem; color: rgba(255,255,255,.65); line-height: 1.5; max-width: 360px; }
-        .db-hero-date {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: .74rem; color: rgba(255,255,255,.55); font-weight: 500;
-        }
-        .db-hero-badges {
-          position: relative; z-index: 2;
-          display: flex; flex-direction: column; gap: 8px; align-self: center;
-        }
-        .db-hero-badge {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 8px 14px; border-radius: 99px;
-          background: rgba(255,255,255,0.14);
-          border: 1px solid rgba(255,255,255,0.18);
-          backdrop-filter: blur(8px);
-          color: #fff; font-size: .78rem; font-weight: 600;
-          white-space: nowrap;
-        }
-        .db-hero-badge--soft { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,.8); }
-        .db-hero-badge-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25);
-          flex-shrink: 0;
-        }
-
-        /* Illustration */
+        /* Illustration — floats freely on the right, no container */
         .db-hero-illus-wrap {
-          position: absolute; right: 0; top: 0; bottom: 0;
-          width: 320px; pointer-events: none; opacity: .9;
-          display: flex; align-items: flex-end;
+          flex-shrink: 0;
+          width: 220px;
+          pointer-events: none;
+          opacity: .92;
         }
-        .db-hero-svg { width: 100%; height: 100%; }
+        .db-hero-svg { width: 100%; height: auto; }
 
         /* ══ STATS ══ */
         .db-stats-grid {
@@ -678,12 +611,10 @@ export default function Dashboard() {
         /* ══ RESPONSIVE HERO ══ */
         @media (max-width: 900px) {
           .db-hero-illus-wrap { display: none; }
-          .db-hero { padding: 24px 24px; }
         }
         @media (max-width: 600px) {
-          .db-hero { min-height: auto; padding: 22px 20px; }
-          .db-hero-badges { display: none; }
-          .db-hero-name { font-size: 1.15rem; }
+          .db-hero { padding: 4px 0 0; }
+          .db-hero-title { font-size: 1.7rem; }
         }
       `}</style>
     </AuthenticatedLayout>
