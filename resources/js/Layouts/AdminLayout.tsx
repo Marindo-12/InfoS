@@ -110,6 +110,7 @@ export default function AdminLayout({
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   const initials = user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+  const avatarUrl = user.avatar_url ?? null
   const navCore = NAV_CORE.map(item =>
     item.routeName === 'admin.applications'
       ? { ...item, badge: adminHeader.pendingApplications || undefined }
@@ -258,13 +259,15 @@ export default function AdminLayout({
         .al-admin-info--col { justify-content: center; padding: 12px 0; }
         .al-av {
           width: 36px; height: 36px; flex-shrink: 0;
-          border-radius: 11px;
+          border-radius: 50%;
           background: linear-gradient(135deg, var(--al-orange), var(--al-orange-2));
           display: flex; align-items: center; justify-content: center;
           font-size: .7rem; font-weight: 800; color: #fff;
+          overflow: hidden;
           box-shadow: 0 2px 8px rgba(194,101,42,.3);
         }
-        .al-av--sm { width: 32px; height: 32px; border-radius: 9px; font-size: .66rem; }
+        .al-av--sm { width: 42px; height: 42px; font-size: .72rem; }
+        .al-av-img { width: 100%; height: 100%; object-fit: cover; }
         .al-admin-name {
           font-size: .82rem; font-weight: 700; color: var(--al-t1);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -535,20 +538,24 @@ export default function AdminLayout({
 
         .al-tb-user {
           display: flex; align-items: center; gap: 8px;
-          height: 36px; padding: 0 12px 0 5px;
-          border-radius: 10px;
-          border: 1px solid rgba(0,0,0,0.09);
+          min-height: 50px; padding: 4px 14px 4px 5px;
+          border-radius: 18px;
+          border: 1px solid rgba(194,101,42,.18);
           background: #fff; cursor: pointer;
-          transition: background var(--al-tr), border-color var(--al-tr);
+          box-shadow: 0 10px 24px rgba(36,28,20,.08);
+          transition: background var(--al-tr), border-color var(--al-tr), box-shadow var(--al-tr), transform var(--al-tr);
         }
         .al-tb-user:hover {
           background: var(--al-orange-pale);
           border-color: var(--al-orange-pale2);
+          box-shadow: 0 14px 30px rgba(194,101,42,.14);
+          transform: translateY(-1px);
         }
         .al-tb-username {
-          font-size: .82rem; font-weight: 600; color: #1a1612;
+          font-size: .86rem; font-weight: 800; color: #1a1612;
           white-space: nowrap;
         }
+        .al-tb-role { font-size: .68rem; color: #8b8078; white-space: nowrap; }
 
         /* Content */
         .al-content {
@@ -590,7 +597,9 @@ export default function AdminLayout({
 
           {/* Admin info */}
           <div className={`al-admin-info ${collapsed ? 'al-admin-info--col' : ''}`}>
-            <div className="al-av">{initials}</div>
+            <div className="al-av">
+              {avatarUrl ? <img src={avatarUrl} alt={user.name} className="al-av-img" /> : initials}
+            </div>
             {!collapsed && (
               <div style={{ overflow: 'hidden', flex: 1 }}>
                 <p className="al-admin-name">{user.name}</p>
@@ -715,8 +724,13 @@ export default function AdminLayout({
 
               {/* User */}
               <div className="al-tb-user">
-                <div className="al-av al-av--sm">{initials}</div>
-                <span className="al-tb-username">{user.name.split(' ')[0]}</span>
+                <div className="al-av al-av--sm">
+                  {avatarUrl ? <img src={avatarUrl} alt={user.name} className="al-av-img" /> : initials}
+                </div>
+                <div>
+                  <span className="al-tb-username">{user.name.split(' ')[0]}</span>
+                  <p className="al-tb-role">Profil admin</p>
+                </div>
               </div>
 
             </div>

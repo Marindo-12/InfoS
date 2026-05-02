@@ -1,7 +1,6 @@
-import InputError from '@/Components/InputError';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useRef, useState } from 'react';
 
 export default function UpdateProfileInformationForm({
@@ -20,9 +19,16 @@ export default function UpdateProfileInformationForm({
     address?: string;
     city?: string;
     avatar?: string;
+    avatar_url?: string | null;
   };
 
-  const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
+  const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<{
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+  }>({
     name:    user.name,
     email:   user.email,
     phone:   user.phone   ?? '',
@@ -30,12 +36,41 @@ export default function UpdateProfileInformationForm({
     city:    user.city    ?? '',
   });
 
-  /* Avatar preview */
   const avatarRef  = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(user.avatar ?? null);
+  const [avatarProcessing, setAvatarProcessing] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setPreview(URL.createObjectURL(file));
+    if (!file) return;
+
+    setAvatarError(null);
+    setAvatarProcessing(true);
+
+    router.post(route('profile.avatar.update'), { avatar: file }, {
+      forceFormData: true,
+      preserveScroll: true,
+      onError: (uploadErrors) => {
+        setAvatarError(String(uploadErrors.avatar ?? "Impossible d'enregistrer cet avatar."));
+      },
+      onFinish: () => {
+        setAvatarProcessing(false);
+        if (avatarRef.current) {
+          avatarRef.current.value = '';
+        }
+      },
+    });
+  };
+
+  const removeAvatar = () => {
+    setAvatarError(null);
+    setAvatarProcessing(true);
+
+    router.delete(route('profile.avatar.destroy'), {
+      preserveScroll: true,
+      onError: () => setAvatarError("Impossible de supprimer l'avatar."),
+      onFinish: () => setAvatarProcessing(false),
+    });
   };
 
   const [firstName, ...rest] = data.name.split(' ');
@@ -43,7 +78,9 @@ export default function UpdateProfileInformationForm({
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    patch(route('profile.update'));
+    patch(route('profile.update'), {
+      preserveScroll: true,
+    });
   };
 
   /* Initials for avatar fallback */
@@ -116,16 +153,31 @@ export default function UpdateProfileInformationForm({
           <div className="pf-left">
             {/* Avatar */}
             <div className="pf-avatar-wrap">
-              <div className="pf-avatar">
-                {preview
-                  ? <img src={preview} alt="Avatar" className="pf-avatar-img" />
+              <button
+                type="button"
+                className="pf-avatar"
+                onClick={() => avatarRef.current?.click()}
+                disabled={avatarProcessing}
+                title="Changer la photo"
+              >
+                {user.avatar_url
+                  ? <img src={user.avatar_url} alt="Avatar" className="pf-avatar-img" />
                   : <span className="pf-avatar-initials">{initials}</span>
                 }
-              </div>
+                <span className={`pf-avatar-overlay ${avatarProcessing ? 'pf-avatar-overlay--show' : ''}`}>
+                  {avatarProcessing ? (
+                    <svg className="pf-spinner" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"
+                        strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round"/>
+                    </svg>
+                  ) : 'Changer'}
+                </span>
+              </button>
               <button
                 type="button"
                 className="pf-avatar-btn"
                 onClick={() => avatarRef.current?.click()}
+                disabled={avatarProcessing}
                 title="Changer la photo"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -134,6 +186,25 @@ export default function UpdateProfileInformationForm({
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
               </button>
+              {user.avatar_url && (
+                <button
+                  type="button"
+                  className="pf-avatar-delete"
+                  onClick={removeAvatar}
+                  disabled={avatarProcessing}
+                  title="Supprimer l'avatar"
+                  aria-label="Supprimer l'avatar"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M8 6V4h8v2"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v5"/>
+                    <path d="M14 11v5"/>
+                  </svg>
+                </button>
+              )}
               <input
                 ref={avatarRef}
                 type="file"
@@ -141,6 +212,7 @@ export default function UpdateProfileInformationForm({
                 className="sr-only"
                 onChange={handleAvatarChange}
               />
+              {avatarError && <p className="pf-error pf-avatar-error">{avatarError}</p>}
             </div>
 
             {/* Name row */}
@@ -372,19 +444,49 @@ export default function UpdateProfileInformationForm({
 
         /* ── Avatar ── */
         .pf-avatar-wrap {
-          position: relative; width: 90px; margin: 0 auto 6px;
+          position: relative; width: 104px; margin: 0 auto 12px;
         }
         .pf-avatar {
-          width: 90px; height: 90px; border-radius: 50%;
+          position: relative;
+          width: 104px; height: 104px; border-radius: 50%;
           background: linear-gradient(135deg,#ff7a35,#ff9a56);
           display: flex; align-items: center; justify-content: center;
           overflow: hidden;
-          border: 3px solid rgba(255,107,43,.2);
-          box-shadow: 0 4px 16px rgba(255,107,43,.2);
+          border: 4px solid #fff;
+          box-shadow: 0 10px 28px rgba(255,107,43,.22), 0 0 0 1px rgba(255,107,43,.18);
+          cursor: pointer;
+          padding: 0;
+          transition: transform .15s, box-shadow .15s;
+        }
+        .pf-avatar:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 14px 32px rgba(255,107,43,.28), 0 0 0 1px rgba(255,107,43,.22);
+        }
+        .pf-avatar:disabled,
+        .pf-avatar-btn:disabled,
+        .pf-avatar-delete:disabled {
+          cursor: wait;
         }
         .pf-avatar-img { width: 100%; height: 100%; object-fit: cover; }
         .pf-avatar-initials {
-          font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: .03em;
+          font-size: 1.55rem; font-weight: 800; color: #fff; letter-spacing: .03em;
+        }
+        .pf-avatar-overlay {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(17,17,17,.56);
+          color: #fff;
+          font-size: .72rem; font-weight: 800;
+          opacity: 0;
+          transition: opacity .15s;
+        }
+        .pf-avatar:hover .pf-avatar-overlay,
+        .pf-avatar-overlay--show { opacity: 1; }
+        .pf-avatar-error {
+          width: 220px;
+          margin: 8px 0 0;
+          transform: translateX(-58px);
+          text-align: center;
         }
         .pf-avatar-btn {
           position: absolute; bottom: 2px; right: 2px;
@@ -397,6 +499,22 @@ export default function UpdateProfileInformationForm({
           transition: background .15s, transform .1s;
         }
         .pf-avatar-btn:hover { background: #e05a20; transform: scale(1.1); }
+        .pf-avatar-delete {
+          position: absolute; top: 2px; right: 2px;
+          width: 28px; height: 28px; border-radius: 50%;
+          background: #111; color: #fff;
+          border: 2px solid #fff;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+          opacity: 0; transform: scale(.92);
+          box-shadow: 0 4px 10px rgba(17,17,17,.28);
+          transition: opacity .15s, transform .15s, background .15s;
+        }
+        .pf-avatar-wrap:hover .pf-avatar-delete,
+        .pf-avatar-delete:focus-visible {
+          opacity: 1; transform: scale(1);
+        }
+        .pf-avatar-delete:hover { background: #dc2626; }
 
         /* ── Fields ── */
         .pf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

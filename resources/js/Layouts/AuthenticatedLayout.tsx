@@ -129,6 +129,7 @@ export default function Authenticated({
   }, [windowWidth, collapsed])
 
   const initials = user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+  const avatarUrl = user.avatar_url ?? null
 
   useEffect(() => {
     const el = document.querySelector('.a-content')
@@ -275,14 +276,16 @@ export default function Authenticated({
 
         .a-avatar {
           width: 36px; height: 36px; flex-shrink: 0;
-          border-radius: 11px;
+          border-radius: 50%;
           background: linear-gradient(135deg, var(--orange), var(--orange-light));
           display: flex; align-items: center; justify-content: center;
           font-size: .72rem; font-weight: 800; color: #fff;
           letter-spacing: .04em;
+          overflow: hidden;
           box-shadow: 0 2px 8px rgba(194,101,42,.28);
         }
-        .a-avatar--sm { width: 32px; height: 32px; border-radius: 9px; font-size: .68rem; }
+        .a-avatar--sm { width: 42px; height: 42px; font-size: .72rem; }
+        .a-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 
         .a-user-info { overflow: hidden; flex: 1; }
         .a-user-name { font-size: .82rem; font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -475,15 +478,21 @@ export default function Authenticated({
 
         .a-tb-user {
           display: flex; align-items: center; gap: 9px;
-          height: 36px; padding: 0 12px 0 5px;
-          border-radius: 10px;
-          border: 1px solid var(--border);
+          min-height: 50px; padding: 4px 14px 4px 5px;
+          border-radius: 18px;
+          border: 1px solid rgba(194,101,42,.18);
           background: #fff;
           cursor: pointer;
-          transition: background var(--tr), border-color var(--tr);
+          box-shadow: 0 10px 24px rgba(36, 28, 20, .08);
+          transition: background var(--tr), border-color var(--tr), box-shadow var(--tr), transform var(--tr);
         }
-        .a-tb-user:hover { background: var(--orange-pale); border-color: var(--orange-pale2); }
-        .a-tb-username { font-size: .82rem; font-weight: 600; color: var(--text-1); white-space: nowrap; }
+        .a-tb-user:hover {
+          background: var(--orange-pale);
+          border-color: var(--orange-pale2);
+          box-shadow: 0 14px 30px rgba(194,101,42,.14);
+          transform: translateY(-1px);
+        }
+        .a-tb-username { font-size: .86rem; font-weight: 800; color: var(--text-1); white-space: nowrap; }
         .a-tb-role { font-size: .68rem; color: var(--text-3); white-space: nowrap; }
 
         .a-content {
@@ -528,7 +537,9 @@ export default function Authenticated({
 
           {/* User card */}
           <div className={`a-user-card ${effectiveCollapsed ? 'a-user-card--col' : ''}`}>
-            <div className="a-avatar">{initials}</div>
+            <div className="a-avatar">
+              {avatarUrl ? <img src={avatarUrl} alt={user.name} className="a-avatar-img" /> : initials}
+            </div>
             {!effectiveCollapsed && (
               <div className="a-user-info">
                 <p className="a-user-name">{user.name}</p>
@@ -581,8 +592,13 @@ export default function Authenticated({
                 <span className="a-tb-badge">3</span>
               </button>
               <div className="a-tb-user">
-                <div className="a-avatar a-avatar--sm">{initials}</div>
-                <div><p className="a-tb-username">{user.name.split(' ')[0]}</p></div>
+                <div className="a-avatar a-avatar--sm">
+                  {avatarUrl ? <img src={avatarUrl} alt={user.name} className="a-avatar-img" /> : initials}
+                </div>
+                <div>
+                  <p className="a-tb-username">{user.name.split(' ')[0]}</p>
+                  <p className="a-tb-role">Profil étudiant</p>
+                </div>
               </div>
             </div>
           </header>
