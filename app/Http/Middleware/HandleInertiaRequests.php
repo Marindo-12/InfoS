@@ -45,6 +45,44 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn () => $request->session()->get('warning'),
             ],
             'adminHeader' => fn () => $this->adminHeaderData($request),
+            'studentHeader' => fn () => $this->studentHeaderData($request),
+        ];
+    }
+
+    private function studentHeaderData(Request $request): array
+    {
+        $user = $request->user();
+
+        if (! $user?->isStudent()) {
+            return [
+                'unreadNotifications' => 0,
+                'recentNotifications' => [],
+            ];
+        }
+
+        $hasNotifications = Schema::hasTable('portal_notifications');
+
+        return [
+            'unreadNotifications' => $hasNotifications
+                ? PortalNotification::query()->where('user_id', $user->id)->whereNull('read_at')->count()
+                : 0,
+            'recentNotifications' => $hasNotifications
+                ? PortalNotification::query()
+                    ->where('user_id', $user->id)
+                    ->latest('published_at')
+                    ->latest()
+                    ->take(5)
+                    ->get()
+                    ->map(fn (PortalNotification $notification) => [
+                        'id' => $notification->id,
+                        'title' => $notification->title,
+                        'message' => $notification->message,
+                        'actionUrl' => $notification->action_url,
+                        'isRead' => $notification->read_at !== null,
+                        'publishedAt' => optional($notification->published_at ?? $notification->created_at)->diffForHumans(),
+                    ])
+                    ->values()
+                : [],
         ];
     }
 

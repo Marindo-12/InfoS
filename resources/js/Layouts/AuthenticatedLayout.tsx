@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
 import logo from '../../../public/infos-logo.png'
 
@@ -49,7 +49,7 @@ const NAV_FINANCE: NavItem[] = [
 ]
 
 const NAV_ACCOUNT: NavItem[] = [
-  { label: 'Notifications', icon: <I.Bell />,    route: route('student.notifications'), routeName: 'student.notifications', badge: 3 },
+  { label: 'Notifications', icon: <I.Bell />,    route: route('student.notifications'), routeName: 'student.notifications' },
   { label: 'Mon Profil',    icon: <I.Profile />, route: route('profile.edit'),          routeName: 'profile.edit'           },
 ]
 
@@ -104,11 +104,14 @@ export default function Authenticated({
   children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
 
-  const user = (usePage().props as any).auth.user
+  const pageProps = usePage().props as any
+  const user = pageProps.auth.user
+  const studentHeader = pageProps.studentHeader ?? { unreadNotifications: 0, recentNotifications: [] }
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [windowWidth, setWindowWidth] = useState(0)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   // Détection de la largeur d'écran
   useEffect(() => {
@@ -130,6 +133,12 @@ export default function Authenticated({
 
   const initials = user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
   const avatarUrl = user.avatar_url ?? null
+  const totalHeaderNotifications = Number(studentHeader.unreadNotifications ?? 0)
+  const navAccount = NAV_ACCOUNT.map(item =>
+    item.routeName === 'student.notifications'
+      ? { ...item, badge: totalHeaderNotifications || undefined }
+      : item,
+  )
 
   useEffect(() => {
     const el = document.querySelector('.a-content')
@@ -465,7 +474,8 @@ export default function Authenticated({
           transition: background var(--tr), color var(--tr), border-color var(--tr);
           flex-shrink: 0;
         }
-        .a-tb-btn:hover { background: var(--orange-pale); border-color: var(--orange-pale2); color: var(--orange); }
+        .a-tb-btn:hover,
+        .a-tb-btn--active { border-color: var(--orange-pale2);}
         .a-tb-badge {
           position: absolute; top: -4px; right: -4px;
           width: 16px; height: 16px;
@@ -476,12 +486,58 @@ export default function Authenticated({
           border: 2px solid var(--page-bg);
         }
 
+        .a-notif-wrap { position: relative; }
+        .a-notif-menu {
+          position: absolute; top: 44px; right: 0;
+          width: min(360px, calc(100vw - 32px));
+          background: #fff;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 14px;
+          box-shadow: 0 18px 50px rgba(15,23,42,.16);
+          z-index: 80;
+          overflow: hidden;
+        }
+        .a-notif-head {
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+          padding: 14px 16px;
+          border-bottom: 1px solid rgba(15,23,42,.07);
+        }
+        .a-notif-head strong { font-size: .86rem; color: var(--text-1); }
+        .a-notif-head button {
+          border: none; background: transparent; color: var(--orange);
+          font-size: .72rem; font-weight: 800; cursor: pointer;
+        }
+        .a-notif-list { max-height: 320px; overflow-y: auto; }
+        .a-notif-item {
+          display: block;
+          padding: 13px 16px;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(15,23,42,.06);
+          background: #fff;
+        }
+        .a-notif-item:hover { background: #fffaf6; }
+        .a-notif-item--unread { background: #fff7ed; }
+        .a-notif-item strong {
+          display: block; color: var(--text-1); font-size: .8rem; margin-bottom: 4px;
+        }
+        .a-notif-item span {
+          display: block; color: #6b7280; font-size: .73rem; line-height: 1.45;
+        }
+        .a-notif-item small {
+          display: block; color: #a1a1aa; font-size: .67rem; margin-top: 6px;
+        }
+        .a-notif-empty { padding: 18px 16px; color: #6b7280; font-size: .8rem; }
+        .a-notif-foot {
+          display: block; padding: 12px 16px; color: var(--orange);
+          background: #faf8f5; text-decoration: none; font-size: .78rem; font-weight: 800;
+          border-top: 1px solid rgba(15,23,42,.07);
+        }
+
         .a-tb-user {
           display: flex; align-items: center; gap: 9px;
           min-height: 50px; padding: 4px 14px 4px 5px;
-          border-radius: 18px;
-          border: 1px solid rgba(194,101,42,.18);
           background: #fff;
+          border-radius: 20px;
           cursor: pointer;
           box-shadow: 0 10px 24px rgba(36, 28, 20, .08);
           transition: background var(--tr), border-color var(--tr), box-shadow var(--tr), transform var(--tr);
@@ -554,7 +610,7 @@ export default function Authenticated({
           <nav className="a-nav">
             <NavSection title="Menu principal" items={NAV_MAIN}    collapsed={effectiveCollapsed} />
             <NavSection title="Finances"       items={NAV_FINANCE} collapsed={effectiveCollapsed} />
-            <NavSection title="Mon compte"     items={NAV_ACCOUNT} collapsed={effectiveCollapsed} />
+            <NavSection title="Mon compte"     items={navAccount} collapsed={effectiveCollapsed} />
           </nav>
 
           {/* Logout */}
@@ -584,13 +640,61 @@ export default function Authenticated({
               <input type="text" placeholder="Rechercher…" aria-label="Rechercher" />
             </div>
             <div className="a-topbar-right">
-              <button className="a-tb-btn" aria-label="Paramètres">
+              <Link
+                href={route('profile.edit')}
+                className={`a-tb-btn ${route().current('profile.edit') ? 'a-tb-btn--active' : ''}`}
+                aria-label="Parametres"
+                title="Parametres du compte"
+              >
                 <I.Settings />
-              </button>
-              <button className="a-tb-btn" aria-label="Notifications">
-                <I.Bell />
-                <span className="a-tb-badge">3</span>
-              </button>
+              </Link>
+              <div className="a-notif-wrap">
+                <button
+                  className={`a-tb-btn ${notificationsOpen ? 'a-tb-btn--active' : ''}`}
+                  aria-label="Notifications"
+                  type="button"
+                  onClick={() => setNotificationsOpen(open => !open)}
+                >
+                  <I.Bell />
+                  {totalHeaderNotifications > 0 && <span className="a-tb-badge">{totalHeaderNotifications}</span>}
+                </button>
+                {notificationsOpen && (
+                  <div className="a-notif-menu">
+                    <div className="a-notif-head">
+                      <strong>Notifications</strong>
+                      {totalHeaderNotifications > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => router.post(route('student.notifications.read-all'), {}, { preserveScroll: true })}
+                        >
+                          Tout lire
+                        </button>
+                      )}
+                    </div>
+                    <div className="a-notif-list">
+                      {studentHeader.recentNotifications?.length ? (
+                        studentHeader.recentNotifications.map((notification: any) => (
+                          <Link
+                            key={notification.id}
+                            href={notification.actionUrl || route('student.notifications')}
+                            className={`a-notif-item ${notification.isRead ? '' : 'a-notif-item--unread'}`}
+                            onClick={() => setNotificationsOpen(false)}
+                          >
+                            <strong>{notification.title}</strong>
+                            <span>{notification.message}</span>
+                            <small>{notification.publishedAt}</small>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="a-notif-empty">Aucune notification pour le moment.</div>
+                      )}
+                    </div>
+                    <Link href={route('student.notifications')} className="a-notif-foot" onClick={() => setNotificationsOpen(false)}>
+                      Voir toutes les notifications
+                    </Link>
+                  </div>
+                )}
+              </div>
               <div className="a-tb-user">
                 <div className="a-avatar a-avatar--sm">
                   {avatarUrl ? <img src={avatarUrl} alt={user.name} className="a-avatar-img" /> : initials}
@@ -608,3 +712,4 @@ export default function Authenticated({
     </>
   )
 }
+
