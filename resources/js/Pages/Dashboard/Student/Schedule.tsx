@@ -58,7 +58,7 @@ type Document = {
 };
 
 type PageProps = {
-  auth: { user: { name: string; email: string } };
+  auth: { user: { id: number; name: string; email: string } };
   formation: Formation;
   prochaineCours: ProchaineCours;
   semaine: WeekDay[];
@@ -171,15 +171,14 @@ export default function Schedule() {
   const { props } = usePage<PageProps>();
   const user = props.auth.user;
 
-  /* Merge backend props with demo fallbacks */
   const {
-    formation       = DEMO.formation,
-    prochaineCours  = DEMO.prochaineCours,
-    semaine         = DEMO.semaine,
-    presences       = DEMO.presences,
-    performances    = DEMO.performances,
-    documents       = DEMO.documents,
-    globalPresence  = DEMO.globalPresence,
+    formation       = { title: 'Aucune formation active', category: 'Planning', startDate: 'A definir', endDate: 'A definir', duration: '0h', studentsCount: 0, progress: 0 },
+    prochaineCours  = null,
+    semaine         = [],
+    presences       = [],
+    performances    = [],
+    documents       = [],
+    globalPresence  = 0,
   } = props as Partial<typeof DEMO>;
 
   return (
@@ -225,16 +224,11 @@ export default function Schedule() {
             </div>
 
             <div className="pl-overview-footer">
-              {/* Fake avatars */}
               <div className="pl-avatars">
-                {['FF6B2B','FFAA76','C2652A'].map((c, i) => (
-                  <div key={i} className="pl-avatar-bubble" style={{ background: `#${c}`, zIndex: 3-i }}>
-                    {['A','B','C'][i]}
-                  </div>
-                ))}
                 <div className="pl-avatar-bubble pl-avatar-count">
-                  +{formation.studentsCount - 3}
+                  {formation.studentsCount}
                 </div>
+                <span className="pl-students-label">etudiant{formation.studentsCount > 1 ? 's' : ''} inscrit{formation.studentsCount > 1 ? 's' : ''}</span>
               </div>
               <button className="pl-link-btn">
                 Voir le programme <Ic.arrow />
@@ -374,7 +368,7 @@ export default function Schedule() {
                 </div>
 
                 {presences.map((row) => {
-                  const pct = Math.round((row.attended / row.total) * 100);
+                  const pct = row.total > 0 ? Math.round((row.attended / row.total) * 100) : 0;
                   const color = pct >= 90 ? '#10b981' : pct >= 75 ? '#ff9a56' : '#ef4444';
                   return (
                     <div key={row.course} className="pl-presence-row">
@@ -388,6 +382,11 @@ export default function Schedule() {
                     </div>
                   );
                 })}
+                {presences.length === 0 && (
+                  <div className="pl-session-empty">
+                    <p>Aucune donnee de presence pour le moment.</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -402,7 +401,7 @@ export default function Schedule() {
               </div>
 
               <div className="pl-chart">
-                {performances.map((m) => (
+                {performances.length > 0 ? performances.map((m) => (
                   <div key={m.month} className="pl-chart-col">
                     <div className="pl-chart-bars">
                       {/* Quiz bar (behind) */}
@@ -414,7 +413,11 @@ export default function Schedule() {
                     </div>
                     <span className="pl-chart-label">{m.month}</span>
                   </div>
-                ))}
+                )) : (
+                  <div className="pl-session-empty">
+                    <p>Aucune note disponible pour le moment.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -580,6 +583,7 @@ export default function Schedule() {
         }
         .pl-avatars .pl-avatar-bubble:first-child { margin-left: 0; }
         .pl-avatar-count { background: #e08850; color: #fff; font-size: .58rem; }
+        .pl-students-label { align-self: center; margin-left: 8px; color: #605850; font-size: .78rem; font-weight: 800; }
         .pl-link-btn {
           display: inline-flex; align-items: center; gap: 5px;
           font-size: .8rem; font-weight: 700; color: #c2652a;

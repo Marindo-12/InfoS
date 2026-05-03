@@ -39,7 +39,7 @@ const NAV_CORE: NavItem[] = [
   { label: 'Candidatures', icon: <I.Applications />, route: route('admin.applications'), routeName: 'admin.applications' },
   { label: 'Étudiants', icon: <I.Students />, route: route('admin.students'), routeName: 'admin.students' },
   { label: 'Formations', icon: <I.Courses />, route: route('admin.courses'), routeName: 'admin.courses' },
-  { label: 'Planning', icon: <I.Schedule />, route: route('admin.dashboard'), routeName: 'planning' },
+  { label: 'Planning', icon: <I.Schedule />, route: route('admin.schedule'), routeName: 'admin.schedule' },
 ]
 
 const NAV_FINANCE: NavItem[] = [

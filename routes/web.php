@@ -3,11 +3,13 @@
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\EnrollmentApplicationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
+use App\Http\Controllers\Student\ScheduleController as StudentScheduleController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicEnrollmentApplicationController;
@@ -98,9 +100,7 @@ Route::middleware(['auth', 'verified', 'login.code'])->prefix('student')->name('
         return Inertia::render('Student/Progress');
     })->name('progress');
 
-    Route::get('/schedule', function () {
-        return Inertia::render('Dashboard/Student/Schedule');
-    })->name('schedule');
+    Route::get('/schedule', [StudentScheduleController::class, 'index'])->name('schedule');
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
@@ -129,6 +129,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/courses', function () {
         return Inertia::render('Dashboard/Admin/Courses');
     })->name('courses');
+
+    Route::get('/schedule', [AdminScheduleController::class, 'index'])->name('schedule');
+    Route::post('/schedule', [AdminScheduleController::class, 'store'])->name('schedule.store');
+    Route::patch('/schedule/{session}', [AdminScheduleController::class, 'update'])->name('schedule.update');
+    Route::delete('/schedule/{session}', [AdminScheduleController::class, 'destroy'])->name('schedule.destroy');
 
     Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments');
 
