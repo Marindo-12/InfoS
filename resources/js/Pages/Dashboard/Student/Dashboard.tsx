@@ -312,6 +312,12 @@ export default function Dashboard() {
               <div className="db-section-illus"><IlluSession /></div>
             </div>
 
+            <div className="db-section-action">
+              <Link href={route('student.schedule')} className="db-link">
+                See All <IconArrow />
+              </Link>
+            </div>
+
             {nextSession ? (
               <div className="db-detail-card">
                 <div className="db-detail-icon"><IconCalendar /></div>
@@ -456,7 +462,7 @@ export default function Dashboard() {
         .db-hero-left { flex: 1; min-width: 0; }
         .db-hero-title {
           margin: 0 0 10px;
-          font-family: 'Playfair Display', Georgia, serif;
+          font-family: 'EB Garamond', serif;
           font-size: clamp(2rem, 4vw, 2.8rem);
           font-weight: 900;
           color: #0f0f0f;
@@ -552,7 +558,7 @@ export default function Dashboard() {
         .db-list { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
 
         .db-detail-card {
-          margin: 0 16px 16px;
+          margin:  10px 16px 16px;
           display: flex; align-items: flex-start; gap: 12px;
           padding: 14px; border-radius: 14px;
           background: #fafafa; border: 1px solid rgba(0,0,0,0.06);
