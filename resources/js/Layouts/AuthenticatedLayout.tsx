@@ -38,7 +38,7 @@ interface NavItem {
 const NAV_MAIN: NavItem[] = [
   { label: 'Tableau de bord', icon: <I.Dashboard />,   route: route('student.dashboard'), routeName: 'student.dashboard' },
   { label: 'Mes Formations',  icon: <I.Formations />,  route: route('student.courses'),   routeName: 'student.courses'   },
-  { label: 'Planning',        icon: <I.Calendar />,    route: route('dashboard'),          routeName: 'planning'          },
+  { label: 'Planning',        icon: <I.Calendar />,    route: route('student.schedule'),          routeName: 'student.schedule'          },
   { label: 'Notes & Résultats', icon: <I.Results />,   route: route('dashboard'),          routeName: 'results'           },
 ]
 

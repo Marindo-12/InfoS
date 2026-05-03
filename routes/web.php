@@ -99,7 +99,7 @@ Route::middleware(['auth', 'verified', 'login.code'])->prefix('student')->name('
     })->name('progress');
 
     Route::get('/schedule', function () {
-        return Inertia::render('Student/Schedule');
+        return Inertia::render('Dashboard/Student/Schedule');
     })->name('schedule');
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
