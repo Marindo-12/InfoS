@@ -10,7 +10,7 @@ const Cta = () => {
           Prêt à rejoindre l'excellence ?
         </h2>
         <p className="text-xl text-on-surface-variant font-light mb-12 max-w-2xl mx-auto relative z-10">
-          Les inscriptions pour la prochaine session sont ouvertes. Sécurisez votre place dès maintenant.
+          Les inscriptions pour la prochaine session sont ouvertes. Sécurisez votre place dès maintenant, Courage!!!
         </p>
         <div className="flex flex-wrap justify-center gap-6 relative z-10">
           <Link
