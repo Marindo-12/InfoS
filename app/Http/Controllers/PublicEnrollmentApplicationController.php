@@ -70,7 +70,7 @@ class PublicEnrollmentApplicationController extends Controller
                 'payment_status' => $validated['payment_method'] === 'online' ? 'paid' : 'pending',
                 'payment_reference' => $validated['payment_reference'] ?? null,
                 'preferred_payment_date' => $validated['preferred_payment_date'] ?? null,
-                'certificate_reference' => $validated['certificate_reference'] ?? 'CERT-'.now()->format('Ymd').'-'.Str::upper(Str::random(5)),
+                'certificate_reference' => $validated['certificate_reference'] ?? null,
                 'status' => 'pending',
                 'form_data' => $validated['form_data'] ?? [],
             ]);

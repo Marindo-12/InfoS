@@ -177,6 +177,17 @@ class EnrollmentApplicationController extends Controller
 
     private function sendAccessEmail(EnrollmentApplication $application, $user, string $plainPassword): bool
     {
+        if (in_array(config('mail.default'), ['log', 'array'], true)) {
+            Log::warning('Email d acces etudiant non envoye: aucun mailer reel configure.', [
+                'mailer' => config('mail.default'),
+                'user_id' => $user->id,
+                'application_id' => $application->id,
+                'email' => $application->email,
+            ]);
+
+            return false;
+        }
+
         $email = EmailMessageTemplate::render('access_activated', [
             'name' => trim($application->first_name.' '.$application->last_name),
             'email' => $application->email,

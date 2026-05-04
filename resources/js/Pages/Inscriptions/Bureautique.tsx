@@ -692,8 +692,7 @@ const InscriptionBureautique: React.FC<Props> = ({
   const [submitting, setSubmitting] = useState(false);
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
-  const [certificate, setCertificate] = useState<Certificate | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const defaultPaymentDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
@@ -826,18 +825,7 @@ const InscriptionBureautique: React.FC<Props> = ({
 
     setSubmitting(true);
     try {
-      const reference = secureRef('INS');
       const processingCode = secureRef('TRT');
-      setCertificate({
-        learnerName: `${form.prenom.trim()} ${form.nom.trim()}`,
-        reference,
-        processingCode,
-        paymentMode: form.payment === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
-        amount: fmtAmount(totalAmount),
-        modules: selectedModules.map((m) => m.title),
-        level: LEVEL_OPTIONS.find((l) => l.value === form.level)?.label ?? form.level,
-        issuedAt: new Date().toLocaleString('fr-MA'),
-      });
       router.post(route('applications.store'), {
         first_name: form.prenom,
         last_name: form.nom,
@@ -850,11 +838,10 @@ const InscriptionBureautique: React.FC<Props> = ({
         payment_method: form.payment,
         payment_reference: onlinePaymentReference,
         preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
-        certificate_reference: reference,
         form_data: { ...form, processingCode },
       }, {
         preserveScroll: true,
-        onSuccess: () => setShowModal(true),
+        onSuccess: () => setSubmitted(true),
         onFinish: () => setSubmitting(false),
       });
     } finally {
@@ -871,30 +858,6 @@ const InscriptionBureautique: React.FC<Props> = ({
       <PublicLayout>
         <main className="relative">
           <div className="geometric-bg pointer-events-none absolute inset-0 opacity-30" />
-
-          {/* Certificate modal */}
-          {showModal && certificate && (
-            <CertificateModal cert={certificate} onClose={() => setShowModal(false)} />
-          )}
-
-          {/* Sticky "voir certificat" button */}
-          {certificate && !showModal && (
-            <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-3 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95"
-              >
-                <span
-                  className="material-symbols-outlined text-base leading-none"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  verified
-                </span>
-                Voir mon certificat d'inscription
-              </button>
-            </div>
-          )}
 
           {/* ── Hero ── */}
           <section className="relative mx-auto max-w-7xl px-6 pb-12 pt-16 lg:px-8">
@@ -1331,8 +1294,8 @@ const InscriptionBureautique: React.FC<Props> = ({
                     </p>
                   )}
 
-                  {/* Certificate banner after submission */}
-                  {certificate && (
+                  {/* Confirmation banner after submission */}
+                  {submitted && (
                     <div className="flex items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                       <span
                         className="material-symbols-outlined text-emerald-600"
@@ -1341,11 +1304,7 @@ const InscriptionBureautique: React.FC<Props> = ({
                         verified
                       </span>
                       <p className="text-sm font-semibold text-emerald-800">
-                        Inscription confirmee —{' '}
-                        <button type="button" onClick={() => setShowModal(true)}
-                          className="underline underline-offset-2">
-                          Consulter le certificat
-                        </button>
+                        Demande d'inscription envoyee. L'administration vous contactera pour finaliser l'acces.
                       </p>
                     </div>
                   )}

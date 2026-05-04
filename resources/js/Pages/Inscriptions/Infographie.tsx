@@ -556,7 +556,6 @@ const InscriptionInfographie: React.FC<Props> = ({
       return;
     }
     setSubmitting(true);
-    const reference = secureRef('INF');
     router.post(route('applications.store'), {
       first_name: form.prenom,
       last_name: form.nom,
@@ -569,11 +568,10 @@ const InscriptionInfographie: React.FC<Props> = ({
       payment_method: form.payment,
       payment_reference: onlinePaymentReference,
       preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
-      certificate_reference: reference,
       form_data: { ...form },
     }, {
       preserveScroll: true,
-      onSuccess: () => setSubmittedRef(reference),
+      onSuccess: () => setSubmittedRef(secureRef('INS')),
       onFinish: () => setSubmitting(false),
     });
   };

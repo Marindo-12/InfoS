@@ -510,7 +510,6 @@ const InscriptionLangues: React.FC<Props> = ({
       payment_method: form.payment,
       payment_reference: onlinePaymentReference,
       preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
-      certificate_reference: secureRef('CERT'),
       form_data: { ...form },
     }, {
       preserveScroll: true,
