@@ -112,7 +112,8 @@ class ScheduleController extends Controller
                     'color' => $this->colorFor($session->course?->category),
                     'isActive' => now()->between($session->starts_at, $session->ends_at),
                 ])
-                ->values();
+                ->values()
+                ->all();
 
             return [
                 'label' => ucfirst($date->locale('fr')->translatedFormat('D')),
@@ -120,7 +121,7 @@ class ScheduleController extends Controller
                 'isToday' => $date->isToday(),
                 'sessions' => $daySessions,
             ];
-        })->values();
+        })->values()->all();
     }
 
     private function colorFor(?string $category): string
