@@ -635,10 +635,6 @@ export default function Authenticated({
               {mobileOpen ? <I.Close /> : <I.Menu />}
             </button>
             <div className="a-topbar-title">{header}</div>
-            <div className="a-search">
-              <I.Search />
-              <input type="text" placeholder="Rechercher…" aria-label="Rechercher" />
-            </div>
             <div className="a-topbar-right">
               <Link
                 href={route('profile.edit')}
