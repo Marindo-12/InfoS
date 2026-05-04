@@ -15,7 +15,7 @@ class PublicContactController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email:rfc,dns', 'max:190'],
+            'email' => ['required', 'email', 'max:190'],
             'subject' => ['required', Rule::in(['inscription', 'information', 'partnership', 'other'])],
             'message' => ['required', 'string', 'min:10', 'max:3000'],
         ], [
