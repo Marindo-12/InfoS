@@ -18,7 +18,7 @@ class LoginVerificationCodeController extends Controller
             return redirect()->route('login');
         }
 
-        if ($request->session()->get('login_code_verified')) {
+        if ($request->user()->login_code_verified_at || $request->session()->get('login_code_verified')) {
             return redirect()->intended(route('dashboard', absolute: false));
         }
 
@@ -46,6 +46,7 @@ class LoginVerificationCodeController extends Controller
         }
 
         $record->forceFill(['used_at' => now()])->save();
+        $request->user()->forceFill(['login_code_verified_at' => now()])->save();
         $request->session()->put('login_code_verified', true);
 
         return redirect()->intended(route('dashboard', absolute: false));

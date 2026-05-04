@@ -40,6 +40,12 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if ($request->user()->isStudent()) {
+            if ($request->user()->login_code_verified_at) {
+                $request->session()->put('login_code_verified', true);
+
+                return redirect()->intended(route('dashboard', absolute: false));
+            }
+
             $request->session()->forget('login_code_verified');
             $code = (string) random_int(100000, 999999);
 

@@ -25,7 +25,6 @@ class ScheduleController extends Controller
             ->get();
 
         $courseIds = $enrollments->pluck('course_id');
-        $groupsByCourse = $enrollments->pluck('group_name', 'course_id');
 
         $sessions = CourseSession::query()
             ->with('course.enrollments')
@@ -34,11 +33,6 @@ class ScheduleController extends Controller
             ->whereBetween('starts_at', [$weekStart, $weekEnd])
             ->orderBy('starts_at')
             ->get()
-            ->filter(function (CourseSession $session) use ($groupsByCourse) {
-                $studentGroup = $groupsByCourse[$session->course_id] ?? null;
-
-                return $session->group_name === null || $session->group_name === $studentGroup;
-            })
             ->values();
 
         $nextSession = CourseSession::query()
@@ -47,12 +41,7 @@ class ScheduleController extends Controller
             ->where('status', 'scheduled')
             ->where('starts_at', '>=', now())
             ->orderBy('starts_at')
-            ->get()
-            ->first(function (CourseSession $session) use ($groupsByCourse) {
-                $studentGroup = $groupsByCourse[$session->course_id] ?? null;
-
-                return $session->group_name === null || $session->group_name === $studentGroup;
-            });
+            ->first();
 
         $primaryEnrollment = $nextSession
             ? $enrollments->firstWhere('course_id', $nextSession->course_id)

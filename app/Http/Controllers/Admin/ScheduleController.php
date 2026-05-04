@@ -141,7 +141,6 @@ class ScheduleController extends Controller
         $userIds = Enrollment::query()
             ->where('course_id', $session->course_id)
             ->where('status', 'active')
-            ->when($session->group_name, fn ($query) => $query->where('group_name', $session->group_name))
             ->pluck('user_id');
 
         foreach ($userIds as $userId) {
