@@ -1,10 +1,11 @@
 import PublicLayout from '@/Layouts/PublicLayout'
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { MapPinned } from 'lucide-react'
 import React, { useState } from 'react'
 import type { SVGProps } from 'react'
 
-interface FormData {
+interface ContactFormData {
+    [key: string]: string
     name: string
     email: string
     subject: string
@@ -200,7 +201,7 @@ function FaqItem({
 }
 
 const Contact: React.FC = () => {
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState<ContactFormData>({
         name: '',
         email: '',
         subject: 'inscription',
@@ -234,21 +235,29 @@ const Contact: React.FC = () => {
         }
 
         setIsSubmitting(true)
+        router.post(route('contact.send'), formData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSubmitStatus({
+                    type: 'success',
+                    message: 'Message envoye avec succes. Nous vous repondrons rapidement.',
+                })
+                setFormData({ name: '', email: '', subject: 'inscription', message: '' })
+                setTimeout(() => setSubmitStatus(null), 5000)
+            },
+            onError: (errors) => {
+                const message = errors.contact
+                    || errors.name
+                    || errors.email
+                    || errors.subject
+                    || errors.message
+                    || 'Une erreur est survenue. Veuillez reessayer.'
 
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-            setSubmitStatus({
-                type: 'success',
-                message: 'Message envoye avec succes. Nous vous repondrons rapidement.',
-            })
-            setFormData({ name: '', email: '', subject: 'inscription', message: '' })
-            setTimeout(() => setSubmitStatus(null), 5000)
-        } catch {
-            setSubmitStatus({ type: 'error', message: 'Une erreur est survenue. Veuillez reessayer.' })
-            setTimeout(() => setSubmitStatus(null), 4000)
-        } finally {
-            setIsSubmitting(false)
-        }
+                setSubmitStatus({ type: 'error', message })
+                setTimeout(() => setSubmitStatus(null), 5000)
+            },
+            onFinish: () => setIsSubmitting(false),
+        })
     }
 
     return (

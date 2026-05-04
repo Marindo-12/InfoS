@@ -12,6 +12,7 @@ use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\Student\ScheduleController as StudentScheduleController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicContactController;
 use App\Http\Controllers\PublicEnrollmentApplicationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,10 @@ Route::get('/about', function () {
 Route::get('/contact', function () {
     return Inertia::render('Public/Contact');
 })->name('contact');
+
+Route::post('/contact', [PublicContactController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('contact.send');
 
 Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
     Route::get('/langues', function () {
