@@ -37,10 +37,10 @@ export default function Edit({
           <UpdatePasswordForm />
         </div>
 
-        {/* Delete card */}
+        {/*
         <div className="prof-card prof-card--danger">
           <DeleteUserForm />
-        </div>
+        </div> */}
       </div>
 
       <style>{`
