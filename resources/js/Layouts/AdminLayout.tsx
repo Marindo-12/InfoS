@@ -689,17 +689,6 @@ export default function AdminLayout({
 
             <div className="al-topbar-title">{header}</div>
 
-            <div className="al-search">
-              <I.Search />
-              <input
-                type="text"
-                placeholder="Rechercher un étudiant, paiement…"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                aria-label="Rechercher"
-              />
-            </div>
-
             <div className="al-topbar-right">
               <div className="al-admin-tag">
                 <span className="al-admin-tag-dot" />
