@@ -10,6 +10,7 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
+import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
 
 /* ═══════════════════════════════════════════════════
    TYPES
@@ -457,6 +458,8 @@ const InscriptionInfographie: React.FC<Props> = ({
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [submittedRef, setSubmittedRef] = useState('');
+  const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
+  const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
   const defaultPaymentDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
@@ -556,6 +559,8 @@ const InscriptionInfographie: React.FC<Props> = ({
       return;
     }
     setSubmitting(true);
+    const certificateReference = secureRef('PAYCERT');
+    const paymentReference = onlinePaymentReference || secureRef('PAY');
     router.post(route('applications.store'), {
       first_name: form.prenom,
       last_name: form.nom,
@@ -566,12 +571,27 @@ const InscriptionInfographie: React.FC<Props> = ({
       course_slug: 'maitrise-adobe-creative-suite',
       amount: TRAINING_PRICE,
       payment_method: form.payment,
-      payment_reference: onlinePaymentReference,
+      payment_reference: paymentReference,
       preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
+      certificate_reference: certificateReference,
       form_data: { ...form },
     }, {
       preserveScroll: true,
-      onSuccess: () => setSubmittedRef(secureRef('INS')),
+      onSuccess: () => {
+        setSubmittedRef(certificateReference);
+        setPaymentCertificate({
+          studentName: `${form.prenom.trim()} ${form.nom.trim()}`,
+          reference: certificateReference,
+          barcodeValue: `${certificateReference}-${paymentReference}`,
+          trainingLabel: 'Maitrise Adobe Creative Suite',
+          category: 'Infographie',
+          amount: fmtAmount(TRAINING_PRICE),
+          paymentMode: form.payment === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
+          paymentStatus: form.payment === 'online' ? 'Paye' : 'Paiement a regler au centre',
+          issuedAt: new Date().toLocaleString('fr-MA'),
+        });
+        setShowPaymentCertificate(true);
+      },
       onFinish: () => setSubmitting(false),
     });
   };
@@ -589,6 +609,9 @@ const InscriptionInfographie: React.FC<Props> = ({
   return (
     <>
       <Head title="Infographie" />
+      {showPaymentCertificate && paymentCertificate && (
+        <PaymentCertificate certificate={paymentCertificate} onClose={() => setShowPaymentCertificate(false)} />
+      )}
       <PublicLayout>
         <div className="infog-root">
           {/* Geometric background */}
@@ -924,6 +947,15 @@ const InscriptionInfographie: React.FC<Props> = ({
                         <p className="sans-body mt-1 text-xs text-emerald-700">
                           Reference : <span className="font-mono font-semibold">{submittedRef}</span>
                         </p>
+                        {paymentCertificate && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPaymentCertificate(true)}
+                            className="sans-body mt-3 text-sm font-bold text-emerald-700 underline underline-offset-2"
+                          >
+                            Voir le certificat de paiement
+                          </button>
+                        )}
                       </div>
                     )}
 

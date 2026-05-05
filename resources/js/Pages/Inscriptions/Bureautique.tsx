@@ -10,6 +10,7 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
+import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
 import wordIc from '../../../../public/images/word.png';
 import excelIc from '../../../../public/images/excel.png';
 import powerpointIc from '../../../../public/images/powerpoint.png';
@@ -693,6 +694,8 @@ const InscriptionBureautique: React.FC<Props> = ({
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
+  const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
   const defaultPaymentDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
@@ -826,6 +829,8 @@ const InscriptionBureautique: React.FC<Props> = ({
     setSubmitting(true);
     try {
       const processingCode = secureRef('TRT');
+      const certificateReference = secureRef('PAYCERT');
+      const paymentReference = onlinePaymentReference || secureRef('PAY');
       router.post(route('applications.store'), {
         first_name: form.prenom,
         last_name: form.nom,
@@ -836,12 +841,27 @@ const InscriptionBureautique: React.FC<Props> = ({
         course_slug: 'expertise-microsoft-office',
         amount: totalAmount,
         payment_method: form.payment,
-        payment_reference: onlinePaymentReference,
+        payment_reference: paymentReference,
         preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
+        certificate_reference: certificateReference,
         form_data: { ...form, processingCode },
       }, {
         preserveScroll: true,
-        onSuccess: () => setSubmitted(true),
+        onSuccess: () => {
+          setPaymentCertificate({
+            studentName: `${form.prenom.trim()} ${form.nom.trim()}`,
+            reference: certificateReference,
+            barcodeValue: `${certificateReference}-${paymentReference}`,
+            trainingLabel: selectedModules.map((m) => m.title).join(', ') || 'Bureautique',
+            category: 'Bureautique',
+            amount: fmtAmount(totalAmount),
+            paymentMode: form.payment === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
+            paymentStatus: form.payment === 'online' ? 'Paye' : 'Paiement a regler au centre',
+            issuedAt: new Date().toLocaleString('fr-MA'),
+          });
+          setSubmitted(true);
+          setShowPaymentCertificate(true);
+        },
         onFinish: () => setSubmitting(false),
       });
     } finally {
@@ -855,6 +875,12 @@ const InscriptionBureautique: React.FC<Props> = ({
   return (
     <>
       <Head title="Bureautique" />
+      {showPaymentCertificate && paymentCertificate && (
+        <PaymentCertificate
+          certificate={paymentCertificate}
+          onClose={() => setShowPaymentCertificate(false)}
+        />
+      )}
       <PublicLayout>
         <main className="relative">
           <div className="geometric-bg pointer-events-none absolute inset-0 opacity-30" />
@@ -1296,7 +1322,7 @@ const InscriptionBureautique: React.FC<Props> = ({
 
                   {/* Confirmation banner after submission */}
                   {submitted && (
-                    <div className="flex items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center sm:flex-row">
                       <span
                         className="material-symbols-outlined text-emerald-600"
                         style={{ fontVariationSettings: "'FILL' 1" }}
@@ -1304,8 +1330,14 @@ const InscriptionBureautique: React.FC<Props> = ({
                         verified
                       </span>
                       <p className="text-sm font-semibold text-emerald-800">
-                        Demande d'inscription envoyee. L'administration vous contactera pour finaliser l'acces.
+                        Demande envoyee.
                       </p>
+                      {paymentCertificate && (
+                        <button type="button" onClick={() => setShowPaymentCertificate(true)}
+                          className="text-sm font-bold text-emerald-700 underline underline-offset-2">
+                          Voir le certificat de paiement
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

@@ -10,6 +10,7 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
+import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
 
 /* ═══════════════════════════════════════════════════
    TYPES
@@ -402,6 +403,8 @@ const InscriptionConcours: React.FC<Props> = ({
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
   const [submittedReference,     setSubmittedReference]     = useState('');
+  const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
+  const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
   const defaultPaymentDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
@@ -504,7 +507,8 @@ const InscriptionConcours: React.FC<Props> = ({
       return;
     }
     setSubmitting(true);
-    const reference = secureRef('CON');
+    const reference = secureRef('PAYCERT');
+    const paymentReference = onlinePaymentReference || secureRef('PAY');
     router.post(route('applications.store'), {
       first_name: formData.prenom,
       last_name: formData.nom,
@@ -514,13 +518,27 @@ const InscriptionConcours: React.FC<Props> = ({
       training_label: selectedConcours.label,
       amount: totalAmount,
       payment_method: formData.paymentMethod,
-      payment_reference: onlinePaymentReference,
+      payment_reference: paymentReference,
       preferred_payment_date: formData.paymentMethod === 'onsite' ? defaultPaymentDate : undefined,
       certificate_reference: reference,
       form_data: { ...formData },
     }, {
       preserveScroll: true,
-      onSuccess: () => setSubmittedReference(reference),
+      onSuccess: () => {
+        setSubmittedReference(reference);
+        setPaymentCertificate({
+          studentName: `${formData.prenom.trim()} ${formData.nom.trim()}`,
+          reference,
+          barcodeValue: `${reference}-${paymentReference}`,
+          trainingLabel: selectedConcours.label,
+          category: 'Concours',
+          amount: fmtAmount(totalAmount),
+          paymentMode: formData.paymentMethod === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
+          paymentStatus: formData.paymentMethod === 'online' ? 'Paye' : 'Paiement a regler au centre',
+          issuedAt: new Date().toLocaleString('fr-MA'),
+        });
+        setShowPaymentCertificate(true);
+      },
       onFinish: () => setSubmitting(false),
     });
   };
@@ -531,6 +549,9 @@ const InscriptionConcours: React.FC<Props> = ({
   return (
     <>
       <Head title="Inscription aux concours" />
+      {showPaymentCertificate && paymentCertificate && (
+        <PaymentCertificate certificate={paymentCertificate} onClose={() => setShowPaymentCertificate(false)} />
+      )}
       <PublicLayout>
         {/* ── Full-page warm gradient + geometric SVG background ── */}
         <div className="page-bg-warm">
@@ -922,6 +943,15 @@ const InscriptionConcours: React.FC<Props> = ({
                         Reference dossier :{' '}
                         <span className="font-mono font-semibold">{submittedReference}</span>
                       </p>
+                      {paymentCertificate && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPaymentCertificate(true)}
+                          className="mt-3 text-sm font-bold text-emerald-700 underline underline-offset-2"
+                        >
+                          Voir le certificat de paiement
+                        </button>
+                      )}
                     </div>
                   )}
                 </form>
