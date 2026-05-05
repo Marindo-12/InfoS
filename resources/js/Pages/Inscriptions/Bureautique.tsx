@@ -10,7 +10,7 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
-import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
+import { PaymentCertificate,PaymentCertificateData } from '@/Components/PaymentCertificate';
 import wordIc from '../../../../public/images/word.png';
 import excelIc from '../../../../public/images/excel.png';
 import powerpointIc from '../../../../public/images/powerpoint.png';
