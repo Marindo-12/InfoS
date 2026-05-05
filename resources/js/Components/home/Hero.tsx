@@ -17,8 +17,8 @@ const Hero = () => {
               Excellence Établie
             </span>
 
-            <h1 className="font-display text-8xl md:text-8xl lg:text-9xl leading-[0.9] mb-8 text-on-background">
-              La&nbsp;précision <br />
+            <h1 className="font-display text-7xl md:text-8xl lg:text-9xl leading-[0.9] mb-8 text-on-background">
+              La précision <br />
               <span className="text-primary italic">dans chaque</span> <br />
               <span className="tracking-tight font-light">Mot.</span>
             </h1>
