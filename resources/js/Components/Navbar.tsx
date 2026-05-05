@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react'
 import React, { useEffect, useState } from 'react'
 import logo from '../../../public/infos-logo.png'
-import { Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X, ChevronDown,LayoutDashboard } from 'lucide-react'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -147,8 +147,9 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           <Link
             href={authUser ? route('dashboard') : route('login')}
-            className="inline-block px-6 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold tracking-wide hover:brightness-110 active:scale-95 transition-all shadow-sm"
+            className="px-4 py-2 flex items-center gap-2 bg-primary text-on-primary rounded-lg text-sm font-semibold tracking-wide hover:brightness-110 active:scale-95 transition-all shadow-sm"
           >
+            {authUser ? <LayoutDashboard size={20}/> : ''}
             {authUser ? 'Dashboard' : "S'inscrire"}
           </Link>
 
