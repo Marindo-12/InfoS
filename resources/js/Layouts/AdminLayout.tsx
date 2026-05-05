@@ -285,7 +285,7 @@ export default function AdminLayout({
           width: 32px; height: 32px;
           flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          border-radius: 7px; border: 1px solid var(--al-sidebar-b);
+          border-radius: 7px;
           background: transparent; color: var(--al-t3); cursor: pointer;
           transition: background var(--al-tr), color var(--al-tr), transform var(--al-tr);
         }
