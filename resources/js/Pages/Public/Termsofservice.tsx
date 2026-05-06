@@ -414,7 +414,7 @@ export default function TermsOfService() {
                     Nous contacter
                   </Link>
                   <Link
-                    href="/politique-de-confidentialite"
+                    href={route('privacy')}
                     className="inline-flex items-center gap-2 px-6 py-3 border border-outline text-on-surface rounded-lg font-label font-bold text-sm hover:bg-surface-container-low transition-all"
                   >
                     Confidentialité
@@ -424,26 +424,6 @@ export default function TermsOfService() {
 
             </div>
           </div>
-        </div>
-
-        {/* Footer section */}
-        <div className="border-t border-outline-variant/30 mt-4 py-14 text-center bg-surface-container-lowest">
-          <p className="font-display text-2xl text-on-surface mb-2">Info Saloua</p>
-          <p className="text-xs text-outline uppercase tracking-widest font-label mb-8">Excellence · Intégrité · Transmission</p>
-          <div className="flex justify-center flex-wrap gap-x-8 gap-y-4 mb-8">
-            <Link href="/politique-de-confidentialite" className="text-on-surface-variant hover:text-primary text-sm font-medium transition-colors">
-              Politique de confidentialité
-            </Link>
-            <Link href="/contact" className="text-on-surface-variant hover:text-primary text-sm font-medium transition-colors">
-              Contact
-            </Link>
-            <Link href="/" className="text-on-surface-variant hover:text-primary text-sm font-medium transition-colors">
-              Accueil
-            </Link>
-          </div>
-          <p className="text-xs text-outline uppercase tracking-widest font-label">
-            © {new Date().getFullYear()} Info Saloua — 14 avenue Hassan II, 1er étage, Ville Nouvelle, Meknès, Maroc. Dernière mise à jour : {lastUpdated}
-          </p>
         </div>
       </main>
 
