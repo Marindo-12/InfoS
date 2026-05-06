@@ -45,8 +45,8 @@ Route::post('/contact', [PublicContactController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('contact.send');
 
-Route::get('/conditions-utilisation', fn() => Inertia::render('Public/Termsofservice'))->name('terms');
-Route::get('/politique-de-confidentialite', fn() => Inertia::render('Public/Privacypolicy'))->name('privacy');
+Route::get('/terms', fn() => Inertia::render('Public/Termsofservice'))->name('terms');
+Route::get('/privacy', fn() => Inertia::render('Public/Privacypolicy'))->name('privacy');
 
 Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
     Route::get('/langues', function () {
