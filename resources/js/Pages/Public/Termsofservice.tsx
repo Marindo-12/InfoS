@@ -149,7 +149,7 @@ export default function TermsOfService() {
             <rect width="100%" height="100%" fill="url(#cgu-grid)" />
           </svg>
 
-          <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-20">
+          <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-20">
 
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs font-medium text-outline uppercase tracking-wider mb-10">
