@@ -440,10 +440,10 @@ const About = () => {
                   Formations
                 </h5>
                 <ul className="space-y-3 text-white/50 text-sm font-body">
-                  <li><Link className="hover:text-primary transition-colors" href="/formations">Infographie</Link></li>
-                  <li><Link className="hover:text-primary transition-colors" href="/inscriptions/langues">Langues</Link></li>
-                  <li><Link className="hover:text-primary transition-colors" href="/inscriptions/bureautique">Bureautique</Link></li>
-                  <li><Link className="hover:text-primary transition-colors" href="/inscriptions/concours">Concours</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('formations')}>Infographie</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('inscriptions.langues')}>Langues</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('inscriptions.bureautique')}>Bureautique</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('inscriptions.concours')}>Concours</Link></li>
                 </ul>
               </div>
               <div className="space-y-6">
@@ -451,17 +451,17 @@ const About = () => {
                   Entreprise
                 </h5>
                 <ul className="space-y-3 text-white/50 text-sm font-body">
-                  <li><Link className="hover:text-primary transition-colors" href="/about">À propos</Link></li>
-                  <li><Link className="hover:text-primary transition-colors" href="/contact">Contact</Link></li>
-                  <li><Link className="hover:text-primary transition-colors" href="/privacy">Privacy</Link></li>
-                  <li><Link className="hover:text-primary transition-colors" href="/terms">Terms</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('about')}>À propos</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('contact')}>Contact</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('privacy')}>Privacy</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href={route('terms')}>Terms</Link></li>
                 </ul>
               </div>
               <div className="space-y-8">
                 <h5 className="font-body font-bold text-xs uppercase tracking-widest text-white/80">
                   Admissions
                 </h5>
-                <a href="/inscriptions" className="w-full bg-primary text-white py-4 rounded-xl font-body font-bold text-sm hover:opacity-90 transition-opacity inline-block text-center">
+                <a href={route('inscriptions')} className="w-full bg-primary text-white py-4 rounded-xl font-body font-bold text-sm hover:opacity-90 transition-opacity inline-block text-center">
                   Commencer votre candidature
                 </a>
                 <div className="flex gap-4">
@@ -491,8 +491,8 @@ const About = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-[0.3em] text-white/30 border-t border-white/5 pt-8">
               <p>© {new Date().getFullYear()} Info Saloua. Tous droits réservés.</p>
               <div className="flex gap-8">
-                <a className="hover:text-primary transition-colors" href="/privacy">Confidentialité</a>
-                <a className="hover:text-primary transition-colors" href="/terms">Conditions</a>
+                <a className="hover:text-primary transition-colors" href={route('privacy')}>Confidentialité</a>
+                <a className="hover:text-primary transition-colors" href={route('terms')}>Conditions</a>
               </div>
             </div>
           </div>
