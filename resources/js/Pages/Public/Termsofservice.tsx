@@ -27,7 +27,7 @@ function SectionHead({ num, title }: { num: string; title: string }) {
         {num}
       </span>
       <div>
-        <h2 className="font-display text-2xl md:text-3xl text-on-surface leading-tight">{title}</h2>
+        <h2 className="font-display text-2xl md:text-3xl text-on-surface leading-tight pb-2 border-b-2 border-[#8f4d14]">{title}</h2>
       </div>
     </div>
   )
@@ -71,7 +71,7 @@ export default function TermsOfService() {
 
   return (
     <PublicLayout>
-      <Head title="Conditions Générales d'Utilisation — Centre Informatique" />
+      <Head title="Conditions Générales d'Utilisation — Info Saloua" />
 
       <style>{`
         .cgu-prose p { margin-bottom: 1.25rem; }
@@ -102,6 +102,12 @@ export default function TermsOfService() {
         .cgu-nav-link:hover { background: #fff3ec; color: #c2652a; }
         .cgu-nav-link--active {
           background: #fff3ec; color: #c2652a; font-weight: 700;
+          box-shadow: inset 0 0 0 1px rgba(194,101,42,.2);
+        }
+
+        .cgu-section-divider {
+          border-bottom: 2px solid rgba(194,101,42,.24);
+          margin: 3.5rem 0;
         }
 
         /* Section card style for special sections */
@@ -161,14 +167,14 @@ export default function TermsOfService() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
               <div>
                 <span className="font-label text-xs font-bold tracking-widest uppercase text-primary block mb-5">
-                  Centre Informatique — Tanger
+                  Info Saloua — Meknès
                 </span>
                 <h1 className="font-display text-5xl md:text-7xl text-on-surface leading-tight mb-6">
                   Conditions<br />
                   <em className="text-primary">d'Utilisation</em>
                 </h1>
                 <p className="text-base text-on-surface-variant font-body leading-relaxed mb-4">
-                  Les présentes CGU encadrent l'utilisation de la plateforme Centre Informatique et de l'ensemble de ses services pédagogiques et administratifs.
+                  Les présentes CGU encadrent l'utilisation de la plateforme Info Saloua et de l'ensemble de ses services pédagogiques et administratifs.
                 </p>
                 <p className="text-xs text-outline uppercase tracking-widest font-label">
                   Dernière mise à jour : {lastUpdated}
@@ -195,10 +201,10 @@ export default function TermsOfService() {
 
         {/* ── BODY ── */}
         <div className="max-w-5xl mx-auto px-6 py-20">
-          <div className="flex gap-16 items-start">
+          <div className="flex flex-col lg:flex-row gap-16 items-start">
 
             {/* Sticky nav */}
-            <aside className="hidden lg:flex flex-col gap-1 sticky top-28 min-w-[210px] flex-shrink-0">
+            <aside className="hidden lg:flex flex-col gap-1 sticky top-28 w-full lg:w-72 max-w-[280px] flex-shrink-0">
               <p className="text-xs font-bold uppercase tracking-widest text-outline mb-3 px-3 font-label">Sommaire</p>
               {SECTIONS.map(s => (
                 <a
@@ -218,14 +224,14 @@ export default function TermsOfService() {
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 min-w-0 space-y-16">
+            <div className="flex-1 min-w-0 lg:w-2/3 space-y-16">
 
               {/* 01 — Objet */}
               <section id="objet">
                 <SectionHead num="01" title="Objet & champ d'application" />
                 <div className="cgu-prose text-on-surface-variant font-body leading-loose text-lg">
                   <p>
-                    Les présentes Conditions Générales d'Utilisation (CGU) définissent les règles d'accès et d'utilisation de la plateforme numérique du Centre Informatique, accessible à l'adresse <strong className="text-on-surface">centreinformatique.ma</strong>, ainsi que de l'ensemble des services associés : espace étudiant, suivi pédagogique, paiement en ligne et communication administrative.
+                    Les présentes Conditions Générales d'Utilisation (CGU) définissent les règles d'accès et d'utilisation de la plateforme numérique Info Saloua, accessible à l'adresse <strong className="text-on-surface">infosaloua.ma</strong>, ainsi que de l'ensemble des services associés : espace étudiant, suivi pédagogique, paiement en ligne et communication administrative.
                   </p>
                   <p>
                     L'utilisation de la plateforme implique l'acceptation sans réserve des présentes CGU. Toute personne qui ne souhaite pas être liée par ces conditions doit s'abstenir d'utiliser les services proposés.
@@ -236,13 +242,13 @@ export default function TermsOfService() {
                 </QuoteBox>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="cgu-section-divider" />
 
               {/* 02 — Accès */}
               <section id="acces">
                 <SectionHead num="02" title="Accès aux services" />
                 <div className="cgu-prose text-on-surface-variant font-body leading-loose text-lg">
-                  <p>La plateforme Centre Informatique permet à l'Utilisateur d'accéder aux services suivants :</p>
+                  <p>La plateforme Info Saloua permet à l'Utilisateur d'accéder aux services suivants :</p>
                   <ul>
                     <li>Consultation des formations disponibles et de leurs programmes détaillés</li>
                     <li>Inscription en ligne et suivi de l'avancement du dossier de candidature</li>
@@ -256,7 +262,7 @@ export default function TermsOfService() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="cgu-section-divider" />
 
               {/* 03 — Inscription */}
               <section id="inscription">
@@ -275,7 +281,7 @@ export default function TermsOfService() {
                 </InfoBox>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 04 — Propriété intellectuelle */}
               <section id="propriete">
@@ -284,7 +290,7 @@ export default function TermsOfService() {
                   <div className="grid md:grid-cols-2 gap-8 cgu-prose text-on-surface-variant font-body leading-loose text-base">
                     <div>
                       <p>
-                        L'ensemble des contenus présents sur la plateforme (textes, supports pédagogiques, vidéos, images, logos, marques) sont la propriété exclusive du Centre Informatique ou de ses partenaires et sont protégés par le droit marocain de la propriété intellectuelle.
+                        L'ensemble des contenus diffusés sur la plateforme (textes, supports pédagogiques, vidéos, images, logos, marques) sont la propriété exclusive d'Info Saloua ou de ses partenaires et sont protégés par le droit marocain de la propriété intellectuelle.
                       </p>
                     </div>
                     <div>
@@ -296,14 +302,14 @@ export default function TermsOfService() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 05 — Données personnelles */}
               <section id="donnees">
                 <SectionHead num="05" title="Données personnelles" />
                 <div className="cgu-prose text-on-surface-variant font-body leading-loose text-lg">
                   <p>
-                    Centre Informatique traite vos données personnelles dans le respect de la vie privée. L'adresse e-mail et le numéro de téléphone sont utilisés pour la gestion administrative de votre inscription et la communication des informations relatives à votre formation.
+                    Info Saloua traite vos données personnelles dans le respect de la vie privée. L'adresse e-mail et le numéro de téléphone sont utilisés pour la gestion administrative de votre inscription et la communication des informations relatives à votre formation.
                   </p>
                 </div>
                 <QuoteBox>
@@ -319,7 +325,7 @@ export default function TermsOfService() {
                 </InfoBox>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="cgu-section-divider" />
 
               {/* 06 — Paiements */}
               <section id="paiements">
@@ -355,14 +361,14 @@ export default function TermsOfService() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="cgu-section-divider" />
 
               {/* 07 — Responsabilité */}
               <section id="responsabilite">
                 <SectionHead num="07" title="Responsabilité" />
                 <div className="cgu-prose text-on-surface-variant font-body leading-loose text-lg">
                   <p>
-                    Centre Informatique s'engage à fournir des informations exactes et à jour. Toutefois, en cas d'erreur ou d'omission, la responsabilité du Centre ne saurait être engagée à ce titre.
+                    Info Saloua s'engage à fournir des informations exactes et à jour. Toutefois, en cas d'erreur ou d'omission, la responsabilité du centre ne saurait être engagée à ce titre.
                   </p>
                   <p>
                     Le Centre ne peut être tenu responsable d'interruptions temporaires du service dues à des opérations de maintenance, à des incidents techniques ou à des causes extérieures indépendantes de sa volonté (force majeure).
@@ -373,20 +379,20 @@ export default function TermsOfService() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 08 & 09 — Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <section id="evolution">
                   <SectionHead num="08" title="Évolution des CGU" />
                   <p className="text-on-surface-variant font-body leading-relaxed text-base">
-                    Centre Informatique se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront notifiés par e-mail au moins 15 jours avant l'entrée en vigueur de toute modification substantielle. La poursuite de l'utilisation des services vaut acceptation des nouvelles conditions.
+                    Info Saloua se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront notifiés par e-mail au moins 15 jours avant l'entrée en vigueur de toute modification substantielle. La poursuite de l'utilisation des services vaut acceptation des nouvelles conditions.
                   </p>
                 </section>
                 <section id="droit">
                   <SectionHead num="09" title="Droit applicable" />
                   <p className="text-on-surface-variant font-body leading-relaxed text-base">
-                    Les présentes CGU sont soumises au droit marocain. En cas de litige, les parties s'engagent à rechercher une solution amiable avant tout recours judiciaire. À défaut, les tribunaux compétents du ressort de Tanger seront saisis.
+                    Les présentes CGU sont soumises au droit marocain. En cas de litige, les parties s'engagent à rechercher une solution amiable avant tout recours judiciaire. À défaut, les tribunaux compétents du ressort de Meknès seront saisis.
                   </p>
                 </section>
               </div>
@@ -422,7 +428,7 @@ export default function TermsOfService() {
 
         {/* Footer section */}
         <div className="border-t border-outline-variant/30 mt-4 py-14 text-center bg-surface-container-lowest">
-          <p className="font-display text-2xl text-on-surface mb-2">Centre Informatique</p>
+          <p className="font-display text-2xl text-on-surface mb-2">Info Saloua</p>
           <p className="text-xs text-outline uppercase tracking-widest font-label mb-8">Excellence · Intégrité · Transmission</p>
           <div className="flex justify-center flex-wrap gap-x-8 gap-y-4 mb-8">
             <Link href="/politique-de-confidentialite" className="text-on-surface-variant hover:text-primary text-sm font-medium transition-colors">
@@ -436,7 +442,7 @@ export default function TermsOfService() {
             </Link>
           </div>
           <p className="text-xs text-outline uppercase tracking-widest font-label">
-            © {new Date().getFullYear()} Centre Informatique. Dernière mise à jour : {lastUpdated}
+            © {new Date().getFullYear()} Info Saloua — 14 avenue Hassan II, 1er étage, Ville Nouvelle, Meknès, Maroc. Dernière mise à jour : {lastUpdated}
           </p>
         </div>
       </main>

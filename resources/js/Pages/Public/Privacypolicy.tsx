@@ -43,7 +43,7 @@ function SectionHead({ num, title }: { num: string; title: string }) {
   return (
     <div className="flex items-center gap-4 mb-6">
       <span className="font-display text-3xl text-primary/30 font-bold select-none">{num}</span>
-      <h2 className="font-display text-3xl text-on-surface">{title}</h2>
+      <h2 className="font-display text-3xl text-on-surface pb-2 border-b-2 border-[#8f4d14]">{title}</h2>
     </div>
   )
 }
@@ -70,7 +70,7 @@ export default function PrivacyPolicy() {
 
   return (
     <PublicLayout>
-      <Head title="Politique de Confidentialité — Centre Informatique" />
+      <Head title="Politique de Confidentialité — Info Saloua" />
 
       <style>{`
         .pp-prose p { margin-bottom: 1.25rem; }
@@ -87,11 +87,16 @@ export default function PrivacyPolicy() {
         .pp-nav-link:hover { background: #fff3ec; color: #c2652a; }
         .pp-nav-link--active {
           background: #fff3ec; color: #c2652a; font-weight: 700;
+          box-shadow: inset 0 0 0 1px rgba(194,101,42,.2);
         }
         .pp-nav-link--active::before {
           content: '';
           display: block; width: 4px; height: 4px;
           background: #c2652a; border-radius: 50%; flex-shrink: 0;
+        }
+        .pp-section-divider {
+          border-bottom: 2px solid rgba(194,101,42,.24);
+          margin: 3.5rem 0;
         }
       `}</style>
 
@@ -108,14 +113,14 @@ export default function PrivacyPolicy() {
           {/* ── HERO ── */}
           <div className="max-w-2xl mb-20">
             <span className="font-label text-xs font-bold tracking-widest uppercase text-primary block mb-5">
-              Centre Informatique
+              Info Saloua
             </span>
             <h1 className="font-display text-6xl md:text-7xl text-on-surface leading-tight mb-7">
               Engagement de<br />
               <em className="text-primary not-italic">Confidentialité</em>
             </h1>
             <p className="text-lg text-on-surface-variant font-body leading-relaxed mb-5">
-              Chez Centre Informatique, la protection de vos données personnelles est au cœur de notre démarche. Nous nous engageons à la transparence totale sur l'usage de vos informations.
+              Chez Info Saloua, la protection de vos données personnelles est au cœur de notre démarche. Nous nous engageons à la transparence totale sur l'usage de vos informations.
             </p>
             <p className="text-xs text-outline uppercase tracking-widest font-label">
               Dernière mise à jour : {lastUpdated}
@@ -142,10 +147,10 @@ export default function PrivacyPolicy() {
           </div>
 
           {/* ── TWO-COL LAYOUT ── */}
-          <div className="flex gap-16 items-start">
+          <div className="flex flex-col lg:flex-row gap-16 items-start">
 
             {/* Sticky nav */}
-            <aside className="hidden lg:flex flex-col gap-1 sticky top-28 min-w-[200px]">
+            <aside className="hidden lg:flex flex-col gap-1 sticky top-28 w-full lg:w-72 max-w-[280px]">
               <p className="text-xs font-bold uppercase tracking-widest text-outline mb-3 px-3">Sommaire</p>
               {SECTIONS.map(s => (
                 <a
@@ -160,7 +165,7 @@ export default function PrivacyPolicy() {
             </aside>
 
             {/* Content */}
-            <div className="flex-1 space-y-20 min-w-0">
+            <div className="flex-1 min-w-0 lg:w-2/3 space-y-20">
 
               {/* 01 — Collecte */}
               <section id="collecte">
@@ -178,7 +183,7 @@ export default function PrivacyPolicy() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 02 — Finalités */}
               <section id="finalites">
@@ -194,7 +199,7 @@ export default function PrivacyPolicy() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 03 — Conservation */}
               <section id="conservation">
@@ -215,7 +220,7 @@ export default function PrivacyPolicy() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 04 — Droits */}
               <section id="droits">
@@ -237,21 +242,21 @@ export default function PrivacyPolicy() {
                 <div className="mt-6 bg-primary-fixed/20 p-6 rounded-xl border-l-4 border-primary">
                   <p className="text-on-surface-variant font-body text-base leading-relaxed m-0 italic">
                     "Pour exercer ces droits, adressez une demande écrite à :{' '}
-                    <a href="mailto:privacy@centreinformatique.ma" className="text-primary font-semibold not-italic">
-                      privacy@centreinformatique.ma
+                    <a href="mailto:privacy@infosaloua.ma" className="text-primary font-semibold not-italic">
+                      privacy@infosaloua.ma
                     </a>"
                   </p>
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 05 — Sécurité */}
               <section id="securite">
                 <SectionHead num="05" title="Sécurité" />
                 <div className="pp-prose text-on-surface-variant font-body leading-loose text-lg">
                   <p>
-                    Centre Informatique met en œuvre toutes les mesures techniques et organisationnelles appropriées pour garantir la sécurité de vos données contre tout accès non autorisé, toute divulgation ou toute altération.
+                    Info Saloua met en œuvre toutes les mesures techniques et organisationnelles appropriées pour garantir la sécurité de vos données contre tout accès non autorisé, toute divulgation ou toute altération.
                   </p>
                   <p>
                     Nos serveurs bénéficient d'un chiffrement SSL 256 bits. Les mots de passe sont stockés sous forme de hachage non réversible. Les accès aux données sont strictement limités au personnel habilité.
@@ -259,7 +264,7 @@ export default function PrivacyPolicy() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 06 — Cookies */}
               <section id="cookies">
@@ -274,7 +279,7 @@ export default function PrivacyPolicy() {
                 </div>
               </section>
 
-              <div className="border-b border-outline-variant/30" />
+              <div className="border-b-2 border-orange-900/20 my-14" />
 
               {/* 07 — Contact */}
               <section id="contact">
@@ -286,8 +291,8 @@ export default function PrivacyPolicy() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   {[
-                    { icon: 'mail',       label: 'Email',    value: 'privacy@centreinformatique.ma' },
-                    { icon: 'location_on', label: 'Adresse', value: 'Centre-ville, Tanger, Maroc'   },
+                    { icon: 'mail',       label: 'Email',    value: 'privacy@infosaloua.ma' },
+                    { icon: 'location_on', label: 'Adresse', value: '14 avenue Hassan II, 1er étage, Ville Nouvelle, Meknès, Maroc'   },
                     { icon: 'schedule',   label: 'Délai',    value: 'Réponse sous 30 jours'         },
                   ].map(c => (
                     <div key={c.label} className="flex items-start gap-3 p-5 bg-white rounded-xl border border-outline-variant/20 shadow-sm">
