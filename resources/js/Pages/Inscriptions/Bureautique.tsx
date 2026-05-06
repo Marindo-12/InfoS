@@ -957,7 +957,7 @@ const InscriptionBureautique: React.FC<Props> = ({
 
           {/* ── Form card ── */}
           <section className="relative mx-auto max-w-4xl px-6 pb-24 lg:px-8">
-            <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-low p-8 shadow-sm md:p-12">
+            <div className="rounded-3xl border border-outline-variant/30 bg-white/80 p-8 shadow-sm md:p-12">
 
               {!stripePublishableKey && (
                 <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

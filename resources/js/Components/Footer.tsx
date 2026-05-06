@@ -49,8 +49,8 @@ const formationLinks = [
 ]
 
 const usefulLinks = [
-    { label: 'Accueil', href: route('home') },
-    { label: 'Formations', href: route('formations') },
+    { label: 'Privacy Policy', href: route('privacy') },
+    { label: 'Terms', href: route('terms') },
     { label: 'A propos', href: route('about') },
     { label: 'Contact', href: route('contact') },
 ]

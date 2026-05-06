@@ -1,6 +1,6 @@
 import AboutHero from '@/Components/about/AboutHero';
 import Navbar from '@/Components/Navbar';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import React from 'react';
 
 const About = () => {
@@ -440,10 +440,10 @@ const About = () => {
                   Formations
                 </h5>
                 <ul className="space-y-3 text-white/50 text-sm font-body">
-                  <li><a className="hover:text-primary transition-colors" href="/formations">Toutes nos formations</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="/inscriptions/langues">Langues</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="/inscriptions/bureautique">Bureautique</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="/inscriptions/concours">Concours</a></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/formations">Infographie</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/inscriptions/langues">Langues</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/inscriptions/bureautique">Bureautique</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/inscriptions/concours">Concours</Link></li>
                 </ul>
               </div>
               <div className="space-y-6">
@@ -451,10 +451,10 @@ const About = () => {
                   Entreprise
                 </h5>
                 <ul className="space-y-3 text-white/50 text-sm font-body">
-                  <li><a className="hover:text-primary transition-colors" href="/about">À propos</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="/contact">Contact</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Carrières</a></li>
-                  <li><a className="hover:text-primary transition-colors" href="#">Partenaires</a></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/about">À propos</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/contact">Contact</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/privacy">Privacy</Link></li>
+                  <li><Link className="hover:text-primary transition-colors" href="/terms">Terms</Link></li>
                 </ul>
               </div>
               <div className="space-y-8">
@@ -491,9 +491,8 @@ const About = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-[0.3em] text-white/30 border-t border-white/5 pt-8">
               <p>© {new Date().getFullYear()} Info Saloua. Tous droits réservés.</p>
               <div className="flex gap-8">
-                <a className="hover:text-primary transition-colors" href="/contact">Confidentialité</a>
-                <a className="hover:text-primary transition-colors" href="/contact">Conditions</a>
-                <a className="hover:text-primary transition-colors" href="/contact">Accessibilité</a>
+                <a className="hover:text-primary transition-colors" href="/privacy">Confidentialité</a>
+                <a className="hover:text-primary transition-colors" href="/terms">Conditions</a>
               </div>
             </div>
           </div>
