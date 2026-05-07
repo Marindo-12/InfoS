@@ -1,273 +1,297 @@
-import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import AdminLayout from '@/Layouts/AdminLayout'
+import { Head, router, usePage } from '@inertiajs/react'
+import { useMemo, useState } from 'react'
+import {
+  Search, X, Check, Send, Filter,
+  GraduationCap, CreditCard, Banknote,
+  Tag, RefreshCw, ChevronLeft, ChevronRight,
+  TrendingUp, FileEdit,
+} from 'lucide-react'
 
-/* ═══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    TYPES
-═══════════════════════════════════════════════════ */
-
+═══════════════════════════════════════════════ */
 type ApplicationRow = {
-  id: number;
-  reference: string;
-  student: string;
-  email: string;
-  phone?: string;
-  course: string;
-  category: string;
-  amount: string;
-  paymentMethod: 'online' | 'onsite';
-  paymentStatus: 'paid' | 'pending';
-  preferredPaymentDate?: string;
-  certificateReference?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-};
+  id: number
+  reference: string
+  student: string
+  email: string
+  phone?: string
+  course: string
+  category: string
+  amount: string
+  paymentMethod: 'online' | 'onsite'
+  paymentStatus: 'paid' | 'pending'
+  preferredPaymentDate?: string
+  certificateReference?: string
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt: string
+}
 
 type PageProps = {
-  auth: { user: { id: number; name: string; email: string } };
-  applications: ApplicationRow[];
-  stats: { pending: number; approved: number; onlinePaid: number; onsitePending: number };
-  flash?: { success?: string; warning?: string };
-};
-
-/* ═══════════════════════════════════════════════════
-   ICONS
-═══════════════════════════════════════════════════ */
-
-const Ic = {
-  search:  () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-  filter:  () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
-  check:   () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>,
-  mail:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>,
-  phone:   () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.6 19a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 3.12 4.18 2 2 0 0 1 5.09 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L9.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
-  card:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
-  store:   () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>,
-  cert:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
-  send:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
-  close:   () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-  pending: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  ok:      () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>,
-  online:  () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
-  cash:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>,
-};
-
-/* ═══════════════════════════════════════════════════
-   BADGE
-═══════════════════════════════════════════════════ */
-
-type Tone = 'green' | 'amber' | 'slate' | 'red' | 'blue';
-
-const TONE: Record<Tone, { bg: string; text: string }> = {
-  green: { bg: 'rgba(16,185,129,.12)',  text: '#047857' },
-  amber: { bg: 'rgba(245,158,11,.14)',  text: '#b45309' },
-  slate: { bg: 'rgba(100,116,139,.12)', text: '#475569' },
-  red:   { bg: 'rgba(239,68,68,.12)',   text: '#dc2626' },
-  blue:  { bg: 'rgba(59,130,246,.12)',  text: '#2563eb' },
-};
-
-function Badge({ label, tone }: { label: string; tone: Tone }) {
-  const { bg, text } = TONE[tone];
-  return (
-    <span className="app-badge" style={{ background: bg, color: text }}>
-      {label}
-    </span>
-  );
+  auth: { user: { id: number; name: string; email: string } }
+  applications: ApplicationRow[]
+  stats: { pending: number; approved: number; onlinePaid: number; onsitePending: number }
+  flash?: { success?: string; warning?: string }
 }
 
-/* ═══════════════════════════════════════════════════
-   STAT CARD
-═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════ */
+const PAGE_SIZE = 10
 
-function StatCard({ value, label, icon, color }: {
-  value: number; label: string; icon: React.ReactNode; color: string;
-}) {
-  return (
-    <div className="app-stat">
-      <div className="app-stat-icon" style={{ background: `${color}14`, color }}>
-        {icon}
-      </div>
-      <div>
-        <p className="app-stat-val">{value}</p>
-        <p className="app-stat-lbl">{label}</p>
-      </div>
-    </div>
-  );
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function initials(name: string) {
+  return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+}
+function padded(n: number) {
+  return String(n).padStart(2, '0')
+}
+function paymentLabel(a: ApplicationRow) {
+  if (a.paymentMethod === 'online')
+    return a.paymentStatus === 'paid' ? 'Validé' : 'En attente'
+  return a.preferredPaymentDate ? `Rdv ${a.preferredPaymentDate}` : 'Présentiel'
+}
+function statusLabel(s: ApplicationRow['status']) {
+  if (s === 'approved') return 'Dossier validé'
+  if (s === 'rejected') return 'Rejeté'
+  return 'Reçu'
 }
 
-/* ═══════════════════════════════════════════════════
-   INITIALS AVATAR
-═══════════════════════════════════════════════════ */
-
-const AVATAR_COLORS = [
-  '#c2652a','#2563eb','#059669','#7c3aed','#db2777','#0891b2',
-];
-
-function Avatar({ name }: { name: string }) {
-  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  const color = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
-  return (
-    <div className="app-avatar" style={{ background: `${color}18`, color, borderColor: `${color}30` }}>
-      {initials}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   MAIN PAGE
-═══════════════════════════════════════════════════ */
-
+/* ═══════════════════════════════════════════════
+   PAGE
+═══════════════════════════════════════════════ */
 export default function Applications() {
-  const { applications, stats, flash } = usePage<PageProps>().props;
+  const { applications, stats, flash } = usePage<PageProps>().props
 
-  /* ── Filters state ── */
-  const [search,         setSearch]         = useState('');
-  const [filterStatus,   setFilterStatus]   = useState<string>('all');
-  const [filterPayment,  setFilterPayment]  = useState<string>('all');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
+  /* Filters */
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [filterPayment, setFilterPayment] = useState<string>('all')
+  const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
 
-  /* ── Unique categories for filter dropdown ── */
   const categories = useMemo(() => {
-    const s = new Set(applications.map(a => a.category));
-    return Array.from(s).sort();
-  }, [applications]);
+    return Array.from(new Set(applications.map(a => a.category))).sort()
+  }, [applications])
 
-  /* ── Filtered list ── */
+  /* Filtered list */
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
+    const q = search.toLowerCase().trim()
     return applications.filter(a => {
       if (q && ![a.student, a.email, a.reference, a.course, a.phone ?? '']
-        .some(f => f.toLowerCase().includes(q))) return false;
-      if (filterStatus !== 'all' && a.status !== filterStatus) return false;
-      if (filterPayment !== 'all' && a.paymentMethod !== filterPayment) return false;
-      if (filterCategory !== 'all' && a.category !== filterCategory) return false;
-      return true;
-    });
-  }, [applications, search, filterStatus, filterPayment, filterCategory]);
+        .some(f => f.toLowerCase().includes(q))) return false
+      if (filterStatus !== 'all' && a.status !== filterStatus) return false
+      if (filterPayment !== 'all' && a.paymentMethod !== filterPayment) return false
+      if (filterCategory !== 'all' && a.category !== filterCategory) return false
+      return true
+    })
+  }, [applications, search, filterStatus, filterPayment, filterCategory])
 
-  const hasFilter = search || filterStatus !== 'all' || filterPayment !== 'all' || filterCategory !== 'all';
-  const resetFilters = () => { setSearch(''); setFilterStatus('all'); setFilterPayment('all'); setFilterCategory('all'); };
+  /* Reset page on filter change */
+  const applyFilter = (fn: () => void) => { fn(); setCurrentPage(1) }
 
-  /* ── Actions ── */
+  /* Pagination */
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  const goTo = (p: number) => setCurrentPage(Math.max(1, Math.min(p, totalPages)))
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+  /* show at most 5 page buttons centered around current */
+  const visiblePages = pages.filter(p => {
+    if (totalPages <= 7) return true
+    if (p === 1 || p === totalPages) return true
+    return Math.abs(p - safePage) <= 2
+  })
+
+  const hasFilter = search || filterStatus !== 'all' || filterPayment !== 'all' || filterCategory !== 'all'
+  const approvedRate = applications.length ? Math.round((stats.approved / applications.length) * 100) : 0
+
+  const resetFilters = () => {
+    applyFilter(() => {
+      setSearch('')
+      setFilterStatus('all')
+      setFilterPayment('all')
+      setFilterCategory('all')
+    })
+  }
+
+  const pendingApps = useMemo(
+    () => applications.filter(a => a.status === 'pending').slice(0, 2),
+    [applications],
+  )
+
   const approve = (a: ApplicationRow) =>
-    router.post(route('admin.applications.approve', a.id), {}, { preserveScroll: true });
-
+    router.post(route('admin.applications.approve', a.id), {}, { preserveScroll: true })
   const resendAccess = (a: ApplicationRow) =>
-    router.post(route('admin.applications.resend-access', a.id), {}, { preserveScroll: true });
+    router.post(route('admin.applications.resend-access', a.id), {}, { preserveScroll: true })
 
-  /* ─────────────────────── RENDER ─────────────────────── */
   return (
-    <AdminLayout header={<span style={{ fontWeight: 700 }}>Demandes d'inscription</span>}>
+    <AdminLayout
+      header={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Manrope,sans-serif' }}>
+          <span style={{ fontSize: '.8rem', color: '#b0a49a' }}>Administration</span>
+          <span style={{ color: '#b0a49a', fontSize: '.8rem' }}>/</span>
+          <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#1a1612' }}>Candidatures</span>
+        </div>
+      }
+    >
       <Head title="Demandes d'inscription" />
 
       <div className="app-root">
 
-        {/* ── Page header ── */}
-        <header className="app-header">
-          <div className="app-header-text">
-            <p className="app-kicker">Administration</p>
-            <h1 className="app-title">Demandes d'inscription</h1>
-            <p className="app-subtitle">
-              Les formulaires envoyés depuis le site public arrivent ici avec le paiement, le certificat
-              et la date de passage au centre. Validez les dossiers pour donner accès à l'espace étudiant.
-            </p>
+        {/* ════════════════════════
+            HERO
+        ════════════════════════ */}
+        <section className="app-hero">
+          <div className="app-live">
+            <span className="app-live-dot" />
+            Mise à jour en direct
           </div>
 
-          {/* Stat cards */}
-          <div className="app-stats">
-            <StatCard value={stats.pending}      label="En attente"            icon={<Ic.pending />} color="#f59e0b" />
-            <StatCard value={stats.approved}     label="Validées"              icon={<Ic.ok />}      color="#10b981" />
-            <StatCard value={stats.onlinePaid}   label="Payées en ligne"       icon={<Ic.online />}  color="#2563eb" />
-            <StatCard value={stats.onsitePending}label="Présentiel à encaisser"icon={<Ic.cash />}    color="#c2652a" />
-          </div>
-        </header>
+          <div className="app-hero-grid">
+            <div className="app-hero-copy">
+              <h1>Demandes d'inscription</h1>
+              <p>Gestion centrale des flux d'admission et validation des dossiers.</p>
+            </div>
 
-        {/* Flash */}
+            <div className="app-stat-grid">
+              {[
+                { label: 'En attente', value: stats.pending, accent: true },
+                { label: 'Validées', value: stats.approved, accent: false },
+                { label: 'En ligne', value: stats.onlinePaid, accent: false },
+                { label: 'Présentiel', value: stats.onsitePending, accent: false },
+              ].map((s, i) => (
+                <div className="app-stat" key={i}>
+                  <span>{s.label}</span>
+                  <strong style={{ color: s.accent ? '#c2652a' : '#3a302a' }}>
+                    {padded(s.value)}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Flash messages */}
         {flash?.success && (
           <div className="app-flash app-flash--success">
-            <Ic.check /> {flash.success}
+            <Check size={15} /> {flash.success}
           </div>
         )}
         {flash?.warning && (
           <div className="app-flash app-flash--warning">
-            <Ic.close /> {flash.warning}
+            <X size={15} /> {flash.warning}
           </div>
         )}
 
-        {/* ── Table panel ── */}
-        <section className="app-panel">
+        {/* ════════════════════════
+            TABLE SECTION
+        ════════════════════════ */}
+        <section className="app-canvas">
 
-          {/* Panel header */}
-          <div className="app-panel-head">
+          {/* ── Canvas header ── */}
+          <div className="app-canvas-head">
             <div>
-              <h2 className="app-panel-title">Liste des dossiers</h2>
-              <p className="app-panel-sub">
+              <h2>Liste des dossiers récents</h2>
+              <p>
                 {filtered.length} dossier{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
-                {hasFilter && ` · ${applications.length} au total`}
+                {hasFilter && ` sur ${applications.length}`}
               </p>
             </div>
-          </div>
 
-          {/* ── Search + Filters ── */}
-          <div className="app-toolbar">
-            {/* Search */}
-            <div className="app-search-wrap">
-              <span className="app-search-icon"><Ic.search /></span>
-              <input
-                type="text"
-                className="app-search"
-                placeholder="Rechercher : nom, email, référence, formation..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-              {search && (
-                <button className="app-search-clear" onClick={() => setSearch('')} aria-label="Effacer">
-                  <Ic.close />
-                </button>
-              )}
-            </div>
+            {/* ── Toolbar : search + filters always flex ── */}
+            <div className="app-toolbar">
 
-            {/* Filters */}
-            <div className="app-filters">
-              <div className="app-filter-group">
-                <span className="app-filter-icon"><Ic.filter /></span>
+              {/* Search */}
+              <label className="app-search">
+                <Search size={15} className="app-search-icon" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => applyFilter(() => setSearch(e.target.value))}
+                  placeholder="Rechercher un candidat, email…"
+                  aria-label="Rechercher"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    className="app-search-clear"
+                    onClick={() => applyFilter(() => setSearch(''))}
+                    aria-label="Effacer"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </label>
 
-                <select className="app-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-                  <option value="all">Tous statuts</option>
-                  <option value="pending">En attente</option>
-                  <option value="approved">Validées</option>
-                  <option value="rejected">Rejetées</option>
-                </select>
+              {/* Filters row */}
+              <div className="app-filters">
+                {/* Filter icon — always visible */}
+                <Filter size={15} className="app-filter-icon" />
 
-                <select className="app-select" value={filterPayment} onChange={e => setFilterPayment(e.target.value)}>
-                  <option value="all">Tout paiement</option>
-                  <option value="online">En ligne</option>
-                  <option value="onsite">Présentiel</option>
-                </select>
+                {/* Status */}
+                <div className="app-select-wrap">
+                  <GraduationCap size={13} className="app-select-icon" />
+                  <select
+                    value={filterStatus}
+                    onChange={e => applyFilter(() => setFilterStatus(e.target.value))}
+                    aria-label="Filtrer par statut"
+                  >
+                    <option value="all">Tous statuts</option>
+                    <option value="pending">En attente</option>
+                    <option value="approved">Validées</option>
+                    <option value="rejected">Rejetées</option>
+                  </select>
+                </div>
 
-                <select className="app-select" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                  <option value="all">Toutes formations</option>
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                {/* Payment */}
+                <div className="app-select-wrap">
+                  <CreditCard size={13} className="app-select-icon" />
+                  <select
+                    value={filterPayment}
+                    onChange={e => applyFilter(() => setFilterPayment(e.target.value))}
+                    aria-label="Filtrer par paiement"
+                  >
+                    <option value="all">Tout paiement</option>
+                    <option value="online">En ligne</option>
+                    <option value="onsite">Présentiel</option>
+                  </select>
+                </div>
+
+                {/* Category */}
+                <div className="app-select-wrap">
+                  <Tag size={13} className="app-select-icon" />
+                  <select
+                    value={filterCategory}
+                    onChange={e => applyFilter(() => setFilterCategory(e.target.value))}
+                    aria-label="Filtrer par formation"
+                  >
+                    <option value="all">Toutes formations</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                {/* Reset */}
+                {hasFilter && (
+                  <button type="button" className="app-reset" onClick={resetFilters}>
+                    <RefreshCw size={13} />
+                    <span className="app-reset-label">Réinitialiser</span>
+                  </button>
+                )}
               </div>
-
-              {hasFilter && (
-                <button className="app-reset-btn" onClick={resetFilters}>
-                  <Ic.close /> Réinitialiser
-                </button>
-              )}
             </div>
           </div>
 
           {/* ── Table ── */}
           <div className="app-table-wrap">
-            {filtered.length === 0 ? (
+            {paginated.length === 0 ? (
               <div className="app-empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity=".2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
                 <p>Aucun dossier ne correspond à vos filtres.</p>
-                <button className="app-reset-btn" onClick={resetFilters}>Voir tous les dossiers</button>
+                <button type="button" onClick={resetFilters}>Voir tous les dossiers</button>
               </div>
             ) : (
               <table className="app-table">
@@ -276,415 +300,641 @@ export default function Applications() {
                     <th>Candidat</th>
                     <th>Formation</th>
                     <th>Paiement</th>
-                    <th>Certificat</th>
+                    <th>Certificat ID</th>
                     <th>Statut</th>
                     <th>Date</th>
-                    <th style={{ textAlign: 'right' }}>Action</th>
+                    <th>Gestion</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((a) => {
-                    const isApproved = a.status === 'approved';
-                    const isRejected = a.status === 'rejected';
-                    return (
-                      <tr key={a.reference} className={isApproved ? 'app-row--approved' : ''}>
+                  {paginated.map((a, rowIdx) => {
+                    const isApproved = a.status === 'approved'
+                    const isRejected = a.status === 'rejected'
+                    /* Alternating rows: even = white, odd = light grey */
+                    const rowBg = rowIdx % 2 === 0 ? '#ffffff' : '#f9f6f2'
 
-                        {/* Candidat */}
+                    return (
+                      <tr key={a.reference} style={{ background: rowBg }}>
                         <td data-label="Candidat">
                           <div className="app-candidate">
-                            <Avatar name={a.student} />
-                            <div className="app-candidate-info">
-                              <p className="app-candidate-name">{a.student}</p>
-                              <span className="app-meta">
-                                <Ic.mail /> {a.email}
-                              </span>
-                              {a.phone && (
-                                <span className="app-meta">
-                                  <Ic.phone /> {a.phone}
-                                </span>
-                              )}
-                              <code className="app-ref">{a.reference}</code>
+                            <div className="app-avatar">{initials(a.student)}</div>
+                            <div>
+                              <strong>{a.student}</strong>
+                              <span>{a.email}</span>
+                              {a.phone && <small>{a.phone}</small>}
                             </div>
                           </div>
                         </td>
 
-                        {/* Formation */}
                         <td data-label="Formation">
-                          <p className="app-strong">{a.course}</p>
-                          <span className="app-meta">{a.category}</span>
-                          <p className="app-amount">{a.amount}</p>
+                          <strong className="app-course">{a.course}</strong>
+                          <span className="app-muted">{a.category}</span>
+                          <span className="app-price">{a.amount}</span>
                         </td>
 
-                        {/* Paiement */}
                         <td data-label="Paiement">
-                          <div className="app-payment-cell">
-                            {a.paymentMethod === 'online' ? (
-                              <>
-                                <Badge label="En ligne" tone="blue" />
-                                <span className="app-meta">
-                                  <Ic.card />
-                                  {a.paymentStatus === 'paid'
-                                    ? <span style={{ color: '#047857', fontWeight: 700 }}>Réglé ✓</span>
-                                    : <span style={{ color: '#b45309' }}>En attente</span>
-                                  }
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <Badge label="Présentiel" tone="amber" />
-                                <span className="app-meta">
-                                  <Ic.store />
-                                  {a.preferredPaymentDate
-                                    ? `Rdv : ${a.preferredPaymentDate}`
-                                    : 'Date non précisée'}
-                                </span>
-                              </>
-                            )}
+                          <div className={`app-pay ${a.paymentStatus === 'paid' ? 'app-pay--ok' : 'app-pay--wait'}`}>
+                            {a.paymentStatus === 'paid'
+                              ? <Check size={12} strokeWidth={3} />
+                              : <span className="app-pay-dot" />}
+                            <span>{paymentLabel(a)}</span>
                           </div>
+                          {a.paymentMethod === 'online'
+                            ? <CreditCard size={11} className="app-method-icon" />
+                            : <Banknote size={11} className="app-method-icon" />}
                         </td>
 
-                        {/* Certificat */}
-                        <td data-label="Certificat">
-                          {a.certificateReference ? (
-                            <div className="app-cert">
-                              <Ic.cert />
-                              <code>{a.certificateReference}</code>
-                            </div>
-                          ) : (
-                            <span className="app-meta" style={{ fontStyle: 'italic' }}>—</span>
-                          )}
+                        <td data-label="Certificat ID">
+                          {a.certificateReference
+                            ? <code className="app-code">{a.certificateReference}</code>
+                            : <span className="app-muted app-italic">En génération…</span>}
                         </td>
 
-                        {/* Statut */}
                         <td data-label="Statut">
-                          {isApproved
-                            ? <Badge label="Validée" tone="green" />
-                            : isRejected
-                            ? <Badge label="Rejetée" tone="red" />
-                            : <Badge label="En attente" tone="slate" />
-                          }
+                          <span className={`app-status app-status--${a.status}`}>
+                            {statusLabel(a.status)}
+                          </span>
                         </td>
 
-                        {/* Date */}
                         <td data-label="Date">
                           <span className="app-date">{a.createdAt}</span>
                         </td>
 
-                        {/* Action */}
-                        <td data-label="Action" style={{ textAlign: 'right' }}>
+                        <td data-label="Gestion">
                           <button
-                            className={`app-action-btn ${isApproved ? 'app-action-btn--ghost' : ''}`}
+                            type="button"
+                            className={`app-action ${isApproved ? 'app-action--light' : ''}`}
                             onClick={() => isApproved ? resendAccess(a) : approve(a)}
                             disabled={isRejected}
                           >
-                            {isApproved ? (
-                              <><Ic.send /> Renvoyer l'accès</>
-                            ) : (
-                              <><Ic.check /> Donner l'accès</>
-                            )}
+                            {isApproved
+                              ? <><Send size={13} /> Renvoyer</>
+                              : <>Accorder l'accès</>}
                           </button>
                         </td>
                       </tr>
-                    );
+                    )
                   })}
                 </tbody>
               </table>
             )}
           </div>
 
-          {/* Footer count */}
+          {/* ════════════════════════
+              PAGINATION
+          ════════════════════════ */}
           {filtered.length > 0 && (
-            <div className="app-table-footer">
-              {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
-              {hasFilter && ` sur ${applications.length} dossiers`}
+            <div className="app-pagination">
+              {/* Info */}
+              <p className="app-pagination-info">
+                {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} sur {filtered.length} dossiers
+              </p>
+
+              {/* Controls */}
+              <div className="app-pager">
+
+                {/* Prev */}
+                <button
+                  type="button"
+                  className="app-pager-btn"
+                  onClick={() => goTo(safePage - 1)}
+                  disabled={safePage === 1}
+                  aria-label="Page précédente"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+
+                {/* Page buttons with ellipsis */}
+                {visiblePages.map((p, i, arr) => (
+                  <>
+                    {/* Ellipsis before */}
+                    {i > 0 && arr[i - 1] !== p - 1 && (
+                      <span key={`ell-${p}`} className="app-pager-ellipsis">…</span>
+                    )}
+                    <button
+                      key={p}
+                      type="button"
+                      className={`app-pager-btn ${p === safePage ? 'app-pager-btn--active' : ''}`}
+                      onClick={() => goTo(p)}
+                      aria-current={p === safePage ? 'page' : undefined}
+                    >
+                      {p}
+                    </button>
+                  </>
+                ))}
+
+                {/* Next */}
+                <button
+                  type="button"
+                  className="app-pager-btn"
+                  onClick={() => goTo(safePage + 1)}
+                  disabled={safePage === totalPages}
+                  aria-label="Page suivante"
+                >
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+
+              {/* Page size info */}
+              <p className="app-pagination-info app-pagination-info--right">
+                {PAGE_SIZE} par page · {totalPages} page{totalPages > 1 ? 's' : ''}
+              </p>
             </div>
           )}
         </section>
+
+        {/* ════════════════════════
+            INSIGHTS
+        ════════════════════════ */}
+        <section className="app-insights">
+
+          {/* Performance */}
+          <article>
+            <div className="app-insight-head">
+              <TrendingUp size={22} className="app-insight-icon" />
+              <h3>Suivi de performance hebdomadaire</h3>
+            </div>
+            <div className="app-bars">
+              {[48, 76, 120, 92, 64].map((h, i) => (
+                <span
+                  key={i}
+                  className={`app-bar ${i === 2 ? 'app-bar--primary' : ''}`}
+                  style={{ height: h }}
+                />
+              ))}
+              <div className="app-bars-stat">
+                <strong>{approvedRate}%</strong>
+                <small>dossiers validés</small>
+              </div>
+            </div>
+            <p>
+              Les admissions sont visibles par statut, mode de paiement et formation. La conversion des dossiers en attente peut être suivie directement depuis cette console.
+            </p>
+          </article>
+
+          {/* Pending */}
+          <article>
+            <div className="app-insight-head">
+              <FileEdit size={22} className="app-insight-icon" />
+              <h3>Dossiers en attente de validation</h3>
+            </div>
+            <div className="app-pending-list">
+              {pendingApps.length
+                ? pendingApps.map((a, i) => (
+                  <div key={a.reference} className="app-pending-card">
+                    <div>
+                      <strong>{a.course}</strong>
+                      <span>Candidat : {a.student}</span>
+                    </div>
+                    <em className={i === 0 ? 'app-urgent' : 'app-planned'}>
+                      {i === 0 ? 'Urgent' : 'Prévu'}
+                    </em>
+                  </div>
+                ))
+                : <p className="app-muted">Aucun dossier prioritaire pour le moment.</p>}
+            </div>
+            <p>
+              <strong>{stats.pending} dossier{stats.pending > 1 ? 's' : ''}</strong> requièrent encore une validation manuelle pour débloquer l'accès étudiant.
+            </p>
+          </article>
+        </section>
       </div>
 
+      {/* ═══════════════════════════
+          STYLES
+      ═══════════════════════════ */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap');
 
         /* ── Root ── */
         .app-root {
-          padding: 28px; font-family: 'Manrope', sans-serif; color: #18181b;
-          display: flex; flex-direction: column; gap: 18px;
-          width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden;
+          min-height: 100%;
+          width: 100%;
+          max-width: 1440px;
+          margin: 0 auto;
+          padding: 40px 40px 64px;
+          background: #f8f8f4;         /* ← changed from white */
+          color: #3a302a;
+          font-family: 'Manrope', sans-serif;
+          overflow-x: hidden;
         }
         .app-root *, .app-root *::before, .app-root *::after { box-sizing: border-box; }
 
-        /* ── Header ── */
-        .app-header {
-          background: #fff; border-radius: 18px;
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-          padding: 28px 32px;
-          display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start;
-          position: relative; overflow: hidden;
+        /* ── Hero ── */
+        .app-hero { margin-bottom: 36px; }
+        .app-live {
+          display: inline-flex; align-items: center; gap: 8px;
+          margin-bottom: 22px; padding: 5px 12px;
+          background: #fff; border: 1px solid #e7e5e4;
+          color: #78716c; font-size: 10px; font-weight: 800;
+          letter-spacing: .16em; text-transform: uppercase;
+          border-radius: 3px;
         }
-        .app-header::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-          background: linear-gradient(90deg, #c2652a, #e8915a, #f5b89a);
+        .app-live-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #c2652a;
+          animation: appPulse 1.8s ease-in-out infinite;
         }
-        .app-header-text { flex: 1; min-width: 0; }
-        .app-kicker {
-          font-size: .68rem; font-weight: 800; letter-spacing: .14em;
-          text-transform: uppercase; color: #c2652a; margin: 0 0 5px;
+        @keyframes appPulse {
+          0%,100% { opacity:1; transform:scale(1); }
+          50%      { opacity:.4; transform:scale(.8); }
         }
-        .app-title {
+
+        .app-hero-grid {
+          display: grid;
+          grid-template-columns: minmax(0,1fr) auto;
+          align-items: end; gap: 40px;
+        }
+        .app-hero-copy h1 {
+          margin: 0;
           font-family: 'EB Garamond', serif;
-          font-size: 2.2rem; font-weight: 700; color: #111; margin: 0 0 8px;
-          letter-spacing: -.01em;
+          font-size: clamp(2.6rem, 6vw, 4.5rem);
+          font-weight: 400; line-height: .92;
+          letter-spacing: -.03em; color: #3a302a;
         }
-        .app-subtitle { margin: 0; font-size: .84rem; color: #7a7a7a; line-height: 1.65; max-width: 580px; }
-
-        /* Stats row */
-        .app-stats {
-          display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
-          width: 100%;
+        .app-hero-copy p {
+          margin: 18px 0 0; max-width: 520px;
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(1.2rem, 2vw, 1.8rem);
+          font-style: italic; line-height: 1.3; color: #a8a29e;
         }
-        @media (max-width: 900px)  { .app-stats { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 500px)  { .app-stats { grid-template-columns: 1fr; } }
 
+        .app-stat-grid {
+          display: grid; grid-template-columns: repeat(4, minmax(120px,1fr));
+          border: 1px solid #e7e5e4; background: #fff;
+        }
         .app-stat {
-          display: flex; align-items: center; gap: 12px;
-          padding: 14px 16px; border-radius: 12px;
-          background: #fafaf9; border: 1px solid rgba(0,0,0,0.06);
+          padding: 22px 26px;
+          border-right: 1px solid #e7e5e4;
         }
-        .app-stat-icon {
-          width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
+        .app-stat:last-child { border-right: none; }
+        .app-stat span {
+          display: block; margin-bottom: 6px;
+          color: #a8a29e; font-size: 9px; font-weight: 800;
+          letter-spacing: .18em; text-transform: uppercase;
         }
-        .app-stat-val {
-          margin: 0 0 1px; font-family: 'EB Garamond', serif;
-          font-size: 1.6rem; font-weight: 700; color: #111; line-height: 1;
+        .app-stat strong {
+          font-family: 'EB Garamond', serif;
+          font-size: 3rem; font-weight: 500; line-height: 1;
         }
-        .app-stat-lbl { margin: 0; font-size: .7rem; font-weight: 700; color: #9ca3af; }
 
         /* ── Flash ── */
         .app-flash {
           display: flex; align-items: center; gap: 8px;
-          padding: 12px 16px; border-radius: 12px;
-          font-size: .86rem; font-weight: 700; border: 1px solid;
+          margin-bottom: 16px; padding: 11px 14px;
+          border: 1px solid; font-size: .82rem; font-weight: 700;
+          border-radius: 3px;
         }
         .app-flash--success { background: #f0fdf4; color: #047857; border-color: #bbf7d0; }
         .app-flash--warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
 
-        /* ── Panel ── */
-        .app-panel {
-          background: #fff; border-radius: 18px;
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-          overflow: hidden; max-width: 100%; min-width: 0;
+        /* ── Canvas ── */
+        .app-canvas {
+          border: 1px solid #e7e5e4;
+          background: #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+          border-radius: 3px;
         }
-        .app-panel-head {
-          display: flex; align-items: flex-start; justify-content: space-between;
-          gap: 14px; flex-wrap: wrap; padding: 22px 24px 16px;
-          border-bottom: 1px solid rgba(0,0,0,0.06);
+        .app-canvas-head {
+          display: flex; align-items: center;
+          justify-content: space-between; gap: 20px;
+          padding: 20px 24px;
+          border-bottom: 1px solid #e7e5e4;
+          background: #f8f8f4;
+          flex-wrap: wrap;
         }
-        .app-panel-title {
+        .app-canvas-head h2 {
+          margin: 0;
           font-family: 'EB Garamond', serif;
-          font-size: 1.4rem; font-weight: 700; margin: 0 0 2px;
+          font-size: 1.9rem; font-weight: 500; color: #3a302a;
         }
-        .app-panel-sub { margin: 0; font-size: .78rem; color: #9ca3af; font-weight: 600; }
+        .app-canvas-head > div:first-child p {
+          margin: 3px 0 0; color: #a8a29e;
+          font-size: 10px; font-weight: 800;
+          letter-spacing: .14em; text-transform: uppercase;
+        }
 
         /* ── Toolbar ── */
         .app-toolbar {
-          display: flex; flex-direction: column; gap: 10px;
-          padding: 14px 24px; border-bottom: 1px solid rgba(0,0,0,0.06);
-          background: #fafaf9;
+          display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
         }
 
         /* Search */
-        .app-search-wrap {
+        .app-search {
           position: relative; display: flex; align-items: center;
+          background: #fff; border: 1px solid #e7e5e4;
+          width:100%; flex: 1;
         }
         .app-search-icon {
-          position: absolute; left: 12px; color: #aaa;
-          display: flex; align-items: center; pointer-events: none;
+          position: absolute; left: 11px; color: #a8a29e; pointer-events: none;
         }
-        .app-search {
-          width: 100%; padding: 10px 36px 10px 36px;
-          border: 1.5px solid #e5e5e5; border-radius: 10px;
-          background: #fff; font-family: 'Manrope',sans-serif;
-          font-size: .86rem; color: #111; outline: none;
-          transition: border-color .15s, box-shadow .15s;
+        .app-search input {
+          width: 100%; border: none; outline: none;
+          padding: 9px 34px 9px 34px;
+          font-family: 'Manrope', sans-serif;
+          font-size: .78rem; color: #3a302a;
+          background: transparent;
         }
-        .app-search:focus { border-color: #c2652a; box-shadow: 0 0 0 3px rgba(194,101,42,.10); }
+        .app-search input:focus { box-shadow: inset 0 0 0 1.5px #c2652a; }
         .app-search-clear {
-          position: absolute; right: 10px; color: #bbb; background: none; border: none;
-          cursor: pointer; display: flex; align-items: center; padding: 4px;
-          border-radius: 6px; transition: color .15s;
+          position: absolute; right: 8px;
+          display: inline-flex; border: none;
+          background: transparent; color: #a8a29e; cursor: pointer;
+          padding: 3px;
         }
-        .app-search-clear:hover { color: #555; }
 
         /* Filters row */
-        .app-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .app-filter-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
-        .app-filter-icon { color: #aaa; display: flex; align-items: center; flex-shrink: 0; }
-        .app-select {
-          border: 1.5px solid #e5e5e5; border-radius: 9px;
-          background: #fff; padding: 7px 10px;
-          font-family: 'Manrope',sans-serif; font-size: .8rem; color: #333;
-          outline: none; cursor: pointer; transition: border-color .15s;
+        .app-filters {
+          display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
         }
-        .app-select:focus { border-color: #c2652a; }
+        .app-filter-icon { color: #a8a29e; flex-shrink: 0; }
 
-        .app-reset-btn {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 7px 12px; border-radius: 9px; border: 1.5px solid #e5e5e5;
-          background: #fff; color: #666;
-          font-family: 'Manrope',sans-serif; font-size: .78rem; font-weight: 700;
-          cursor: pointer; transition: all .15s; white-space: nowrap;
+        /* Select with icon */
+        .app-select-wrap {
+          position: relative; display: inline-flex; align-items: center;
         }
-        .app-reset-btn:hover { border-color: #c2652a; color: #c2652a; }
+        .app-select-icon {
+          position: absolute; left: 9px; color: #a8a29e; pointer-events: none;
+          z-index: 1;
+        }
+        .app-select-wrap select {
+          height: 36px;
+          padding: 0 10px 0 28px;
+          border: 1px solid #e7e5e4;
+          background: #fff; color: #57534e;
+          font-family: 'Manrope', sans-serif;
+          font-size: .72rem; font-weight: 700;
+          letter-spacing: .06em; text-transform: uppercase;
+          cursor: pointer; appearance: none;
+          border-radius: 2px;
+          transition: border-color .15s;
+        }
+        .app-select-wrap select:focus {
+          outline: none; border-color: #c2652a;
+          box-shadow: 0 0 0 2px rgba(194,101,42,.12);
+        }
+
+        /* Reset button */
+        .app-reset {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 36px; padding: 0 12px;
+          border: 1px solid #e7e5e4; background: #fff;
+          color: #78716c;
+          font-family: 'Manrope', sans-serif;
+          font-size: .72rem; font-weight: 800;
+          letter-spacing: .06em; text-transform: uppercase;
+          cursor: pointer; border-radius: 2px;
+          transition: background .15s, color .15s, border-color .15s;
+        }
+        .app-reset:hover { background: #fff3ec; color: #c2652a; border-color: rgba(194,101,42,.3); }
 
         /* ── Table ── */
-        .app-table-wrap { overflow-x: auto; min-width: 0; max-width: 100%; }
+        .app-table-wrap { overflow-x: auto; }
         .app-table {
-          width: 100%; min-width: 900px; border-collapse: collapse;
+          width: 100%; min-width: 960px;
+          border-collapse: collapse; text-align: left;
         }
-        .app-table thead tr { background: #faf8f5; }
         .app-table th {
-          padding: 11px 16px; text-align: left;
-          font-size: .63rem; font-weight: 800; text-transform: uppercase;
-          letter-spacing: .1em; color: #9ca3af;
-          border-bottom: 1px solid rgba(0,0,0,0.06);
+          padding: 14px 22px;
+          border-bottom: 1px solid #e7e5e4;
+          background: #f8f8f4;
+          color: #a8a29e; font-size: 10px; font-weight: 800;
+          letter-spacing: .15em; text-transform: uppercase;
         }
+        .app-table th:last-child { text-align: right; }
         .app-table td {
-          padding: 14px 16px; vertical-align: top;
-          border-bottom: 1px solid rgba(0,0,0,0.05);
-          font-size: .84rem;
+          padding: 18px 22px;
+          border-bottom: 1px solid #f0ede8;
+          vertical-align: middle; font-size: .86rem;
+          transition: background .12s;
         }
-        .app-table tbody tr:hover { background: #fdfcfa; }
+        /* Alternating rows set via inline style on <tr>, hover override */
+        .app-table tbody tr:hover td { background: #fff8f2 !important; }
         .app-table tbody tr:last-child td { border-bottom: none; }
-        .app-row--approved { background: #fafffe; }
+        .app-table td:last-child { text-align: right; }
 
-        /* ── Candidate cell ── */
-        .app-candidate { display: flex; align-items: flex-start; gap: 10px; }
+        /* Candidate cell */
+        .app-candidate { display: flex; align-items: center; gap: 14px; }
         .app-avatar {
-          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-          border: 1.5px solid; display: flex; align-items: center; justify-content: center;
-          font-size: .68rem; font-weight: 800; letter-spacing: .04em;
+          width: 40px; height: 40px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          border: 1px solid #e7e5e4; background: #f5f5f4;
+          color: #a8a29e; font-size: .72rem; font-weight: 900;
+          border-radius: 2px;
         }
-        .app-candidate-info { display: flex; flex-direction: column; gap: 2px; }
-        .app-candidate-name { margin: 0; font-size: .86rem; font-weight: 800; color: #111; }
-        .app-meta {
-          display: flex; align-items: center; gap: 4px;
-          font-size: .72rem; color: #9ca3af; font-weight: 500;
+        .app-candidate strong { display: block; color: #3a302a; font-weight: 800; }
+        .app-candidate span, .app-candidate small, .app-muted, .app-date {
+          display: block; color: #a8a29e; font-size: .73rem; margin-top: 2px;
         }
-        .app-ref {
-          font-family: monospace; font-size: .66rem;
-          color: #bbb; background: #f5f5f5; border-radius: 4px;
-          padding: 1px 5px; margin-top: 2px; display: inline-block;
-        }
+        .app-course { display: block; color: #3a302a; font-weight: 800; }
+        .app-price  { display: block; margin-top: 5px; color: #c2652a; font-weight: 800; font-size: .8rem; }
+        .app-italic { font-style: italic; }
+        .app-method-icon { color: #c8bdb6; margin-top: 4px; display: block; }
 
-        /* ── Other cells ── */
-        .app-strong { margin: 0 0 2px; font-weight: 800; color: #111; font-size: .84rem; }
-        .app-amount { margin: 4px 0 0; font-size: .84rem; font-weight: 800; color: #c2652a; }
-
-        .app-payment-cell { display: flex; flex-direction: column; gap: 5px; }
-
-        .app-cert {
-          display: flex; align-items: center; gap: 5px;
-          font-size: .72rem; color: #6b5f55;
-        }
-        .app-cert code { font-size: .7rem; color: #555; }
-
-        .app-date { font-size: .76rem; color: #9ca3af; font-weight: 500; white-space: nowrap; }
-
-        .app-badge {
-          display: inline-flex; align-items: center; width: fit-content;
-          border-radius: 99px; padding: 3px 9px;
-          font-size: .63rem; font-weight: 900;
-          text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
-        }
-
-        /* ── Action button ── */
-        .app-action-btn {
+        /* Payment */
+        .app-pay {
           display: inline-flex; align-items: center; gap: 6px;
-          padding: 8px 13px; border-radius: 9px; border: none;
-          background: #c2652a; color: #fff;
-          font-family: 'Manrope',sans-serif; font-size: .78rem; font-weight: 800;
+          font-size: 9px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+        }
+        .app-pay--ok   { color: #059669; }
+        .app-pay--wait { color: #c2652a; }
+        .app-pay-dot {
+          width: 7px; height: 7px;
+          border: 1.5px solid currentColor; border-radius: 50%;
+        }
+
+        /* Code */
+        .app-code {
+          background: #f5f5f4; color: #57534e;
+          padding: 3px 7px; font-size: 11px;
+          font-family: ui-monospace, SFMono-Regular, monospace;
+          border-radius: 2px;
+        }
+
+        /* Status */
+        .app-status {
+          display: inline-flex; border: 1px solid;
+          padding: 3px 8px; border-radius: 2px;
+          font-size: 9px; font-weight: 900;
+          letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
+        }
+        .app-status--approved { border-color: #a7f3d0; color: #047857; background: #f0fdf4; }
+        .app-status--pending  { border-color: #e08850; color: #c2652a; background: #fff7f2; }
+        .app-status--rejected { border-color: #fecaca; color: #dc2626; background: #fff0f0; }
+
+        /* Action button */
+        .app-action {
+          display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+          border: none; background: #1a1a1a; color: #fff;
+          padding: 9px 18px; border-radius: 2px;
+          font-family: 'Manrope', sans-serif;
+          font-size: 9px; font-weight: 900;
+          letter-spacing: .14em; text-transform: uppercase;
           cursor: pointer; white-space: nowrap;
-          transition: opacity .15s, transform .1s, box-shadow .15s;
-          box-shadow: 0 2px 8px rgba(194,101,42,.25);
+          transition: background .15s;
         }
-        .app-action-btn:hover:not(:disabled) {
-          opacity: .9; transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(194,101,42,.35);
+        .app-action:hover:not(:disabled) { background: #c2652a; }
+        .app-action:disabled { opacity: .35; cursor: not-allowed; }
+        .app-action--light {
+          background: #fff; color: #3a302a;
+          border: 1px solid #e7e5e4;
         }
-        .app-action-btn:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
-        .app-action-btn--ghost {
-          background: rgba(194,101,42,.08); color: #c2652a;
-          border: 1.5px solid rgba(194,101,42,.2); box-shadow: none;
-        }
-        .app-action-btn--ghost:hover:not(:disabled) {
-          background: rgba(194,101,42,.14); box-shadow: none;
+        .app-action--light:hover:not(:disabled) {
+          background: #c2652a; color: #fff; border-color: #c2652a;
         }
 
-        /* ── Empty state ── */
+        /* Empty state */
         .app-empty {
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 12px; padding: 60px 24px; text-align: center; color: #9ca3af;
+          display: flex; flex-direction: column; align-items: center; gap: 12px;
+          padding: 60px 20px; color: #a8a29e; text-align: center;
         }
-        .app-empty p { margin: 0; font-size: .86rem; font-weight: 600; }
+        .app-empty button {
+          border: 1px solid #e7e5e4; background: #fff;
+          padding: 9px 16px; font-size: 10px; font-weight: 900;
+          letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+          border-radius: 2px;
+        }
 
-        /* ── Table footer ── */
-        .app-table-footer {
-          padding: 12px 24px;
-          font-size: .75rem; color: #9ca3af; font-weight: 600;
-          border-top: 1px solid rgba(0,0,0,0.05);
-          text-align: right; background: #fafaf9;
+        /* ── Pagination ── */
+        .app-pagination {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 14px; flex-wrap: wrap;
+          padding: 18px 22px;
+          border-top: 1px solid #e7e5e4;
+          background: #f8f8f4;
+        }
+        .app-pagination-info {
+          margin: 0; color: #a8a29e;
+          font-size: 10px; font-weight: 800;
+          letter-spacing: .14em; text-transform: uppercase;
+        }
+        .app-pagination-info--right { text-align: right; }
+
+        .app-pager { display: flex; align-items: center; gap: 2px; }
+        .app-pager-btn {
+          min-width: 36px; height: 36px; padding: 0 6px;
+          display: inline-flex; align-items: center; justify-content: center;
+          border: 1px solid #e7e5e4; background: #fff;
+          color: #57534e;
+          font-family: 'Manrope', sans-serif;
+          font-size: .78rem; font-weight: 700;
+          cursor: pointer; border-radius: 2px;
+          transition: background .13s, color .13s, border-color .13s;
+        }
+        .app-pager-btn:hover:not(:disabled) {
+          background: #fff3ec; color: #c2652a; border-color: rgba(194,101,42,.3);
+        }
+        .app-pager-btn:disabled { opacity: .35; cursor: not-allowed; }
+        .app-pager-btn--active {
+          background: #c2652a; color: #fff; border-color: #c2652a;
+        }
+        .app-pager-btn--active:hover { background: #c2652a; color: #fff; }
+        .app-pager-ellipsis {
+          min-width: 28px; text-align: center;
+          color: #a8a29e; font-size: .82rem; pointer-events: none;
+        }
+
+        /* ── Insights ── */
+        .app-insights {
+          display: grid; grid-template-columns: 1fr 1fr;
+          margin-top: 40px; border: 1px solid #e7e5e4;
+          background: #fff;
+        }
+        .app-insights article {
+          padding: 36px;
+        }
+        .app-insights article + article {
+          border-left: 1px solid #e7e5e4;
+          background: #f8f8f4;
+        }
+        .app-insight-head {
+          display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+        }
+        .app-insight-icon { color: #c2652a; flex-shrink: 0; }
+        .app-insight-head h3 {
+          margin: 0;
+          font-family: 'EB Garamond', serif;
+          font-size: 1.8rem; font-weight: 500; color: #3a302a;
+        }
+
+        .app-bars {
+          display: flex; align-items: flex-end; gap: 8px; margin-bottom: 20px;
+        }
+        .app-bar {
+          width: 28px; display: block;
+          background: #e7e5e4; border-radius: 2px 2px 0 0;
+          transition: background .15s;
+        }
+        .app-bar--primary { background: #c2652a; }
+        .app-bars-stat { margin-left: 14px; }
+        .app-bars-stat strong {
+          display: block;
+          font-family: 'EB Garamond', serif;
+          font-size: 2.2rem; font-weight: 500; color: #3a302a;
+        }
+        .app-bars-stat small {
+          display: block; color: #a8a29e;
+          font-size: 9px; font-weight: 900;
+          letter-spacing: .14em; text-transform: uppercase;
+        }
+        .app-insights p {
+          margin: 0; color: #78716c; font-size: .88rem; line-height: 1.75;
+        }
+
+        .app-pending-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .app-pending-card {
+          display: flex; align-items: center; justify-content: space-between; gap: 14px;
+          padding: 14px; border: 1px solid #e7e5e4; background: #fff;
+          border-radius: 2px;
+        }
+        .app-pending-card strong {
+          display: block; font-size: .76rem; font-weight: 900;
+          letter-spacing: .06em; text-transform: uppercase; color: #3a302a;
+        }
+        .app-pending-card span { display: block; margin-top: 2px; color: #a8a29e; font-size: .74rem; }
+        .app-urgent {
+          flex-shrink: 0; padding: 3px 8px;
+          background: #fce4e0; color: #c0392b;
+          font-size: 9px; font-style: normal; font-weight: 900;
+          letter-spacing: .1em; text-transform: uppercase; border-radius: 2px;
+        }
+        .app-planned {
+          flex-shrink: 0; padding: 3px 8px;
+          background: #f5f5f4; color: #78716c;
+          font-size: 9px; font-style: normal; font-weight: 900;
+          letter-spacing: .1em; text-transform: uppercase; border-radius: 2px;
         }
 
         /* ── Responsive ── */
         @media (max-width: 1100px) {
-          .app-header { flex-direction: column; }
+          .app-hero-grid { grid-template-columns: 1fr; }
+          .app-stat-grid { grid-template-columns: repeat(2,1fr); }
+          .app-stat:nth-child(2) { border-right: none; }
+          .app-stat:nth-child(1), .app-stat:nth-child(2) { border-bottom: 1px solid #e7e5e4; }
         }
+
+        @media (max-width: 800px) {
+          .app-root { padding: 24px 16px 48px; }
+          .app-insights { grid-template-columns: 1fr; }
+          .app-insights article + article { border-left: none; border-top: 1px solid #e7e5e4; }
+
+          /* Filters: icons only */
+          .app-select-wrap select { padding: 0 8px 0 8px; width: 36px; color: transparent; font-size: 0; }
+          .app-select-wrap select option { font-size: .78rem; color: #3a302a; }
+          .app-select-icon { left: 50%; transform: translateX(-50%); }
+          .app-reset-label { display: none; }
+          .app-reset { width: 36px; padding: 0; justify-content: center; }
+        }
+
         @media (max-width: 640px) {
-          .app-root { padding: 16px; }
-          .app-header { padding: 20px; }
-          .app-panel-head, .app-toolbar { padding-left: 16px; padding-right: 16px; }
-          .app-filter-group { flex-direction: column; align-items: flex-start; width: 100%; }
-          .app-select { width: 100%; }
-          .app-table-wrap { overflow-x: visible; padding: 0 12px 12px; }
-          .app-table { min-width: 0; border-collapse: separate; border-spacing: 0 12px; }
-          .app-table thead { display: none; }
-          .app-table, .app-table tbody, .app-table tr, .app-table td { display: block; width: 100%; }
-          .app-table tbody tr {
-            border: 1px solid rgba(0,0,0,.07);
-            border-radius: 14px;
-            background: #fff;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(15,23,42,.04);
-          }
-          .app-table td {
-            display: grid;
-            grid-template-columns: 96px minmax(0, 1fr);
-            gap: 12px;
-            padding: 12px;
-            border-bottom: 1px solid rgba(0,0,0,.05);
-            text-align: left !important;
-            min-width: 0;
-          }
-          .app-table td:last-child { border-bottom: none; }
-          .app-table td::before {
-            content: attr(data-label);
-            font-size: .62rem;
-            font-weight: 900;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            color: #9ca3af;
-          }
-          .app-candidate, .app-candidate-info, .app-meta, .app-strong, .app-cert { min-width: 0; }
-          .app-candidate-name, .app-meta, .app-strong, .app-cert code {
-            overflow-wrap: anywhere;
-            word-break: break-word;
-          }
-          .app-action-btn { width: 100%; justify-content: center; white-space: normal; }
+          .app-stat-grid { grid-template-columns: 1fr; }
+          .app-stat { border-right: none; border-bottom: 1px solid #e7e5e4; }
+          .app-stat:last-child { border-bottom: none; }
+          .app-canvas-head { align-items: flex-start; flex-direction: column; }
+          .app-toolbar { width: 100%; }
+          .app-search { min-width: 0; width: 100%; }
         }
       `}</style>
     </AdminLayout>
-  );
+  )
 }
