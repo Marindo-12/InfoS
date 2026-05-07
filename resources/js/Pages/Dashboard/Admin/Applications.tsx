@@ -311,7 +311,7 @@ export default function Applications() {
                     const isApproved = a.status === 'approved'
                     const isRejected = a.status === 'rejected'
                     /* Alternating rows: even = white, odd = light grey */
-                    const rowBg = rowIdx % 2 === 0 ? '#ffffff' : '#f9f6f2'
+                    const rowBg = rowIdx % 2 === 0 ? '#ffffff' : '#ffffff'
 
                     return (
                       <tr key={a.reference} style={{ background: rowBg }}>
@@ -600,7 +600,7 @@ export default function Applications() {
           justify-content: space-between; gap: 20px;
           padding: 20px 24px;
           border-bottom: 1px solid #e7e5e4;
-          background: #f8f8f4;
+          background: white;
           flex-wrap: wrap;
         }
         .app-canvas-head h2 {
