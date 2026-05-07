@@ -73,7 +73,7 @@ class PublicContactController extends Controller
             ]);
 
             return back()->withErrors([
-                'contact' => 'Le message n a pas pu etre envoye. Verifiez la configuration SMTP puis reessayez.',
+                'contact' => 'Le message n a pas pu etre envoye. Verifiez la configuration email puis reessayez.',
             ]);
         }
     }
