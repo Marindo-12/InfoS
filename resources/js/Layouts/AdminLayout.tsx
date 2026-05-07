@@ -19,6 +19,8 @@ const I = {
   Chevron: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>,
   Menu: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>,
   Close: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
+  Moon: () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>,
+  Sun: () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>,
   Logout: () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>,
   Globe: () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>,
 }
@@ -110,6 +112,7 @@ export default function AdminLayout({
   const [searchQuery, setSearchQuery] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [windowWidth, setWindowWidth] = useState(0)
+  const [isDark, setIsDark] = useState(false)
 
   // Détection largeur écran
   useEffect(() => {
@@ -118,6 +121,17 @@ export default function AdminLayout({
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('infos-admin-theme')
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    setIsDark(storedTheme ? storedTheme === 'dark' : Boolean(prefersDark))
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark)
+    localStorage.setItem('infos-admin-theme', isDark ? 'dark' : 'light')
+  }, [isDark])
 
   // Mode réduit effectif : uniquement sur grand écran ET collapsed activé
   const effectiveCollapsed = collapsed && windowWidth >= 768
@@ -204,6 +218,23 @@ export default function AdminLayout({
           width: 100%;
           max-width: 100vw;
           overflow-x: hidden;
+        }
+        .al-root.al-dark {
+          --al-orange:       #f0a878;
+          --al-orange-2:     #d47c45;
+          --al-orange-pale:  rgba(240,168,120,.12);
+          --al-orange-pale2: rgba(240,168,120,.22);
+          --al-sidebar:      #17130f;
+          --al-sidebar-2:    #211b16;
+          --al-sidebar-b:    rgba(240,232,222,0.10);
+          --al-page:         #14110f;
+          --al-topbar:       rgba(20,17,15,0.86);
+          --al-t1:  #f8efe5;
+          --al-t2:  #d1c2b4;
+          --al-t3:  #8f8174;
+          --al-nav-hover:   rgba(240,168,120,0.10);
+          --al-nav-active:  rgba(240,168,120,0.16);
+          --al-nav-active-t:#f0a878;
         }
 
         .al-overlay {
@@ -295,6 +326,9 @@ export default function AdminLayout({
         .al-collapse-btn:hover {
           background: rgba(0,0,0,0.05);
           color: var(--al-orange);
+        }
+        .al-root.al-dark .al-collapse-btn:hover {
+          background: rgba(255,255,255,0.06);
         }
         .al-brand--col .al-collapse-btn { transform: rotate(180deg); }
 
@@ -462,6 +496,10 @@ export default function AdminLayout({
           border-bottom-color: rgba(0,0,0,0.07);
           box-shadow: 0 1px 14px rgba(0,0,0,0.06);
         }
+        .al-root.al-dark .al-topbar--scrolled {
+          border-bottom-color: rgba(240,232,222,.10);
+          box-shadow: 0 12px 32px rgba(0,0,0,.26);
+        }
 
         .al-mobile-btn {
           display: none;
@@ -469,6 +507,11 @@ export default function AdminLayout({
           width: 36px; height: 36px;
           border-radius: 9px; border: 1px solid rgba(0,0,0,0.09);
           background: #fff; color: #555; cursor: pointer; flex-shrink: 0;
+        }
+        .al-root.al-dark .al-mobile-btn {
+          background: #211b16;
+          color: #d1c2b4;
+          border-color: rgba(240,232,222,.12);
         }
         @media (max-width: 767px) { .al-mobile-btn { display: flex; } }
 
@@ -482,6 +525,10 @@ export default function AdminLayout({
           background: #fff;
           transition: border-color var(--al-tr), box-shadow var(--al-tr);
         }
+        .al-root.al-dark .al-search {
+          background: #211b16;
+          border-color: rgba(240,232,222,.12);
+        }
         .al-search:focus-within {
           border-color: var(--al-orange);
           box-shadow: 0 0 0 3px rgba(194,101,42,.1);
@@ -491,6 +538,7 @@ export default function AdminLayout({
           font-family: var(--al-font); font-size: .82rem;
           color: #1a1612; width: 180px;
         }
+        .al-root.al-dark .al-search input { color: #f8efe5; }
         .al-search input::placeholder { color: #b0a49a; }
         @media (max-width: 639px) { .al-search { display: none; } }
 
@@ -507,10 +555,23 @@ export default function AdminLayout({
           transition: background var(--al-tr), color var(--al-tr);
           flex-shrink: 0;
         }
+        .al-theme-btn {
+          position: relative;
+        }
         .al-tb-btn:hover {
           background: var(--al-orange-pale);
           color: var(--al-orange);
           border-color: var(--al-orange-pale2);
+        }
+        .al-root.al-dark .al-tb-btn {
+          background: #211b16;
+          color: #d1c2b4;
+          border-color: rgba(240,232,222,.12);
+        }
+        .al-root.al-dark .al-tb-btn:hover {
+          background: rgba(240,168,120,.12);
+          color: #f0a878;
+          border-color: rgba(240,168,120,.25);
         }
         .al-tb-badge {
           position: absolute; top: -4px; right: -4px;
@@ -531,12 +592,18 @@ export default function AdminLayout({
           z-index: 80;
           overflow: hidden;
         }
+        .al-root.al-dark .al-notif-menu {
+          background: #211b16;
+          border-color: rgba(240,232,222,.12);
+          box-shadow: 0 18px 50px rgba(0,0,0,.36);
+        }
         .al-notif-head {
           display: flex; align-items: center; justify-content: space-between; gap: 12px;
           padding: 14px 16px;
           border-bottom: 1px solid rgba(15,23,42,.07);
         }
         .al-notif-head strong { font-size: .86rem; color: #18181b; }
+        .al-root.al-dark .al-notif-head strong { color: #f8efe5; }
         .al-notif-head button {
           border: none; background: transparent; color: var(--al-orange);
           font-size: .72rem; font-weight: 800; cursor: pointer;
@@ -549,22 +616,37 @@ export default function AdminLayout({
           border-bottom: 1px solid rgba(15,23,42,.06);
           background: #fff;
         }
+        .al-root.al-dark .al-notif-item {
+          background: #211b16;
+          border-bottom-color: rgba(240,232,222,.08);
+        }
         .al-notif-item:hover { background: #fffaf6; }
         .al-notif-item--unread { background: #fff7ed; }
+        .al-root.al-dark .al-notif-item:hover,
+        .al-root.al-dark .al-notif-item--unread {
+          background: rgba(240,168,120,.10);
+        }
         .al-notif-item strong {
           display: block; color: #18181b; font-size: .8rem; margin-bottom: 4px;
         }
+        .al-root.al-dark .al-notif-item strong { color: #f8efe5; }
         .al-notif-item span {
           display: block; color: #6b7280; font-size: .73rem; line-height: 1.45;
         }
+        .al-root.al-dark .al-notif-item span { color: #d1c2b4; }
         .al-notif-item small {
           display: block; color: #a1a1aa; font-size: .67rem; margin-top: 6px;
         }
         .al-notif-empty { padding: 18px 16px; color: #6b7280; font-size: .8rem; }
+        .al-root.al-dark .al-notif-empty { color: #d1c2b4; }
         .al-notif-foot {
           display: block; padding: 12px 16px; color: var(--al-orange);
           background: #faf8f5; text-decoration: none; font-size: .78rem; font-weight: 800;
           border-top: 1px solid rgba(15,23,42,.07);
+        }
+        .al-root.al-dark .al-notif-foot {
+          background: #17130f;
+          border-top-color: rgba(240,232,222,.10);
         }
 
         .al-admin-tag {
@@ -596,6 +678,11 @@ export default function AdminLayout({
           box-shadow: 0 10px 24px rgba(36,28,20,.08);
           transition: background var(--al-tr), border-color var(--al-tr), box-shadow var(--al-tr), transform var(--al-tr);
         }
+        .al-root.al-dark .al-tb-user {
+          background: #211b16;
+          border-color: rgba(240,168,120,.20);
+          box-shadow: 0 10px 24px rgba(0,0,0,.22);
+        }
         .al-tb-user:hover {
           background: var(--al-orange-pale);
           border-color: var(--al-orange-pale2);
@@ -606,7 +693,9 @@ export default function AdminLayout({
           font-size: .86rem; font-weight: 800; color: #1a1612;
           white-space: nowrap;
         }
+        .al-root.al-dark .al-tb-username { color: #f8efe5; }
         .al-tb-role { font-size: .68rem; color: #8b8078; white-space: nowrap; }
+        .al-root.al-dark .al-tb-role { color: #9f9286; }
 
         .al-content {
           flex: 1; padding: 0;
@@ -623,7 +712,7 @@ export default function AdminLayout({
         }
       `}</style>
 
-      <div className="al-root">
+      <div className={`al-root ${isDark ? 'al-dark dark' : ''}`}>
 
         {mobileOpen && (
           <div className="al-overlay" onClick={() => setMobileOpen(false)} aria-hidden />
@@ -705,6 +794,16 @@ export default function AdminLayout({
             <div className="al-topbar-title">{header}</div>
 
             <div className="al-topbar-right">
+              <button
+                className="al-tb-btn al-theme-btn"
+                aria-label={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
+                title={isDark ? 'Mode clair' : 'Mode sombre'}
+                type="button"
+                onClick={() => setIsDark(value => !value)}
+              >
+                {isDark ? <I.Sun /> : <I.Moon />}
+              </button>
+
               <div className="al-admin-tag">
                 <span className="al-admin-tag-dot" />
                 Admin
