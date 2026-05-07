@@ -74,7 +74,7 @@ export default function Login({
           )}
 
           {/* Google button */}
-          <a href={route('about')} className="login-google-btn">
+          <a href={route('auth.google')} className="login-google-btn">
             <GoogleIcon />
             <span>Continuer avec Google</span>
           </a>
