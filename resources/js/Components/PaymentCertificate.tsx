@@ -70,11 +70,11 @@ export const PaymentCertificate: React.FC<PaymentCertificateProps> = ({ certific
     const element = certificateRef.current;
     // Options optimisées pour une seule page A4
     const opt = {
-      margin:        [0.2, 0.2, 0.2, 0.2], // marges réduites
+      margin:        [0.2, 0.2, 0.2, 0.2] as [number, number, number, number],
       filename:     `certificat_${certificate.reference}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
+      image:        { type: 'jpeg' as const, quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      jsPDF:        { unit: 'in' as const, format: 'a4', orientation: 'portrait' as const }
     };
 
     try {
@@ -258,3 +258,5 @@ export const PaymentCertificate: React.FC<PaymentCertificateProps> = ({ certific
     </>
   );
 };
+
+export default PaymentCertificate;
