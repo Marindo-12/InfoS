@@ -201,6 +201,9 @@ export default function AdminLayout({
           display: flex; min-height: 100vh;
           background: var(--al-page);
           font-family: var(--al-font);
+          width: 100%;
+          max-width: 100vw;
+          overflow-x: hidden;
         }
 
         .al-overlay {
@@ -437,6 +440,8 @@ export default function AdminLayout({
           transition: margin-left var(--al-tr);
           display: flex; flex-direction: column;
           min-height: 100vh;
+          min-width: 0;
+          max-width: 100%;
         }
         .al-sidebar--col ~ .al-main { margin-left: var(--al-sw-col); }
         @media (max-width: 767px) { .al-main { margin-left: 0 !important; } }
@@ -451,6 +456,7 @@ export default function AdminLayout({
           display: flex; align-items: center;
           padding: 0 28px; gap: 14px;
           transition: border-color var(--al-tr), box-shadow var(--al-tr);
+          min-width: 0;
         }
         .al-topbar--scrolled {
           border-bottom-color: rgba(0,0,0,0.07);
@@ -466,7 +472,7 @@ export default function AdminLayout({
         }
         @media (max-width: 767px) { .al-mobile-btn { display: flex; } }
 
-        .al-topbar-title { flex: 1; }
+        .al-topbar-title { flex: 1; min-width: 0; overflow: hidden; }
 
         .al-search {
           display: flex; align-items: center; gap: 8px;
@@ -488,7 +494,7 @@ export default function AdminLayout({
         .al-search input::placeholder { color: #b0a49a; }
         @media (max-width: 639px) { .al-search { display: none; } }
 
-        .al-topbar-right { display: flex; align-items: center; gap: 8px; }
+        .al-topbar-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
         .al-tb-btn {
           position: relative;
@@ -605,6 +611,15 @@ export default function AdminLayout({
         .al-content {
           flex: 1; padding: 0;
           overflow-y: auto;
+          overflow-x: hidden;
+          min-width: 0;
+          max-width: 100%;
+        }
+
+        @media (max-width: 767px) {
+          .al-topbar { padding: 0 12px; gap: 8px; }
+          .al-admin-tag, .al-tb-user { display: none; }
+          .al-topbar-right { flex-shrink: 0; }
         }
       `}</style>
 

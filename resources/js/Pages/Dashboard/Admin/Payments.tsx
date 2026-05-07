@@ -247,10 +247,10 @@ export default function AdminPayments() {
                     const s = statusMeta(payment.status)
                     return (
                       <tr key={payment.reference}>
-                        <td style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#8b8b8b' }}>
+                        <td data-label="Reference" style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#8b8b8b' }}>
                           {payment.reference}
                         </td>
-                        <td>
+                        <td data-label="Etudiant">
                           <div className="admp-student-cell">
                             <div className="admp-av">{initials(payment.student)}</div>
                             <div>
@@ -259,12 +259,12 @@ export default function AdminPayments() {
                             </div>
                           </div>
                         </td>
-                        <td>{payment.course}</td>
-                        <td className="admp-amount">{payment.amount}</td>
-                        <td style={{ color: '#6b7280' }}>{payment.method}</td>
-                        <td><span className={s.cls}>{s.label}</span></td>
-                        <td style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{payment.date}</td>
-                        <td style={{ fontWeight: 700, color: payment.remaining === '0 DH' ? '#10b981' : '#b45309' }}>
+                        <td data-label="Formation">{payment.course}</td>
+                        <td data-label="Montant" className="admp-amount">{payment.amount}</td>
+                        <td data-label="Mode" style={{ color: '#6b7280' }}>{payment.method}</td>
+                        <td data-label="Statut"><span className={s.cls}>{s.label}</span></td>
+                        <td data-label="Date" style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{payment.date}</td>
+                        <td data-label="Reste" style={{ fontWeight: 700, color: payment.remaining === '0 DH' ? '#10b981' : '#b45309' }}>
                           {payment.remaining}
                         </td>
                       </tr>
@@ -321,7 +321,10 @@ export default function AdminPayments() {
           padding: 28px;
           font-family: 'Manrope', sans-serif;
           color: #18181b; min-height: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
+        .admp-root *, .admp-root *::before, .admp-root *::after { box-sizing: border-box; }
 
         /* Header */
         .admp-header {
@@ -389,6 +392,8 @@ export default function AdminPayments() {
           border: 1px solid rgba(15,23,42,.07);
           box-shadow: 0 4px 20px rgba(15,23,42,.04);
           border-radius: 20px; padding: 24px;
+          max-width: 100%;
+          min-width: 0;
         }
         .admp-section-head {
           display: flex; align-items: center;
@@ -564,6 +569,45 @@ export default function AdminPayments() {
           .admp-header, .admp-panel { padding: 18px; border-radius: 16px; }
           .admp-recent-payment { grid-template-columns: 1fr; }
           .admp-stats-grid { grid-template-columns: 1fr; }
+          .admp-header-chips, .admp-chip { width: 100%; }
+          .admp-area-wrap { height: 240px; padding: 8px 0 0; }
+          .admp-donut-wrap { height: 190px; }
+          .admp-table-wrap { overflow-x: visible; border: none; margin-top: 4px; }
+          .admp-table { min-width: 0; border-collapse: separate; border-spacing: 0 12px; }
+          .admp-table thead { display: none; }
+          .admp-table, .admp-table tbody, .admp-table tr, .admp-table td { display: block; width: 100%; }
+          .admp-table tbody tr {
+            border: 1px solid rgba(15,23,42,.07);
+            border-radius: 14px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(15,23,42,.04);
+          }
+          .admp-table th, .admp-table td { padding: 0; }
+          .admp-table td {
+            display: grid;
+            grid-template-columns: 96px minmax(0, 1fr);
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(15,23,42,.06);
+            min-width: 0;
+          }
+          .admp-table td:last-child { border-bottom: none; }
+          .admp-table td::before {
+            content: attr(data-label);
+            font-size: .62rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+          }
+          .admp-student-cell, .admp-student-cell > div {
+            min-width: 0;
+          }
+          .admp-student-cell strong, .admp-student-cell span, .admp-table td {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
         }
       `}</style>
 

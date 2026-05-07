@@ -157,7 +157,7 @@ export default function Students() {
                   const status = statusMeta(student.paymentStatus)
                   return (
                     <tr key={student.email}>
-                      <td>
+                      <td data-label="Etudiant">
                         <div className="adm-student-cell">
                           <div className="adm-avatar adm-avatar--sm">{initials(student.name)}</div>
                           <div>
@@ -167,9 +167,9 @@ export default function Students() {
                           </div>
                         </div>
                       </td>
-                      <td>{student.course}</td>
-                      <td><span className={status.cls}>{status.label}</span></td>
-                      <td>
+                      <td data-label="Formation">{student.course}</td>
+                      <td data-label="Paiement"><span className={status.cls}>{status.label}</span></td>
+                      <td data-label="Progression">
                         <div className="adm-progress">
                           <div className="adm-progress-track">
                             <div className="adm-progress-fill" style={{ width: `${student.progress}%` }} />
@@ -177,7 +177,7 @@ export default function Students() {
                           <span>{student.progress}%</span>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Parcours">
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                           width: 28, height: 28, borderRadius: 8,
@@ -187,8 +187,8 @@ export default function Students() {
                           {student.enrollmentsCount}
                         </span>
                       </td>
-                      <td style={{ color: '#6b7280', fontSize: '.8rem' }}>{student.lastSeen}</td>
-                      <td>
+                      <td data-label="Derniere activite" style={{ color: '#6b7280', fontSize: '.8rem' }}>{student.lastSeen}</td>
+                      <td data-label="Actions">
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button className="adm-action-btn" title="Voir le profil">
                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
@@ -248,7 +248,10 @@ export default function Students() {
           font-family: 'Manrope', sans-serif;
           color: #18181b;
           min-height: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
+        .adm-root *, .adm-root *::before, .adm-root *::after { box-sizing: border-box; }
 
         /* Header */
         .adm-header {
@@ -382,6 +385,8 @@ export default function Students() {
           box-shadow: 0 4px 20px rgba(15,23,42,.04);
           border-radius: 20px; padding: 24px;
           margin-bottom: 8px;
+          max-width: 100%;
+          min-width: 0;
         }
         .adm-table-wrap {
           overflow-x: auto;
@@ -465,6 +470,46 @@ export default function Students() {
           .adm-stats-grid   { grid-template-columns: 1fr; }
           .adm-recent-grid  { grid-template-columns: 1fr; }
           .adm-header       { padding: 18px; border-radius: 16px; }
+          .adm-primary-btn  { width: 100%; }
+          .adm-section-head > div { width: 100%; flex-wrap: wrap; }
+          .adm-section-head > div > div { width: 100%; flex-wrap: wrap; }
+          .adm-section-head button { flex: 1 1 calc(50% - 4px); min-width: 0; }
+          .adm-table-section { padding: 16px; }
+          .adm-table-wrap { overflow-x: visible; border: none; margin-top: 4px; }
+          .adm-table { min-width: 0; border-collapse: separate; border-spacing: 0 12px; }
+          .adm-table thead { display: none; }
+          .adm-table, .adm-table tbody, .adm-table tr, .adm-table td { display: block; width: 100%; }
+          .adm-table tbody tr {
+            border: 1px solid rgba(15,23,42,.07);
+            border-radius: 14px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(15,23,42,.04);
+          }
+          .adm-table th, .adm-table td { padding: 0; }
+          .adm-table td {
+            display: grid;
+            grid-template-columns: 104px minmax(0, 1fr);
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(15,23,42,.06);
+            min-width: 0;
+          }
+          .adm-table td:last-child { border-bottom: none; }
+          .adm-table td::before {
+            content: attr(data-label);
+            font-size: .62rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+          }
+          .adm-student-cell, .adm-student-cell > div { min-width: 0; }
+          .adm-student-cell strong, .adm-student-cell span, .adm-student-cell small {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+          .adm-progress-track { width: 100%; max-width: 140px; }
         }
       `}</style>
 

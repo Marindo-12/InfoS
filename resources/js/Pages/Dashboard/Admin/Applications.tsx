@@ -290,7 +290,7 @@ export default function Applications() {
                       <tr key={a.reference} className={isApproved ? 'app-row--approved' : ''}>
 
                         {/* Candidat */}
-                        <td>
+                        <td data-label="Candidat">
                           <div className="app-candidate">
                             <Avatar name={a.student} />
                             <div className="app-candidate-info">
@@ -309,14 +309,14 @@ export default function Applications() {
                         </td>
 
                         {/* Formation */}
-                        <td>
+                        <td data-label="Formation">
                           <p className="app-strong">{a.course}</p>
                           <span className="app-meta">{a.category}</span>
                           <p className="app-amount">{a.amount}</p>
                         </td>
 
                         {/* Paiement */}
-                        <td>
+                        <td data-label="Paiement">
                           <div className="app-payment-cell">
                             {a.paymentMethod === 'online' ? (
                               <>
@@ -344,7 +344,7 @@ export default function Applications() {
                         </td>
 
                         {/* Certificat */}
-                        <td>
+                        <td data-label="Certificat">
                           {a.certificateReference ? (
                             <div className="app-cert">
                               <Ic.cert />
@@ -356,7 +356,7 @@ export default function Applications() {
                         </td>
 
                         {/* Statut */}
-                        <td>
+                        <td data-label="Statut">
                           {isApproved
                             ? <Badge label="Validée" tone="green" />
                             : isRejected
@@ -366,12 +366,12 @@ export default function Applications() {
                         </td>
 
                         {/* Date */}
-                        <td>
+                        <td data-label="Date">
                           <span className="app-date">{a.createdAt}</span>
                         </td>
 
                         {/* Action */}
-                        <td style={{ textAlign: 'right' }}>
+                        <td data-label="Action" style={{ textAlign: 'right' }}>
                           <button
                             className={`app-action-btn ${isApproved ? 'app-action-btn--ghost' : ''}`}
                             onClick={() => isApproved ? resendAccess(a) : approve(a)}
@@ -409,7 +409,7 @@ export default function Applications() {
         .app-root {
           padding: 28px; font-family: 'Manrope', sans-serif; color: #18181b;
           display: flex; flex-direction: column; gap: 18px;
-          width: 100%; min-width: 0;
+          width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden;
         }
         .app-root *, .app-root *::before, .app-root *::after { box-sizing: border-box; }
 
@@ -475,7 +475,7 @@ export default function Applications() {
           background: #fff; border-radius: 18px;
           border: 1px solid rgba(0,0,0,0.07);
           box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-          overflow: hidden;
+          overflow: hidden; max-width: 100%; min-width: 0;
         }
         .app-panel-head {
           display: flex; align-items: flex-start; justify-content: space-between;
@@ -540,7 +540,7 @@ export default function Applications() {
         .app-reset-btn:hover { border-color: #c2652a; color: #c2652a; }
 
         /* ── Table ── */
-        .app-table-wrap { overflow-x: auto; min-width: 0; }
+        .app-table-wrap { overflow-x: auto; min-width: 0; max-width: 100%; }
         .app-table {
           width: 100%; min-width: 900px; border-collapse: collapse;
         }
@@ -648,7 +648,41 @@ export default function Applications() {
           .app-panel-head, .app-toolbar { padding-left: 16px; padding-right: 16px; }
           .app-filter-group { flex-direction: column; align-items: flex-start; width: 100%; }
           .app-select { width: 100%; }
-          .app-table th, .app-table td { padding: 10px 12px; }
+          .app-table-wrap { overflow-x: visible; padding: 0 12px 12px; }
+          .app-table { min-width: 0; border-collapse: separate; border-spacing: 0 12px; }
+          .app-table thead { display: none; }
+          .app-table, .app-table tbody, .app-table tr, .app-table td { display: block; width: 100%; }
+          .app-table tbody tr {
+            border: 1px solid rgba(0,0,0,.07);
+            border-radius: 14px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(15,23,42,.04);
+          }
+          .app-table td {
+            display: grid;
+            grid-template-columns: 96px minmax(0, 1fr);
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            text-align: left !important;
+            min-width: 0;
+          }
+          .app-table td:last-child { border-bottom: none; }
+          .app-table td::before {
+            content: attr(data-label);
+            font-size: .62rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+          }
+          .app-candidate, .app-candidate-info, .app-meta, .app-strong, .app-cert { min-width: 0; }
+          .app-candidate-name, .app-meta, .app-strong, .app-cert code {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+          .app-action-btn { width: 100%; justify-content: center; white-space: normal; }
         }
       `}</style>
     </AdminLayout>
