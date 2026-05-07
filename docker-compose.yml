@@ -5,8 +5,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     dns:
-      - 8.8.8.8
-      - 1.1.1.1
+      - 192.168.0.1
     extra_hosts:
       - "smtp.gmail.com:173.194.76.109"
     volumes:
@@ -61,8 +60,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     dns:
-      - 8.8.8.8
-      - 1.1.1.1
+      - 192.168.0.1
     extra_hosts:
       - "smtp.gmail.com:173.194.76.109"
     volumes:

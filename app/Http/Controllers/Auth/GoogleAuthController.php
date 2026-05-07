@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Throwable;
 
 class GoogleAuthController extends Controller
 {
     /**
-     * Redirect to Google OAuth provider
+     * Redirect to Google OAuth provider.
      */
     public function redirect(): RedirectResponse
     {
@@ -19,41 +22,60 @@ class GoogleAuthController extends Controller
     }
 
     /**
-     * Handle callback from Google OAuth provider
+     * Handle callback from Google OAuth provider.
      */
     public function callback(): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
+            $email = $googleUser->getEmail();
 
-            // Find or create user with Google credentials
-            $user = User::where('email', $googleUser->getEmail())->first();
+            $user = User::where('email', $email)->first();
 
-            if ($user) {
-                // Update existing user with Google ID if not set
-                if (!$user->google_id) {
-                    $user->update(['google_id' => $googleUser->getId()]);
-                }
-            } else {
-                // Create new user from Google OAuth
-                $user = User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
-                    'email_verified_at' => now(),
-                    'password' => bcrypt(uniqid()), // Random password for OAuth users
-                ]);
+            if (! $user) {
+                return redirect()->route('login')->with(
+                    'error',
+                    "Aucun compte etudiant n'est associe a cette adresse Google. Veuillez d'abord envoyer une demande d'inscription."
+                );
             }
 
-            // Login user and remember them
+            if ($user->status !== 'active') {
+                return redirect()->route('login')->with(
+                    'error',
+                    "Votre compte existe, mais il n'est pas encore valide par l'administration."
+                );
+            }
+
+            if (! $user->google_id) {
+                $user->forceFill(['google_id' => $googleUser->getId()])->save();
+            }
+
             Auth::login($user, remember: true);
+            request()->session()->regenerate();
 
-            // Redirect to dashboard or home page
-            return redirect()->intended(route('dashboard'));
+            if ($user->isStudent()) {
+                request()->session()->put('login_code_verified', true);
+            }
 
-        } catch (\Exception $e) {
-            \Log::error('Google OAuth Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Authentification échouée. Veuillez réessayer.');
+            return redirect()->intended(route('dashboard', absolute: false));
+        } catch (Throwable $exception) {
+            $message = $exception->getMessage();
+
+            Log::error('Google OAuth Error: '.$message, [
+                'exception' => $exception::class,
+            ]);
+
+            if (Str::contains($message, ['Could not resolve host', 'Could not connect', 'cURL error 6', 'cURL error 7'])) {
+                return redirect()->route('login')->with(
+                    'error',
+                    "Le serveur n'arrive pas a contacter Google pour terminer la connexion. Redemarrez Laravel hors sandbox ou verifiez l'acces internet du serveur."
+                );
+            }
+
+            return redirect()->route('login')->with(
+                'error',
+                "L'authentification Google a echoue. Veuillez reessayer."
+            );
         }
     }
 }

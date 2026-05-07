@@ -20,9 +20,13 @@ const GoogleIcon = () => (
 export default function Login({
   status,
   canResetPassword,
+  flash,
 }: {
   status?: string;
   canResetPassword: boolean;
+  flash?: {
+    error?: string;
+  };
 }) {
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
@@ -70,6 +74,12 @@ export default function Login({
           {status && (
             <div className="login-status">
               {status}
+            </div>
+          )}
+
+          {flash?.error && (
+            <div className="login-status login-status-error">
+              {flash.error}
             </div>
           )}
 
@@ -297,6 +307,11 @@ export default function Login({
           color: #166534;
           font-weight: 500;
           text-align: center;
+        }
+        .login-status-error {
+          background: #fff1f2;
+          border-color: #fecdd3;
+          color: #be123c;
         }
 
         /* ── Google button ── */
