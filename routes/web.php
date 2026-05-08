@@ -132,6 +132,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/students', [StudentController::class, 'index'])->name('students');
+    Route::post('/students', [StudentController::class, 'store'])->name('students.store');
+    Route::patch('/students/{student}', [StudentController::class, 'update'])->name('students.update');
+    Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
 
     Route::get('/courses', function () {
         return Inertia::render('Dashboard/Admin/Courses');

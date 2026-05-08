@@ -7,6 +7,10 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -58,10 +62,16 @@ class StudentController extends Controller
                 $latestEnrollment = $student->enrollments->sortByDesc('created_at')->first();
 
                 return [
+                    'id' => $student->id,
                     'name' => $student->name,
                     'email' => $student->email,
+                    'phone' => $student->phone,
+                    'city' => $student->city,
+                    'status' => $student->status,
+                    'avatarUrl' => $student->avatar_url,
                     'course' => $latestEnrollment?->course?->title ?? 'Aucune formation',
                     'joinedAt' => $student->created_at?->format('d/m/Y'),
+                    'progress' => $latestEnrollment?->progress ?? 0,
                 ];
             });
 
@@ -71,7 +81,7 @@ class StudentController extends Controller
                 ->flatMap->payments
                 ->where('status', 'paid')
                 ->sum('amount');
-            $dueTotal = (float) $student->enrollments->sum(fn (Enrollment $enrollment) => (float) $enrollment->course->price);
+            $dueTotal = (float) $student->enrollments->sum(fn (Enrollment $enrollment) => (float) ($enrollment->course?->price ?? 0));
 
             $paymentStatus = match (true) {
                 $dueTotal <= 0 => 'non defini',
@@ -81,9 +91,15 @@ class StudentController extends Controller
             };
 
             return [
+                'id' => $student->id,
                 'name' => $student->name,
                 'email' => $student->email,
                 'phone' => $student->phone,
+                'address' => $student->address,
+                'city' => $student->city,
+                'status' => $student->status,
+                'joinedAt' => $student->created_at?->format('d/m/Y'),
+                'avatarUrl' => $student->avatar_url,
                 'course' => $latestEnrollment?->course?->title ?? 'Aucune formation',
                 'progress' => $latestEnrollment?->progress ?? 0,
                 'paymentStatus' => $paymentStatus,
@@ -97,5 +113,52 @@ class StudentController extends Controller
             'recentStudents' => $recentStudents,
             'students' => $studentRows,
         ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'status' => ['required', Rule::in(['active', 'inactive'])],
+        ]);
+
+        User::query()->create([
+            ...$data,
+            'role' => 'student',
+            'password' => Hash::make(str()->password(14)),
+        ]);
+
+        return back()->with('success', 'Etudiant cree avec succes.');
+    }
+
+    public function update(Request $request, User $student): RedirectResponse
+    {
+        abort_unless($student->isStudent(), 404);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($student->id)],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'status' => ['required', Rule::in(['active', 'inactive'])],
+        ]);
+
+        $student->update($data);
+
+        return back()->with('success', 'Etudiant mis a jour.');
+    }
+
+    public function destroy(User $student): RedirectResponse
+    {
+        abort_unless($student->isStudent(), 404);
+
+        $student->delete();
+
+        return back()->with('success', 'Etudiant supprime.');
     }
 }
