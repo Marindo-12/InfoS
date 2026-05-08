@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react'
-import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
+import { PropsWithChildren, ReactNode, useState, useEffect, useRef } from 'react'
 import logo from '../../../public/infos-logo.png'
 
 /* ═══════════════════════════════════════════════
@@ -109,6 +109,7 @@ export default function AdminLayout({
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [windowWidth, setWindowWidth] = useState(0)
   const [isDark, setIsDark] = useState(false)
+  const notificationsRef = useRef<HTMLDivElement | null>(null)
 
   // Détection largeur écran
   useEffect(() => {
@@ -160,6 +161,22 @@ export default function AdminLayout({
     el.addEventListener('scroll', fn, { passive: true })
     return () => el.removeEventListener('scroll', fn)
   }, [])
+
+  useEffect(() => {
+    if (!notificationsOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null
+      if (target && notificationsRef.current?.contains(target)) {
+        return
+      }
+
+      setNotificationsOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [notificationsOpen])
 
   // SVG double flèche pour réduction
   const CollapseIcon = () => (
@@ -822,7 +839,7 @@ export default function AdminLayout({
                 Admin
               </div>
 
-              <div className="al-notif-wrap">
+              <div className="al-notif-wrap" ref={notificationsRef}>
                 <button
                   className="al-tb-btn"
                   aria-label="Notifications"
