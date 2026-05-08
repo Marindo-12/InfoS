@@ -1,5 +1,53 @@
 import AdminLayout from '@/Layouts/AdminLayout'
 import { Head, Link, usePage } from '@inertiajs/react'
+import {
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts'
+
+type Accent = 'orange' | 'green' | 'tertiary' | 'slate'
+
+type Stat = {
+  label: string
+  value: string
+  sub: string
+  delta: string
+  accent: Accent
+}
+
+type ChartPoint = {
+  name: string
+  value: number
+  color: string
+}
+
+type ActivityItem = {
+  title: string
+  description: string
+  time: string
+  icon: string
+  tone: 'primary' | 'secondary' | 'tertiary' | 'warning'
+}
+
+type Summary = {
+  students: number
+  monthlyRevenue: number
+  totalCollected: number
+  pendingApplications: number
+  collectionRate: number
+  conversionRate: number
+  applicationsTotal: number
+  enrollmentsTotal: number
+}
+
+type Spotlight = {
+  students: string
+  courses: string
+  reports: string
+}
 
 type PageProps = {
   auth: {
@@ -7,68 +55,129 @@ type PageProps = {
       id: number
       name: string
       email: string
+      avatar_url?: string | null
     }
   }
+  stats: Stat[]
+  summary: Summary
+  enrollmentDistribution: ChartPoint[]
+  financialDistribution: ChartPoint[]
+  recentActivity: ActivityItem[]
+  spotlight: Spotlight
 }
 
-type Metric = {
-  label: string
-  value: string
-  sub: string
-  accent: 'orange' | 'blue' | 'green' | 'slate'
+const fallbackChart = [{ name: 'Aucune donnee', value: 1, color: '#cec6be' }]
+
+function greetingForHour(hour: number) {
+  if (hour < 5) return 'Bonne nuit'
+  if (hour < 12) return 'Bonjour'
+  if (hour < 18) return 'Bon apres-midi'
+  if (hour < 22) return 'Bonsoir'
+  return 'Bonne nuit'
 }
 
-type QuickAction = {
-  title: string
-  description: string
-  href: string
-  icon: string
+function initials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .map(part => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
 }
 
-const metrics: Metric[] = [
-  { label: 'Etudiants actifs', value: '128', sub: '+12 inscriptions ce mois', accent: 'orange' },
-  { label: 'Paiements suivis', value: '84%', sub: 'taux de recouvrement', accent: 'green' },
-  { label: 'Candidatures', value: '18', sub: 'dossiers a traiter', accent: 'blue' },
-  { label: 'Alertes', value: '7', sub: 'actions administratives', accent: 'slate' },
-]
+function darken(hex: string) {
+  const value = hex.replace('#', '')
+  const r = Math.max(0, parseInt(value.slice(0, 2), 16) - 54)
+  const g = Math.max(0, parseInt(value.slice(2, 4), 16) - 54)
+  const b = Math.max(0, parseInt(value.slice(4, 6), 16) - 54)
+  return `rgb(${r}, ${g}, ${b})`
+}
 
-const quickActions: QuickAction[] = [
-  {
-    title: 'Gestion des etudiants',
-    description: 'Consulter les profils, les formations suivies et les statuts de paiement.',
-    href: route('admin.students'),
-    icon: 'groups',
-  },
-  {
-    title: 'Pilotage des paiements',
-    description: 'Verifier les encaissements, les restes a payer et les prochaines echeances.',
-    href: route('admin.payments'),
-    icon: 'payments',
-  },
-  {
-    title: 'Candidatures',
-    description: 'Traiter les demandes entrantes et suivre les dossiers incomplets.',
-    href: route('admin.applications'),
-    icon: 'description',
-  },
-  {
-    title: 'Rapports',
-    description: 'Preparer une vue claire sur l activite pedagogique et financiere.',
-    href: route('admin.reports'),
-    icon: 'monitoring',
-  },
-]
+function fmtDh(value: number | string | undefined) {
+  return `${Number(value ?? 0).toLocaleString('fr-FR')} DH`
+}
 
-const activity = [
-  { title: 'Nouveau paiement enregistre', meta: 'Il y a 12 min', tone: 'green' },
-  { title: 'Trois dossiers etudiants mis a jour', meta: 'Aujourd hui', tone: 'orange' },
-  { title: 'Echeance de paiement a relancer', meta: 'Demain', tone: 'amber' },
-  { title: 'Rapport mensuel pret a verifier', meta: 'Cette semaine', tone: 'slate' },
-]
+function percent(value: number, total: number) {
+  return total > 0 ? Math.round((value / total) * 100) : 0
+}
+
+function Donut3D({
+  data,
+  totalLabel,
+  totalValue,
+  tooltipSuffix,
+}: {
+  data: ChartPoint[]
+  totalLabel: string
+  totalValue: string
+  tooltipSuffix?: string
+}) {
+  const chartData = data.length > 0 ? data : fallbackChart
+
+  return (
+    <div className="admd-donut-shell">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="56%"
+            innerRadius={58}
+            outerRadius={91}
+            paddingAngle={3}
+            stroke="none"
+            isAnimationActive={false}
+          >
+            {chartData.map(entry => (
+              <Cell key={`depth-${entry.name}`} fill={darken(entry.color)} opacity={0.42} />
+            ))}
+          </Pie>
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="49%"
+            innerRadius={58}
+            outerRadius={91}
+            paddingAngle={3}
+            stroke="rgba(255,255,255,.65)"
+            strokeWidth={2}
+          >
+            {chartData.map(entry => (
+              <Cell key={entry.name} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: any) => tooltipSuffix === 'DH' ? fmtDh(value) : `${value}${tooltipSuffix ?? ''}`}
+            contentStyle={{
+              borderRadius: 12,
+              border: '1px solid rgba(154,144,136,.22)',
+              boxShadow: '0 16px 40px rgba(58,48,42,.12)',
+              fontFamily: 'Manrope, sans-serif',
+              fontSize: 12,
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="admd-donut-center">
+        <strong>{totalValue}</strong>
+        <span>{totalLabel}</span>
+      </div>
+    </div>
+  )
+}
 
 export default function AdminDashboard() {
   const { props } = usePage<PageProps>()
-  const firstName = props.auth.user.name.split(' ')[0]
+  const { auth, stats, summary, enrollmentDistribution, financialDistribution, recentActivity, spotlight } = props
+  const adminName = auth.user.name
+  const greeting = greetingForHour(new Date().getHours())
+  const enrollmentTotal = enrollmentDistribution.reduce((sum, item) => sum + item.value, 0)
+  const financialTotal = financialDistribution.reduce((sum, item) => sum + item.value, 0)
 
   return (
     <AdminLayout
@@ -80,94 +189,144 @@ export default function AdminDashboard() {
         </div>
       }
     >
-      <Head title="Tableau de bord admin" />
+      <Head title="Vue d'ensemble admin" />
 
-      <div className="admd-root">
-        <header className="admd-header">
+      <main className="admd-root">
+        <header className="admd-hero">
           <div>
             <p className="admd-kicker">Administration</p>
-            <h1 className="admd-title">Bonjour {firstName}</h1>
+            <h1 className="admd-title">{greeting}, {adminName}</h1>
             <p className="admd-subtitle">
-              Retrouvez les indicateurs essentiels du centre et accedez rapidement aux espaces de gestion.
+              Bienvenue dans l'espace de gestion Info Saloua. Supervisez les inscriptions, les candidatures et le flux financier avec des donnees synchronisees depuis le backend.
             </p>
           </div>
-          <div className="admd-header-card">
-            <span className="material-symbols-outlined">admin_panel_settings</span>
-            <div>
-              <strong>Espace admin</strong>
-              <small>{props.auth.user.email}</small>
+
+          <div className="admd-admin-card">
+            <div className="admd-admin-text">
+              <p>Administrateur</p>
+              <strong>{adminName}</strong>
+              <span>{auth.user.email}</span>
+            </div>
+            <div className="admd-avatar">
+              {auth.user.avatar_url ? <img src={auth.user.avatar_url} alt={adminName} /> : initials(adminName)}
             </div>
           </div>
         </header>
 
         <section className="admd-stats-grid">
-          {metrics.map(metric => (
-            <article className={`admd-stat-card admd-stat-card--${metric.accent}`} key={metric.label}>
-              <p className="admd-stat-label">{metric.label}</p>
-              <p className="admd-stat-value">{metric.value}</p>
-              <p className="admd-stat-sub">{metric.sub}</p>
+          {stats.map(stat => (
+            <article className={`admd-stat admd-stat--${stat.accent}`} key={stat.label}>
+              <p>{stat.label}</p>
+              <div>
+                <strong>{stat.value}</strong>
+                <span>{stat.delta}</span>
+              </div>
+              <small>{stat.sub}</small>
             </article>
           ))}
         </section>
 
-        <section className="admd-main-grid">
-          <article className="admd-panel">
+        <section className="admd-content-grid">
+          <div className="admd-analysis">
             <div className="admd-section-head">
-              <h2>Acces rapides</h2>
-              <span>Gestion quotidienne</span>
+              <h2>Analyse des Inscriptions</h2>
+              <div>
+                <Link href={route('admin.applications')}>Candidatures</Link>
+                <Link className="admd-primary-link" href={route('admin.reports')}>Exporter</Link>
+              </div>
             </div>
 
-            <div className="admd-actions-grid">
-              {quickActions.map(action => (
-                <Link href={action.href} className="admd-action" key={action.title}>
-                  <span className="material-symbols-outlined">{action.icon}</span>
-                  <div>
-                    <strong>{action.title}</strong>
-                    <p>{action.description}</p>
-                  </div>
-                  <span className="material-symbols-outlined admd-arrow">arrow_forward</span>
-                </Link>
-              ))}
-            </div>
-          </article>
+            <div className="admd-chart-grid">
+              <article className="admd-chart-card">
+                <Donut3D
+                  data={enrollmentDistribution}
+                  totalValue={summary.enrollmentsTotal.toLocaleString('fr-FR')}
+                  totalLabel="Total"
+                />
+                <div className="admd-legend">
+                  {(enrollmentDistribution.length > 0 ? enrollmentDistribution : fallbackChart).map(item => (
+                    <div className="admd-legend-row" key={item.name}>
+                      <span className="admd-legend-dot" style={{ background: item.color }} />
+                      <span>{item.name}</span>
+                      <strong>{item.name === 'Aucune donnee' ? '0%' : `${percent(item.value, enrollmentTotal)}%`}</strong>
+                    </div>
+                  ))}
+                </div>
+              </article>
 
-          <article className="admd-panel">
-            <div className="admd-section-head">
-              <h2>Activite recente</h2>
-              <span>Suivi admin</span>
+              <article className="admd-chart-card">
+                <Donut3D
+                  data={financialDistribution}
+                  totalValue={`${summary.collectionRate}%`}
+                  totalLabel="Paye"
+                  tooltipSuffix="DH"
+                />
+                <div className="admd-finance-note">
+                  <h3>Sante financiere</h3>
+                  <p>
+                    {financialTotal > 0
+                      ? `${fmtDh(summary.totalCollected)} deja encaisses, avec un recouvrement global de ${summary.collectionRate}%.`
+                      : 'Aucune donnee de paiement n est encore disponible.'}
+                  </p>
+                </div>
+              </article>
             </div>
+          </div>
 
+          <aside className="admd-activity-panel">
+            <h2>Activite recente</h2>
             <div className="admd-activity-list">
-              {activity.map(item => (
-                <div className="admd-activity" key={item.title}>
-                  <span className={`admd-dot admd-dot--${item.tone}`} />
+              {recentActivity.length > 0 ? recentActivity.map(item => (
+                <div className="admd-activity" key={`${item.title}-${item.description}-${item.time}`}>
+                  <div className={`admd-activity-icon admd-activity-icon--${item.tone}`}>
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                  </div>
                   <div>
-                    <strong>{item.title}</strong>
-                    <small>{item.meta}</small>
+                    <div className="admd-activity-top">
+                      <strong>{item.title}</strong>
+                      <span>{item.time}</span>
+                    </div>
+                    <p>{item.description}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="admd-empty">Aucune activite recente pour le moment.</div>
+              )}
             </div>
-          </article>
+            <Link className="admd-history-link" href={route('admin.applications')}>
+              Voir les dossiers
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </Link>
+          </aside>
         </section>
 
-        <section className="admd-panel admd-focus">
-          <div>
-            <p className="admd-kicker">Priorite</p>
-            <h2>Maintenir les suivis etudiants et financiers a jour</h2>
-            <p>
-              Les espaces Etudiants et Paiements sont maintenant relies au layout admin. Cette vue d'ensemble sert de point d'entree coherent pour naviguer entre les modules.
-            </p>
-          </div>
-          <div className="admd-focus-actions">
-            <Link href={route('admin.students')} className="admd-primary-link">Voir les etudiants</Link>
-            <Link href={route('admin.payments')} className="admd-secondary-link">Voir les paiements</Link>
-          </div>
+        <section className="admd-bottom-grid">
+          <Link href={route('admin.students')} className="admd-feature admd-feature--wide">
+            <div>
+              <p>Gestion Etudiants</p>
+              <h3>{spotlight.students}</h3>
+              <span>Consultez les dossiers, les formations et les progressions academiques.</span>
+            </div>
+          </Link>
+
+          <Link href={route('admin.courses')} className="admd-mini-card">
+            <span className="material-symbols-outlined">school</span>
+            <h3>Offre de Formation</h3>
+            <p>{spotlight.courses}</p>
+            <small>Modifier <span className="material-symbols-outlined">east</span></small>
+          </Link>
+
+          <Link href={route('admin.reports')} className="admd-mini-card admd-mini-card--primary">
+            <span className="material-symbols-outlined">analytics</span>
+            <h3>Rapports Annuels</h3>
+            <p>{spotlight.reports}</p>
+            <small>Generer <span className="material-symbols-outlined">east</span></small>
+          </Link>
         </section>
-      </div>
+      </main>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
         .material-symbols-outlined {
@@ -181,358 +340,769 @@ export default function AdminDashboard() {
         }
 
         .admd-root {
-          padding: 28px;
+          --surface: #faf5ee;
+          --surface-lowest: rgba(255,255,255,.58);
+          --surface-low: #f6f0e8;
+          --surface-high: #ece6dc;
+          --surface-highest: #e6e0d6;
+          --outline: #9a9088;
+          --outline-soft: rgba(154,144,136,.32);
+          --text: #3a302a;
+          --muted: #605850;
+          --primary: #c2652a;
+          --primary-soft: #fbe8d8;
+          --secondary: #78706a;
+          --tertiary: #8c3c3c;
+          --shadow: rgba(58,48,42,.07);
           min-height: 100%;
-          color: #18181b;
+          max-width: 100%;
+          overflow-x: hidden;
+          padding: 42px 32px;
+          background: var(--surface);
+          color: var(--text);
           font-family: 'Manrope', sans-serif;
         }
 
-        .admd-header {
+        .admd-root *, .admd-root *::before, .admd-root *::after {
+          box-sizing: border-box;
+        }
+
+        .admd-hero {
           display: flex;
-          align-items: flex-end;
+          align-items: flex-start;
           justify-content: space-between;
-          gap: 20px;
-          flex-wrap: wrap;
-          padding: 28px;
-          margin-bottom: 22px;
-          border-radius: 20px;
-          border: 1px solid rgba(15,23,42,.07);
-          background: radial-gradient(circle at top right, rgba(194,101,42,.1), transparent 42%), #fff;
-          box-shadow: 0 4px 20px rgba(15,23,42,.04);
+          gap: 28px;
+          margin-bottom: 44px;
         }
 
         .admd-kicker {
-          margin: 0 0 6px;
+          margin: 0 0 12px;
+          font-family: 'Manrope', sans-serif;
           font-size: .72rem;
           font-weight: 800;
-          letter-spacing: .14em;
+          letter-spacing: .2em;
           text-transform: uppercase;
-          color: #c2652a;
+          color: var(--outline);
         }
 
         .admd-title {
+          max-width: 820px;
           margin: 0;
+          color: var(--text);
           font-family: 'EB Garamond', serif;
-          font-size: clamp(1.9rem, 3vw, 2.9rem);
-          line-height: 1;
-          color: #18181b;
+          font-size: clamp(2.55rem, 5vw, 4.85rem);
+          font-weight: 700;
+          line-height: .95;
         }
 
         .admd-subtitle {
-          max-width: 620px;
-          margin: 12px 0 0;
-          color: #6b7280;
-          line-height: 1.7;
-          font-size: .9rem;
+          max-width: 680px;
+          margin: 20px 0 0;
+          color: var(--muted);
+          font-size: 1rem;
+          line-height: 1.9;
         }
 
-        .admd-header-card {
+        .admd-admin-card {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 14px 16px;
-          border-radius: 16px;
-          border: 1px solid rgba(194,101,42,.16);
-          background: #fffaf6;
+          gap: 18px;
+          flex-shrink: 0;
         }
 
-        .admd-header-card > span {
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          display: inline-flex;
+        .admd-admin-text {
+          text-align: right;
+        }
+
+        .admd-admin-text p {
+          margin: 0 0 5px;
+          color: var(--outline);
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .admd-admin-text strong {
+          display: block;
+          color: var(--text);
+          font-family: 'EB Garamond', serif;
+          font-size: 1.35rem;
+          font-style: italic;
+          font-weight: 600;
+        }
+
+        .admd-admin-text span {
+          display: block;
+          margin-top: 3px;
+          color: var(--muted);
+          font-size: .76rem;
+          overflow-wrap: anywhere;
+        }
+
+        .admd-avatar {
+          width: 64px;
+          height: 64px;
+          border-radius: 999px;
+          overflow: hidden;
+          border: 1px solid var(--outline-soft);
+          box-shadow: 0 12px 26px var(--shadow);
+          background: linear-gradient(135deg, #fbe8d8, #c2652a);
+          color: #fff;
+          display: flex;
           align-items: center;
           justify-content: center;
-          color: #fff;
-          background: linear-gradient(135deg, #c2652a, #e8915a);
+          font-weight: 900;
+          letter-spacing: .04em;
         }
 
-        .admd-header-card strong,
-        .admd-header-card small {
-          display: block;
-        }
-
-        .admd-header-card strong {
-          color: #18181b;
-          font-size: .88rem;
-        }
-
-        .admd-header-card small {
-          margin-top: 2px;
-          color: #8b8b8b;
-          font-size: .75rem;
+        .admd-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .admd-stats-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
-          margin-bottom: 22px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 26px;
+          margin-bottom: 44px;
         }
 
-        .admd-stat-card,
-        .admd-panel {
-          background: #fff;
-          border: 1px solid rgba(15,23,42,.07);
-          box-shadow: 0 2px 12px rgba(15,23,42,.04);
+        .admd-stat {
+          padding: 28px;
+          border: 1px solid var(--outline-soft);
+          border-radius: 12px;
+          background: var(--surface-lowest);
+          transition: background .18s, transform .18s, border-color .18s;
         }
 
-        .admd-stat-card {
-          border-radius: 16px;
-          padding: 20px;
-          transition: transform .2s, box-shadow .2s;
+        .admd-stat:nth-child(4) {
+          grid-column: span 3;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
         }
 
-        .admd-stat-card:hover {
+        .admd-stat:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(15,23,42,.07);
+          background: rgba(255,255,255,.78);
+          border-color: rgba(194,101,42,.34);
         }
 
-        .admd-stat-card--orange { border-top: 3px solid #c2652a; }
-        .admd-stat-card--blue { border-top: 3px solid #3b82f6; }
-        .admd-stat-card--green { border-top: 3px solid #10b981; }
-        .admd-stat-card--slate { border-top: 3px solid #64748b; }
-
-        .admd-stat-label {
-          margin: 0 0 8px;
-          color: #8b8b8b;
+        .admd-stat p {
+          margin: 0 0 10px;
+          color: var(--outline);
           font-size: .7rem;
-          font-weight: 800;
+          font-weight: 900;
+          letter-spacing: .18em;
           text-transform: uppercase;
-          letter-spacing: .12em;
         }
 
-        .admd-stat-value {
-          margin: 0;
-          color: #18181b;
+        .admd-stat div {
+          display: flex;
+          align-items: baseline;
+          gap: 14px;
+          flex-wrap: wrap;
+        }
+
+        .admd-stat strong {
+          color: var(--text);
           font-family: 'EB Garamond', serif;
-          font-size: 2rem;
+          font-size: clamp(2.2rem, 3vw, 3.3rem);
+          font-style: italic;
+          font-weight: 600;
           line-height: 1;
         }
 
-        .admd-stat-sub {
-          margin: 8px 0 0;
-          color: #6b7280;
-          font-size: .8rem;
+        .admd-stat span {
+          color: var(--primary);
+          font-size: .84rem;
+          font-weight: 800;
         }
 
-        .admd-main-grid {
+        .admd-stat small {
+          display: block;
+          margin-top: 10px;
+          color: var(--muted);
+          font-size: .82rem;
+        }
+
+        .admd-stat--tertiary span {
+          color: var(--tertiary);
+        }
+
+        .admd-content-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
-          gap: 18px;
-          margin-bottom: 22px;
-        }
-
-        .admd-panel {
-          border-radius: 20px;
-          padding: 24px;
+          grid-template-columns: minmax(0, 8fr) minmax(320px, 4fr);
+          gap: 42px;
+          margin-bottom: 38px;
         }
 
         .admd-section-head {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 12px;
+          gap: 16px;
           flex-wrap: wrap;
-          margin-bottom: 16px;
+          margin-bottom: 28px;
         }
 
         .admd-section-head h2,
-        .admd-focus h2 {
+        .admd-activity-panel h2 {
           margin: 0;
-          color: #18181b;
+          color: var(--text);
           font-family: 'EB Garamond', serif;
-          font-size: 1.65rem;
+          font-size: clamp(1.9rem, 2.6vw, 2.45rem);
+          font-style: italic;
+          font-weight: 600;
           line-height: 1.05;
         }
 
-        .admd-section-head span {
-          color: #8b8b8b;
-          font-size: .78rem;
-          font-weight: 700;
-        }
-
-        .admd-actions-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
-        }
-
-        .admd-action {
-          display: grid;
-          grid-template-columns: auto 1fr auto;
-          gap: 12px;
+        .admd-section-head div {
+          display: flex;
           align-items: center;
-          padding: 16px;
-          border-radius: 16px;
-          border: 1px solid rgba(15,23,42,.06);
-          background: #fafafa;
-          color: inherit;
-          text-decoration: none;
-          transition: border-color .15s, background .15s, transform .15s;
+          gap: 12px;
+          flex-wrap: wrap;
         }
 
-        .admd-action:hover {
-          transform: translateY(-1px);
-          border-color: rgba(194,101,42,.3);
-          background: #fffaf6;
-        }
-
-        .admd-action > .material-symbols-outlined:first-child {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
+        .admd-section-head a {
+          min-height: 40px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          color: #c2652a;
-          background: #fff3ec;
+          padding: 0 16px;
+          border: 1px solid var(--outline-soft);
+          border-radius: 8px;
+          color: var(--text);
+          text-decoration: none;
+          font-size: .85rem;
+          font-weight: 700;
+          transition: background .16s, color .16s, border-color .16s;
         }
 
-        .admd-action strong {
-          display: block;
-          color: #18181b;
-          font-size: .9rem;
-          margin-bottom: 4px;
+        .admd-section-head a:hover {
+          background: var(--surface-high);
         }
 
-        .admd-action p {
-          margin: 0;
-          color: #6b7280;
-          font-size: .78rem;
-          line-height: 1.55;
+        .admd-section-head .admd-primary-link {
+          border-color: transparent;
+          background: var(--primary);
+          color: #fff;
+          box-shadow: 0 14px 28px rgba(194,101,42,.18);
         }
 
-        .admd-arrow {
-          color: #b0a49a;
-          font-size: 18px;
+        .admd-chart-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 28px;
+        }
+
+        .admd-chart-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-width: 0;
+          min-height: 430px;
+          padding: 34px 30px;
+          border: 1px solid var(--outline-soft);
+          border-radius: 16px;
+          background: var(--surface-lowest);
+          box-shadow: 0 2px 16px var(--shadow);
+        }
+
+        .admd-donut-shell {
+          position: relative;
+          width: min(260px, 100%);
+          height: 250px;
+          filter: drop-shadow(0 22px 22px rgba(58,48,42,.12));
+        }
+
+        .admd-donut-center {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding-top: 4px;
+          pointer-events: none;
+        }
+
+        .admd-donut-center strong {
+          color: var(--text);
+          font-family: 'EB Garamond', serif;
+          font-size: 2.25rem;
+          font-style: italic;
+          font-weight: 600;
+          line-height: 1;
+        }
+
+        .admd-donut-center span {
+          margin-top: 7px;
+          color: var(--outline);
+          font-size: .62rem;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .admd-legend {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 13px;
+          margin-top: 12px;
+        }
+
+        .admd-legend-row {
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 10px;
+          color: var(--muted);
+          font-size: .86rem;
+          font-weight: 600;
+        }
+
+        .admd-legend-row strong {
+          color: var(--outline);
+          font-size: .82rem;
+        }
+
+        .admd-legend-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+        }
+
+        .admd-finance-note {
+          width: 100%;
+          margin-top: 12px;
+          text-align: center;
+        }
+
+        .admd-finance-note h3 {
+          margin: 0 0 8px;
+          color: var(--text);
+          font-family: 'EB Garamond', serif;
+          font-size: 1.45rem;
+          font-style: italic;
+          font-weight: 600;
+        }
+
+        .admd-finance-note p {
+          max-width: 320px;
+          margin: 0 auto;
+          color: var(--muted);
+          font-size: .82rem;
+          line-height: 1.75;
+        }
+
+        .admd-activity-panel {
+          min-width: 0;
+        }
+
+        .admd-activity-panel h2 {
+          margin-bottom: 28px;
         }
 
         .admd-activity-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 18px;
         }
 
         .admd-activity {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
+          display: grid;
+          grid-template-columns: 48px minmax(0, 1fr);
+          gap: 18px;
           padding: 14px;
-          border-radius: 14px;
-          background: #fafafa;
-          border: 1px solid rgba(15,23,42,.06);
+          border-radius: 12px;
+          color: inherit;
+          transition: background .16s;
         }
 
-        .admd-activity strong,
-        .admd-activity small {
-          display: block;
+        .admd-activity:hover {
+          background: var(--surface-low);
         }
 
-        .admd-activity strong {
-          color: #18181b;
-          font-size: .84rem;
-        }
-
-        .admd-activity small {
-          margin-top: 4px;
-          color: #8b8b8b;
-          font-size: .74rem;
-        }
-
-        .admd-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          margin-top: 5px;
+        .admd-activity-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
         }
 
-        .admd-dot--green { background: #10b981; }
-        .admd-dot--orange { background: #c2652a; }
-        .admd-dot--amber { background: #f59e0b; }
-        .admd-dot--slate { background: #64748b; }
+        .admd-activity-icon--primary { background: rgba(194,101,42,.14); color: var(--primary); }
+        .admd-activity-icon--secondary { background: rgba(120,112,106,.18); color: var(--secondary); }
+        .admd-activity-icon--tertiary { background: rgba(140,60,60,.12); color: var(--tertiary); }
+        .admd-activity-icon--warning { background: rgba(224,136,80,.16); color: #b45309; }
 
-        .admd-focus {
+        .admd-activity-top {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
-          gap: 18px;
-          flex-wrap: wrap;
-          background: linear-gradient(180deg, #fffaf6, #fff);
-        }
-
-        .admd-focus p {
-          max-width: 720px;
-          margin: 10px 0 0;
-          color: #6b7280;
-          line-height: 1.7;
-          font-size: .88rem;
-        }
-
-        .admd-focus-actions {
-          display: flex;
           gap: 10px;
-          flex-wrap: wrap;
+          padding-bottom: 6px;
         }
 
-        .admd-primary-link,
-        .admd-secondary-link {
-          display: inline-flex;
+        .admd-activity-top strong {
+          color: var(--text);
+          font-size: .9rem;
+          font-weight: 800;
+        }
+
+        .admd-activity-top span {
+          color: var(--outline);
+          font-size: .65rem;
+          font-weight: 800;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .admd-activity p {
+          margin: 0;
+          padding-bottom: 16px;
+          border-bottom: 1px solid var(--outline-soft);
+          color: var(--muted);
+          font-size: .78rem;
+          font-style: italic;
+          line-height: 1.65;
+        }
+
+        .admd-empty {
+          padding: 18px;
+          border: 1px dashed var(--outline-soft);
+          border-radius: 12px;
+          color: var(--muted);
+          font-size: .86rem;
+        }
+
+        .admd-history-link {
+          width: 100%;
+          margin-top: 22px;
+          padding: 18px 0 0;
+          border-top: 1px solid var(--outline-soft);
+          display: flex;
           align-items: center;
           justify-content: center;
-          min-height: 40px;
-          padding: 0 16px;
-          border-radius: 12px;
-          font-size: .82rem;
-          font-weight: 800;
+          gap: 8px;
+          color: var(--primary);
+          font-size: .72rem;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
           text-decoration: none;
+          transition: color .16s, gap .16s;
         }
 
-        .admd-primary-link {
+        .admd-history-link:hover {
+          gap: 14px;
+          color: var(--tertiary);
+        }
+
+        .admd-bottom-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+          gap: 22px;
+        }
+
+        .admd-feature,
+        .admd-mini-card {
+          min-width: 0;
+          min-height: 250px;
+          border-radius: 16px;
+          text-decoration: none;
+          color: inherit;
+          overflow: hidden;
+        }
+
+        .admd-feature {
+          position: relative;
+          display: flex;
+          align-items: flex-end;
+          padding: 34px;
+          background:
+            linear-gradient(to top, rgba(58,48,42,.86), rgba(58,48,42,.35), rgba(58,48,42,.04)),
+            radial-gradient(circle at 18% 22%, rgba(250,245,238,.9), transparent 28%),
+            linear-gradient(135deg, #c2652a, #8c3c3c 48%, #3a302a);
+          transition: transform .25s;
+        }
+
+        .admd-feature:hover {
+          transform: translateY(-3px);
+        }
+
+        .admd-feature p,
+        .admd-feature h3,
+        .admd-feature span {
+          position: relative;
+          z-index: 1;
           color: #fff;
-          background: linear-gradient(135deg, #c2652a, #e8915a);
-          box-shadow: 0 8px 20px rgba(194,101,42,.25);
         }
 
-        .admd-secondary-link {
-          color: #6b7280;
-          background: #fff;
-          border: 1px solid rgba(15,23,42,.08);
+        .admd-feature p {
+          margin: 0 0 8px;
+          font-size: .68rem;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+          opacity: .78;
+        }
+
+        .admd-feature h3 {
+          max-width: 440px;
+          margin: 0 0 10px;
+          font-family: 'EB Garamond', serif;
+          font-size: 2rem;
+          font-style: italic;
+          font-weight: 600;
+          line-height: 1.05;
+        }
+
+        .admd-feature span {
+          display: block;
+          max-width: 440px;
+          font-size: .86rem;
+          line-height: 1.7;
+          opacity: .8;
+        }
+
+        .admd-mini-card {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 28px;
+          border: 1px solid var(--outline-soft);
+          background: rgba(230,224,214,.34);
+          transition: transform .18s, background .18s;
+        }
+
+        .admd-mini-card:hover {
+          transform: translateY(-2px);
+          background: var(--surface-high);
+        }
+
+        .admd-mini-card > .material-symbols-outlined {
+          color: var(--primary);
+          font-size: 28px;
+        }
+
+        .admd-mini-card h3 {
+          margin: 18px 0 8px;
+          color: var(--text);
+          font-family: 'EB Garamond', serif;
+          font-size: 1.55rem;
+          font-style: italic;
+          font-weight: 600;
+        }
+
+        .admd-mini-card p {
+          margin: 0;
+          color: var(--muted);
+          font-size: .82rem;
+          line-height: 1.7;
+        }
+
+        .admd-mini-card small {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          margin-top: 18px;
+          color: var(--primary);
+          font-size: .66rem;
+          font-weight: 900;
+          letter-spacing: .17em;
+          text-transform: uppercase;
+        }
+
+        .admd-mini-card small .material-symbols-outlined {
+          font-size: 16px;
+        }
+
+        .admd-mini-card--primary {
+          border-color: transparent;
+          background: var(--primary);
+          box-shadow: 0 22px 42px rgba(194,101,42,.22);
+        }
+
+        .admd-mini-card--primary,
+        .admd-mini-card--primary h3,
+        .admd-mini-card--primary p,
+        .admd-mini-card--primary small,
+        .admd-mini-card--primary > .material-symbols-outlined {
+          color: #fff;
+        }
+
+        .admd-mini-card--primary p,
+        .admd-mini-card--primary > .material-symbols-outlined {
+          opacity: .72;
+        }
+
+        .al-root.al-dark .admd-root {
+          --surface: #191512;
+          --surface-lowest: rgba(43,35,29,.72);
+          --surface-low: #241f1a;
+          --surface-high: #2e2721;
+          --surface-highest: #382f27;
+          --outline: #b9aaa0;
+          --outline-soft: rgba(210,194,181,.18);
+          --text: #f8efe5;
+          --muted: #d5c8bc;
+          --primary: #f0a878;
+          --primary-soft: rgba(240,168,120,.18);
+          --secondary: #cec6be;
+          --tertiary: #e8a0a0;
+          --shadow: rgba(0,0,0,.32);
+          background:
+            radial-gradient(circle at 12% 0%, rgba(194,101,42,.18), transparent 34%),
+            radial-gradient(circle at 94% 18%, rgba(140,60,60,.22), transparent 30%),
+            var(--surface);
+        }
+
+        .al-root.al-dark .admd-stat:hover {
+          background: rgba(55,45,38,.92);
+        }
+
+        .al-root.al-dark .admd-section-head a {
+          background: rgba(255,255,255,.03);
+        }
+
+        .al-root.al-dark .admd-section-head .admd-primary-link,
+        .al-root.al-dark .admd-mini-card--primary {
+          background: linear-gradient(135deg, #c2652a, #8c3c3c);
+        }
+
+        .al-root.al-dark .admd-feature {
+          background:
+            linear-gradient(to top, rgba(8,7,6,.9), rgba(25,21,18,.42), rgba(25,21,18,.1)),
+            radial-gradient(circle at 20% 20%, rgba(240,168,120,.42), transparent 26%),
+            linear-gradient(135deg, #6f351b, #5b2727 48%, #15110e);
+        }
+
+        .al-root.al-dark .recharts-tooltip-wrapper {
+          color: #3a302a;
         }
 
         @media (max-width: 1180px) {
-          .admd-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+          .admd-hero,
+          .admd-content-grid,
+          .admd-bottom-grid {
+            grid-template-columns: 1fr;
           }
 
-          .admd-main-grid {
-            grid-template-columns: 1fr;
+          .admd-content-grid,
+          .admd-bottom-grid {
+            display: grid;
           }
         }
 
-        @media (max-width: 760px) {
+        @media (max-width: 920px) {
           .admd-root {
-            padding: 16px;
+            padding: 26px 18px;
           }
 
-          .admd-header,
-          .admd-panel {
-            padding: 18px;
-            border-radius: 16px;
+          .admd-hero {
+            flex-direction: column;
+            margin-bottom: 30px;
+          }
+
+          .admd-admin-card {
+            width: 100%;
+            justify-content: space-between;
+            padding-top: 8px;
+          }
+
+          .admd-admin-text {
+            text-align: left;
           }
 
           .admd-stats-grid,
-          .admd-actions-grid {
+          .admd-chart-grid {
             grid-template-columns: 1fr;
           }
 
-          .admd-action {
-            grid-template-columns: auto 1fr;
+          .admd-stat:nth-child(4) {
+            grid-column: auto;
+            display: block;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .admd-root {
+            padding: 20px 14px 28px;
           }
 
-          .admd-arrow {
-            display: none;
+          .admd-title {
+            font-size: clamp(2.3rem, 14vw, 3.3rem);
+          }
+
+          .admd-subtitle {
+            font-size: .92rem;
+          }
+
+          .admd-admin-card {
+            align-items: flex-start;
+            gap: 12px;
+          }
+
+          .admd-avatar {
+            width: 54px;
+            height: 54px;
+          }
+
+          .admd-stat,
+          .admd-chart-card,
+          .admd-feature,
+          .admd-mini-card {
+            padding: 22px;
+            border-radius: 12px;
+          }
+
+          .admd-content-grid {
+            gap: 28px;
+          }
+
+          .admd-section-head {
+            margin-bottom: 18px;
+          }
+
+          .admd-section-head div,
+          .admd-section-head a {
+            width: 100%;
+          }
+
+          .admd-chart-card {
+            min-height: 390px;
+          }
+
+          .admd-donut-shell {
+            height: 220px;
+          }
+
+          .admd-activity {
+            grid-template-columns: 42px minmax(0, 1fr);
+            padding: 10px 0;
+          }
+
+          .admd-activity-icon {
+            width: 42px;
+            height: 42px;
+          }
+
+          .admd-activity-top {
+            flex-direction: column;
+            gap: 2px;
+          }
+
+          .admd-feature,
+          .admd-mini-card {
+            min-height: 210px;
           }
         }
       `}</style>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnrollmentApplicationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
@@ -123,9 +124,7 @@ Route::middleware(['auth', 'verified', 'login.code'])->prefix('student')->name('
 */
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard/Admin/Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/applications', [EnrollmentApplicationController::class, 'index'])->name('applications');
     Route::post('/applications/{application}/approve', [EnrollmentApplicationController::class, 'approve'])->name('applications.approve');
