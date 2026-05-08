@@ -1,60 +1,105 @@
 import AdminLayout from '@/Layouts/AdminLayout'
 import { Head, usePage } from '@inertiajs/react'
+import { useMemo, useState } from 'react'
 import {
-  Area, AreaChart, CartesianGrid,
-  Cell, Pie, PieChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 
-/* ═══════════════════════════════════════════════
-   TYPES
-═══════════════════════════════════════════════ */
-type Stat             = { label: string; value: string; sub: string; accent: 'orange'|'blue'|'green'|'slate' }
-type Summary          = { totalExpected: string; totalCollected: string; completion: number }
-type RevenuePoint     = { month: string; collected: number; pending: number }
-type DistributionPoint= { name: string; value: number; color: string }
-type RecentPayment    = { reference: string; student: string; course: string; method: string; amount: string; status: 'paid'|'pending'; date: string }
-type PaymentRow       = { reference: string; student: string; email: string; course: string; method: string; amount: string; status: 'paid'|'pending'; date: string; remaining: string }
+type Stat = { label: string; value: string; sub: string; accent: 'orange' | 'blue' | 'green' | 'slate' }
+type Summary = { totalExpected: string; totalCollected: string; completion: number }
+type RevenuePoint = { month: string; collected: number; pending: number }
+type DistributionPoint = { name: string; value: number; color: string }
+type RecentPayment = { reference: string; student: string; course: string; method: string; amount: string; status: 'paid' | 'pending'; date: string }
+type PaymentRow = { reference: string; student: string; email: string; course: string; method: string; amount: string; status: 'paid' | 'pending'; date: string; remaining: string }
 type UpcomingInstallment = { student: string; course: string; title: string; amount: string; dueDate: string }
 
 type PageProps = {
-  auth:                 { user: { id: number; name: string; email: string } }
-  stats:                Stat[]
-  summary:              Summary
-  monthlyRevenue:       RevenuePoint[]
-  statusDistribution:   DistributionPoint[]
-  recentPayments:       RecentPayment[]
-  payments:             PaymentRow[]
+  auth: { user: { id: number; name: string; email: string } }
+  stats: Stat[]
+  summary: Summary
+  monthlyRevenue: RevenuePoint[]
+  statusDistribution: DistributionPoint[]
+  recentPayments: RecentPayment[]
+  payments: PaymentRow[]
   upcomingInstallments: UpcomingInstallment[]
 }
 
-/* ═══════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════ */
-function statusMeta(status: 'paid'|'pending') {
-  return status === 'paid'
-    ? { label: 'Payé',       cls: 'admp-status admp-status--green' }
-    : { label: 'En attente', cls: 'admp-status admp-status--amber' }
+const PAGE_SIZE = 6
+
+function initials(name: string) {
+  return name.split(' ').filter(Boolean).map(part => part[0]).slice(0, 2).join('').toUpperCase()
 }
 
 function fmtDh(value: number | string | undefined) {
   return `${Number(value ?? 0).toLocaleString('fr-FR')} DH`
 }
 
-function initials(name: string) {
-  return name.split(' ').map(p => p[0]).slice(0, 2).join('')
+function statusMeta(status: 'paid' | 'pending') {
+  return status === 'paid'
+    ? { label: 'Paye', cls: 'pay-status pay-status--paid' }
+    : { label: 'En attente', cls: 'pay-status pay-status--pending' }
 }
 
-/* ═══════════════════════════════════════════════
-   PAGE
-═══════════════════════════════════════════════ */
+function csvEscape(value: string | number | null | undefined) {
+  return `"${String(value ?? '').replaceAll('"', '""')}"`
+}
+
 export default function AdminPayments() {
   const { props } = usePage<PageProps>()
-  const {
-    stats, summary, monthlyRevenue,
-    statusDistribution, recentPayments,
-    payments, upcomingInstallments,
-  } = props
+  const { stats, summary, monthlyRevenue, statusDistribution, payments, upcomingInstallments } = props
+  const [search, setSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const filteredPayments = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return payments.filter(payment => !q || [
+      payment.reference,
+      payment.student,
+      payment.email,
+      payment.course,
+      payment.method,
+      payment.status,
+    ].some(value => value.toLowerCase().includes(q)))
+  }, [payments, search])
+
+  const totalPages = Math.max(1, Math.ceil(filteredPayments.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginatedPayments = filteredPayments.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const pendingAmount = statusDistribution
+    .filter(item => item.name !== 'Regle')
+    .reduce((sum, item) => sum + item.value, 0)
+
+  const exportCsv = () => {
+    const header = ['Reference', 'Etudiant', 'Email', 'Formation', 'Montant', 'Mode', 'Statut', 'Date', 'Reste']
+    const rows = filteredPayments.map(payment => [
+      payment.reference,
+      payment.student,
+      payment.email,
+      payment.course,
+      payment.amount,
+      payment.method,
+      statusMeta(payment.status).label,
+      payment.date,
+      payment.remaining,
+    ])
+    const csv = [header, ...rows].map(row => row.map(csvEscape).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'rapport-paiements.csv'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <AdminLayout
@@ -66,551 +111,269 @@ export default function AdminPayments() {
         </div>
       }
     >
-      <Head title="Gestion des paiements" />
+      <Head title="Pilotage des paiements" />
 
-      <div className="admp-root">
-
-        {/* ── Page header ── */}
-        <header className="admp-header">
+      <main className="pay-root">
+        <header className="pay-hero">
           <div>
-            <p className="admp-kicker">Administration</p>
-            <h1 className="admp-title">Pilotage des paiements</h1>
-            <p className="admp-subtitle">
-              Vue claire sur les encaissements, les soldes restants et les échéances à surveiller pour garder le suivi financier du centre sous contrôle.
-            </p>
+            <h1>Pilotage des Paiements</h1>
+            <p>Suivi analytique et gestion du recouvrement financier pour Info Saloua.</p>
           </div>
-          <div className="admp-header-chips">
-            <div className="admp-chip">Objectif : {summary.totalExpected}</div>
-            <div className="admp-chip admp-chip--soft">{summary.completion}% déjà recouvré</div>
-          </div>
+          <button type="button" className="pay-primary" onClick={exportCsv}>
+            <span className="material-symbols-outlined">ios_share</span>
+            Exporter Rapport
+          </button>
         </header>
 
-        {/* ── Stats ── */}
-        <section className="admp-stats-grid">
+        <section className="pay-metrics">
           {stats.map(stat => (
-            <div className={`admp-stat-card admp-stat-card--${stat.accent}`} key={stat.label}>
-              <p className="admp-stat-label">{stat.label}</p>
-              <p className="admp-stat-value">{stat.value}</p>
-              <p className="admp-stat-sub">{stat.sub}</p>
-            </div>
+            <article className={`pay-metric pay-metric--${stat.accent}`} key={stat.label}>
+              <p>{stat.label}</p>
+              <div>
+                <strong>{stat.value}</strong>
+                {stat.label.toLowerCase().includes('recouvrement') ? (
+                  <em><i style={{ width: `${summary.completion}%` }} /></em>
+                ) : (
+                  <span>{stat.sub}</span>
+                )}
+              </div>
+            </article>
           ))}
         </section>
 
-        {/* ── Overview : Summary + Donut ── */}
-        <section className="admp-overview-grid">
-
-          {/* Summary card */}
-          <article className="admp-panel">
-            <div className="admp-section-head">
-              <h2>Recouvrement global</h2>
-              <span>{summary.totalCollected} encaissés</span>
+        <section className="pay-main-grid">
+          <article className="pay-panel pay-table-panel">
+            <div className="pay-panel-head">
+              <h2>Recouvrement Global</h2>
+              <label className="pay-search">
+                <span className="material-symbols-outlined">search</span>
+                <input
+                  value={search}
+                  onChange={event => { setSearch(event.target.value); setCurrentPage(1) }}
+                  placeholder="Rechercher un etudiant..."
+                />
+              </label>
             </div>
 
-            <div className="admp-progress-block">
-              <div className="admp-progress-block-head">
-                <div>
-                  <p className="admp-stat-label">Progression financière</p>
-                  <p className="admp-progress-value">{summary.completion}%</p>
-                </div>
-                <span className="admp-status admp-status--green">Suivi actif</span>
-              </div>
-              <div className="admp-track-lg">
-                <div className="admp-fill" style={{ width: `${summary.completion}%` }} />
-              </div>
-              <p className="admp-note">
-                Le centre a sécurisé une grande partie des encaissements. Les paiements en attente et les échéances ouvertes restent visibles ci-dessous.
+            <div className="pay-table-wrap">
+              {paginatedPayments.length === 0 ? (
+                <div className="pay-empty">Aucun paiement ne correspond a votre recherche.</div>
+              ) : (
+                <table className="pay-table">
+                  <thead>
+                    <tr>
+                      <th>Etudiant</th>
+                      <th>Montant</th>
+                      <th>Date</th>
+                      <th>Statut</th>
+                      <th>Reste</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedPayments.map(payment => {
+                      const status = statusMeta(payment.status)
+                      return (
+                        <tr key={payment.reference}>
+                          <td data-label="Etudiant">
+                            <div className="pay-student">
+                              <div className="pay-avatar">{initials(payment.student)}</div>
+                              <div>
+                                <strong>{payment.student}</strong>
+                                <span>{payment.course}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td data-label="Montant" className="pay-amount">{payment.amount}</td>
+                          <td data-label="Date">{payment.date}</td>
+                          <td data-label="Statut"><span className={status.cls}>{status.label}</span></td>
+                          <td data-label="Reste" className={payment.remaining === '0,00 DH' || payment.remaining === '0 DH' ? 'pay-ok' : 'pay-wait'}>{payment.remaining}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <footer className="pay-table-footer">
+              <p>
+                Affichage de {filteredPayments.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}-{Math.min(safePage * PAGE_SIZE, filteredPayments.length)}
+                {' '}sur {filteredPayments.length} paiement{filteredPayments.length > 1 ? 's' : ''}
               </p>
-            </div>
-
-            <div className="admp-recent-list">
-              {recentPayments.map(payment => {
-                const s = statusMeta(payment.status)
-                return (
-                  <div className="admp-recent-payment" key={payment.reference}>
-                    <div>
-                      <strong>{payment.student}</strong>
-                      <span>{payment.course} · {payment.method}</span>
-                    </div>
-                    <div className="admp-recent-meta">
-                      <strong>{payment.amount}</strong>
-                      <span>{payment.date}</span>
-                    </div>
-                    <span className={s.cls}>{s.label}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </article>
-
-          {/* Donut */}
-          <article className="admp-panel">
-            <div className="admp-section-head">
-              <h2>Répartition</h2>
-              <span>lecture instantanée</span>
-            </div>
-
-            <div className="admp-donut-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    dataKey="value" nameKey="name"
-                    innerRadius={62} outerRadius={90}
-                    paddingAngle={3} stroke="none"
-                  >
-                    {statusDistribution.map(entry => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v: any) => fmtDh(v)} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="admp-donut-center">
-                <strong>{summary.completion}%</strong>
-                <span>recouvré</span>
+              <div>
+                <button type="button" disabled={safePage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))}>Precedent</button>
+                <button type="button" disabled={safePage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}>Suivant</button>
               </div>
-            </div>
-
-            <div className="admp-legend">
-              {statusDistribution.map(entry => (
-                <div className="admp-legend-row" key={entry.name}>
-                  <span className="admp-legend-dot" style={{ background: entry.color }} />
-                  <span>{entry.name}</span>
-                  <strong>{entry.value.toLocaleString('fr-FR')} DH</strong>
-                </div>
-              ))}
-            </div>
+            </footer>
           </article>
+
+          <aside className="pay-side">
+            <article className="pay-panel pay-donut-panel">
+              <h2>Repartition des Fonds</h2>
+              <div className="pay-donut">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusDistribution}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={70}
+                      outerRadius={92}
+                      stroke="none"
+                      paddingAngle={3}
+                    >
+                      {statusDistribution.map(entry => <Cell key={entry.name} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => fmtDh(value)} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pay-donut-center">
+                  <strong>{summary.completion}%</strong>
+                  <span>Recouvre</span>
+                </div>
+              </div>
+              <div className="pay-legend">
+                <div>
+                  <span><i style={{ background: '#c2652a' }} />Fonds Percus</span>
+                  <strong>{summary.totalCollected}</strong>
+                </div>
+                <div>
+                  <span><i style={{ background: '#d8d0c8' }} />Fonds en Attente</span>
+                  <strong>{fmtDh(pendingAmount)}</strong>
+                </div>
+              </div>
+            </article>
+
+            <article className="pay-panel pay-reminders">
+              <div className="pay-panel-head">
+                <h2>Echeances a relancer</h2>
+                <span>{upcomingInstallments.length}</span>
+              </div>
+              <div className="pay-reminder-list">
+                {upcomingInstallments.length > 0 ? upcomingInstallments.map(item => (
+                  <div className="pay-reminder" key={`${item.student}-${item.title}-${item.dueDate}`}>
+                    <div>
+                      <strong>{item.student}</strong>
+                      <span>{item.course}</span>
+                      <small>{item.title} - {item.dueDate}</small>
+                    </div>
+                    <button type="button">Relancer</button>
+                  </div>
+                )) : (
+                  <div className="pay-empty pay-empty--small">Aucune echeance ouverte.</div>
+                )}
+              </div>
+            </article>
+          </aside>
         </section>
 
-        {/* ── Area chart ── */}
-        <section className="admp-panel admp-chart-section">
-          <div className="admp-section-head">
-            <h2>Évolution mensuelle</h2>
-            <span>encaissements & attente</span>
+        <section className="pay-panel pay-chart-section">
+          <div className="pay-panel-head">
+            <div>
+              <h2>Evolution Mensuelle</h2>
+              <p>Performance des revenus sur l'annee en cours</p>
+            </div>
+            <div className="pay-year-switch">
+              <button type="button">2026</button>
+            </div>
           </div>
-          <div className="admp-area-wrap">
+          <div className="pay-chart">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyRevenue}>
-                <defs>
-                  <linearGradient id="admCollected" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#c2652a" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#c2652a" stopOpacity={0.02} />
-                  </linearGradient>
-                  <linearGradient id="admPending" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#64748b" stopOpacity={0.22} />
-                    <stop offset="95%" stopColor="#64748b" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} stroke="rgba(15,23,42,0.07)" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12, fontFamily: 'Manrope' }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#8b8b8b', fontSize: 12, fontFamily: 'Manrope' }} tickFormatter={v => v > 0 ? `${v/1000}k` : '0'} />
-                <Tooltip formatter={(v: any) => fmtDh(v)} />
-                <Area type="monotone" dataKey="pending"   stroke="#64748b" fill="url(#admPending)"   strokeWidth={2}   name="En attente" />
-                <Area type="monotone" dataKey="collected" stroke="#c2652a" fill="url(#admCollected)" strokeWidth={2.5} name="Encaissé"   />
-              </AreaChart>
+              <BarChart data={monthlyRevenue} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
+                <CartesianGrid vertical={false} stroke="rgba(154,144,136,.22)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#78706a', fontSize: 11, fontWeight: 800 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#9a9088', fontSize: 11 }} tickFormatter={value => `${Math.round(Number(value) / 1000)}k`} />
+                <Tooltip formatter={(value: any) => fmtDh(value)} />
+                <Bar dataKey="pending" name="En attente" stackId="a" fill="#d8d0c8" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="collected" name="Encaisse" stackId="a" fill="#c2652a" radius={[8, 8, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </section>
+      </main>
 
-        {/* ── Table + Upcoming ── */}
-        <section className="admp-bottom-grid">
-
-          {/* Payments table */}
-          <article className="admp-panel">
-            <div className="admp-section-head">
-              <h2>Liste des paiements</h2>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <span>{payments.length} opération{payments.length > 1 ? 's' : ''}</span>
-                <button className="admp-export-btn">
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>download</span>
-                  Exporter
-                </button>
-              </div>
-            </div>
-            <div className="admp-table-wrap">
-              <table className="admp-table">
-                <thead>
-                  <tr>
-                    <th>Référence</th>
-                    <th>Étudiant</th>
-                    <th>Formation</th>
-                    <th>Montant</th>
-                    <th>Mode</th>
-                    <th>Statut</th>
-                    <th>Date</th>
-                    <th>Reste</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map(payment => {
-                    const s = statusMeta(payment.status)
-                    return (
-                      <tr key={payment.reference}>
-                        <td data-label="Reference" style={{ fontFamily: 'monospace', fontSize: '.78rem', color: '#8b8b8b' }}>
-                          {payment.reference}
-                        </td>
-                        <td data-label="Etudiant">
-                          <div className="admp-student-cell">
-                            <div className="admp-av">{initials(payment.student)}</div>
-                            <div>
-                              <strong>{payment.student}</strong>
-                              <span>{payment.email}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td data-label="Formation">{payment.course}</td>
-                        <td data-label="Montant" className="admp-amount">{payment.amount}</td>
-                        <td data-label="Mode" style={{ color: '#6b7280' }}>{payment.method}</td>
-                        <td data-label="Statut"><span className={s.cls}>{s.label}</span></td>
-                        <td data-label="Date" style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{payment.date}</td>
-                        <td data-label="Reste" style={{ fontWeight: 700, color: payment.remaining === '0 DH' ? '#10b981' : '#b45309' }}>
-                          {payment.remaining}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </article>
-
-          {/* Upcoming installments */}
-          <article className="admp-panel">
-            <div className="admp-section-head">
-              <h2>Échéances à relancer</h2>
-              <span>{upcomingInstallments.length} priorité{upcomingInstallments.length > 1 ? 's' : ''}</span>
-            </div>
-            <div className="admp-installments">
-              {upcomingInstallments.map(inst => (
-                <div className="admp-inst-card" key={`${inst.student}-${inst.title}`}>
-                  <div className="admp-inst-top">
-                    <div>
-                      <strong>{inst.student}</strong>
-                      <span>{inst.course}</span>
-                    </div>
-                    <span className="admp-status admp-status--amber">{inst.amount}</span>
-                  </div>
-                  <p style={{ fontSize: '.82rem', color: '#18181b', margin: '4px 0 2px' }}>{inst.title}</p>
-                  <small style={{ color: '#9ca3af', fontSize: '.72rem' }}>Échéance prévue le {inst.dueDate}</small>
-                  <button className="admp-relance-btn">Envoyer un rappel →</button>
-                </div>
-              ))}
-            </div>
-          </article>
-        </section>
-
-      </div>
-
-      {/* ═══════════════════════════
-          STYLES
-      ═══════════════════════════ */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-        .material-symbols-outlined {
-          font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
-          font-family:'Material Symbols Outlined';
-          font-style:normal; line-height:1;
-          letter-spacing:normal; text-transform:none;
-          display:inline-block; white-space:nowrap;
-          -webkit-font-smoothing:antialiased;
-        }
-
-        .admp-root {
-          padding: 28px;
-          font-family: 'Manrope', sans-serif;
-          color: #18181b; min-height: 100%;
-          max-width: 100%;
-          overflow-x: hidden;
-        }
-        .admp-root *, .admp-root *::before, .admp-root *::after { box-sizing: border-box; }
-
-        /* Header */
-        .admp-header {
-          display: flex; justify-content: space-between;
-          gap: 20px; align-items: flex-end; flex-wrap: wrap;
-          background: radial-gradient(circle at top right, rgba(194,101,42,.1), transparent 40%), #fff;
-          border: 1px solid rgba(15,23,42,.07);
-          box-shadow: 0 4px 20px rgba(15,23,42,.04);
-          border-radius: 20px; padding: 28px;
-          margin-bottom: 22px;
-        }
-        .admp-kicker {
-          margin: 0 0 6px; font-size: .72rem; font-weight: 800;
-          letter-spacing: .14em; text-transform: uppercase; color: #c2652a;
-        }
-        .admp-title {
-          margin: 0; font-family: 'EB Garamond', serif;
-          font-size: clamp(1.8rem, 3vw, 2.8rem); line-height: 1;
-        }
-        .admp-subtitle {
-          margin: 12px 0 0; color: #6b7280;
-          max-width: 600px; line-height: 1.7; font-size: .9rem;
-        }
-        .admp-header-chips { display: flex; flex-direction: column; gap: 10px; }
-        .admp-chip {
-          padding: 10px 16px; border-radius: 99px;
-          background: #fff; color: #8f4c2d;
-          border: 1px solid rgba(194,101,42,.18);
-          font-size: .8rem; font-weight: 800; width: fit-content;
-        }
-        .admp-chip--soft { color: #6b7280; border-color: rgba(15,23,42,.08); border-radius: 14px; }
-
-        /* Stats */
-        .admp-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(4,1fr);
-          gap: 16px; margin-bottom: 22px;
-        }
-        .admp-stat-card {
-          background: #fff;
-          border: 1px solid rgba(15,23,42,.07);
-          box-shadow: 0 2px 12px rgba(15,23,42,.04);
-          border-radius: 16px; padding: 20px;
-          transition: transform .2s, box-shadow .2s;
-        }
-        .admp-stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.07); }
-        .admp-stat-label {
-          margin: 0 0 8px; color: #8b8b8b;
-          font-size: .7rem; font-weight: 800;
-          text-transform: uppercase; letter-spacing: .12em;
-        }
-        .admp-stat-value {
-          margin: 0; font-family: 'EB Garamond', serif;
-          font-size: 2rem; line-height: 1; color: #18181b;
-        }
-        .admp-stat-sub { margin: 8px 0 0; color: #6b7280; font-size: .8rem; }
-        .admp-stat-card--orange { border-top: 3px solid #c2652a; }
-        .admp-stat-card--blue   { border-top: 3px solid #3b82f6; }
-        .admp-stat-card--green  { border-top: 3px solid #10b981; }
-        .admp-stat-card--slate  { border-top: 3px solid #64748b; }
-
-        /* Panels */
-        .admp-panel {
-          background: #fff;
-          border: 1px solid rgba(15,23,42,.07);
-          box-shadow: 0 4px 20px rgba(15,23,42,.04);
-          border-radius: 20px; padding: 24px;
-          max-width: 100%;
-          min-width: 0;
-        }
-        .admp-section-head {
-          display: flex; align-items: center;
-          justify-content: space-between; gap: 12px;
-          margin-bottom: 16px; flex-wrap: wrap;
-        }
-        .admp-section-head h2 {
-          margin: 0; font-family: 'EB Garamond', serif;
-          font-size: 1.6rem; color: #18181b;
-        }
-        .admp-section-head > span { color: #8b8b8b; font-size: .78rem; font-weight: 700; }
-
-        /* Overview grid */
-        .admp-overview-grid {
-          display: grid;
-          grid-template-columns: 1.35fr 0.85fr;
-          gap: 18px; margin-bottom: 22px;
-        }
-
-        /* Progress block */
-        .admp-progress-block {
-          padding: 20px; border-radius: 16px;
-          background: linear-gradient(180deg, #fffaf6, #fff);
-          border: 1px solid rgba(15,23,42,.06);
-          margin-bottom: 16px;
-        }
-        .admp-progress-block-head {
-          display: flex; justify-content: space-between;
-          align-items: flex-start; gap: 12px; flex-wrap: wrap;
-        }
-        .admp-progress-value {
-          margin: 0; font-family: 'EB Garamond', serif;
-          font-size: 2.6rem; color: #c2652a; line-height: 1;
-        }
-        .admp-track-lg {
-          width: 100%; height: 10px;
-          border-radius: 99px; overflow: hidden;
-          background: #ece8e4; margin-top: 16px;
-        }
-        .admp-fill {
-          height: 100%; border-radius: inherit;
-          background: linear-gradient(90deg, #e8915a, #c2652a);
-          transition: width .8s cubic-bezier(.4,0,.2,1);
-        }
-        .admp-note { margin: 10px 0 0; color: #6b7280; font-size: .82rem; line-height: 1.7; }
-
-        /* Recent payments */
-        .admp-recent-list { display: flex; flex-direction: column; gap: 10px; }
-        .admp-recent-payment {
-          display: grid; grid-template-columns: 1fr auto auto;
-          align-items: center; gap: 12px;
-          padding: 14px; border-radius: 14px;
-          background: #fafafa;
-          border: 1px solid rgba(15,23,42,.06);
-        }
-        .admp-recent-payment strong { display: block; color: #18181b; font-weight: 700; font-size: .84rem; }
-        .admp-recent-payment span  { color: #6b7280; font-size: .76rem; }
-        .admp-recent-meta { text-align: right; }
-        .admp-recent-meta strong { display: block; color: #18181b; font-weight: 800; }
-        .admp-recent-meta span   { color: #9ca3af; font-size: .72rem; }
-
-        /* Donut */
-        .admp-donut-wrap { position: relative; width: 100%; height: 220px; margin-top: 8px; }
-        .admp-donut-center {
-          position: absolute; inset: 0;
-          display: flex; flex-direction: column;
-          align-items: center; justify-content: center;
-          pointer-events: none;
-        }
-        .admp-donut-center strong { font-size: 1.8rem; color: #18181b; font-family: 'EB Garamond',serif; }
-        .admp-donut-center span { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #8b8b8b; margin-top: 4px; }
-        .admp-legend { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .admp-legend-row {
-          display: grid; grid-template-columns: auto 1fr auto;
-          align-items: center; gap: 10px; font-size: .84rem; color: #6b7280;
-        }
-        .admp-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .admp-legend-row strong { color: #18181b; font-size: .82rem; }
-
-        /* Chart section */
-        .admp-chart-section { margin-bottom: 22px; }
-        .admp-area-wrap {
-          width: 100%; height: 300px; margin-top: 12px;
-          padding: 12px 8px 0;
-          border-radius: 16px;
-          background: linear-gradient(180deg, #fffaf6, #fff);
-          border: 1px solid rgba(15,23,42,.06);
-        }
-
-        /* Bottom grid */
-        .admp-bottom-grid {
-          display: grid;
-          grid-template-columns: 1.5fr 0.8fr;
-          gap: 18px;
-        }
-
-        /* Table */
-        .admp-table-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid rgba(15,23,42,.06); margin-top: 12px; }
-        .admp-table { width: 100%; min-width: 900px; border-collapse: collapse; background: #fff; }
-        .admp-table thead tr { background: #faf8f5; }
-        .admp-table th, .admp-table td {
-          padding: 13px 16px;
-          border-bottom: 1px solid rgba(15,23,42,.06);
-          text-align: left; font-size: .83rem;
-        }
-        .admp-table th { color: #8b8b8b; font-size: .67rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-        .admp-table tbody tr:last-child td { border-bottom: none; }
-        .admp-table tbody tr:hover { background: #fffaf6; }
-        .admp-student-cell { display: flex; align-items: center; gap: 10px; }
-        .admp-student-cell strong { display: block; color: #18181b; font-weight: 700; font-size: .84rem; }
-        .admp-student-cell span  { display: block; color: #6b7280; font-size: .72rem; }
-        .admp-av {
-          width: 36px; height: 36px; flex-shrink: 0;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #c2652a, #e8915a);
-          color: #fff; font-weight: 800; font-size: .7rem;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .admp-amount { font-weight: 800; color: #18181b; font-family: 'EB Garamond',serif; font-size: .96rem; }
-
-        /* Status */
-        .admp-status {
-          display: inline-flex; align-items: center;
-          padding: 4px 10px; border-radius: 99px;
-          font-size: .67rem; font-weight: 800;
-          text-transform: uppercase; letter-spacing: .06em; width: fit-content;
-        }
-        .admp-status--green { background: rgba(16,185,129,.12); color: #0f9d70; }
-        .admp-status--amber { background: rgba(245,158,11,.14); color: #b45309; }
-        .admp-status--red   { background: rgba(239,68,68,.12);  color: #dc2626; }
-
-        /* Export btn */
-        .admp-export-btn {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 5px 12px; border-radius: 8px;
-          border: 1px solid rgba(0,0,0,.09);
-          background: #faf8f5; color: #6b7280;
-          font-family: 'Manrope',sans-serif; font-size: .74rem; font-weight: 700;
-          cursor: pointer; transition: background .15s, color .15s;
-        }
-        .admp-export-btn:hover { background: #fff3ec; color: #c2652a; border-color: rgba(194,101,42,.3); }
-
-        /* Installments */
-        .admp-installments { display: flex; flex-direction: column; gap: 12px; }
-        .admp-inst-card {
-          padding: 16px; border-radius: 14px;
-          background: #fafafa;
-          border: 1px solid rgba(15,23,42,.06);
-          transition: border-color .15s;
-        }
-        .admp-inst-card:hover { border-color: rgba(194,101,42,.3); background: #fffaf6; }
-        .admp-inst-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-        .admp-inst-top strong { display: block; color: #18181b; font-weight: 700; font-size: .84rem; }
-        .admp-inst-top span   { color: #6b7280; font-size: .74rem; display: block; margin-top: 2px; }
-        .admp-relance-btn {
-          margin-top: 10px;
-          display: inline-block; font-size: .72rem;
-          font-weight: 800; color: #c2652a; background: none;
-          border: none; cursor: pointer; padding: 0;
-          font-family: 'Manrope',sans-serif;
-          transition: opacity .15s;
-        }
-        .admp-relance-btn:hover { opacity: .7; }
-
-        /* Responsive */
-        @media (max-width: 1180px) {
-          .admp-stats-grid, .admp-overview-grid, .admp-bottom-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-        @media (max-width: 640px) {
-          .admp-root { padding: 16px; }
-          .admp-header, .admp-panel { padding: 18px; border-radius: 16px; }
-          .admp-recent-payment { grid-template-columns: 1fr; }
-          .admp-stats-grid { grid-template-columns: 1fr; }
-          .admp-header-chips, .admp-chip { width: 100%; }
-          .admp-area-wrap { height: 240px; padding: 8px 0 0; }
-          .admp-donut-wrap { height: 190px; }
-          .admp-table-wrap { overflow-x: visible; border: none; margin-top: 4px; }
-          .admp-table { min-width: 0; border-collapse: separate; border-spacing: 0 12px; }
-          .admp-table thead { display: none; }
-          .admp-table, .admp-table tbody, .admp-table tr, .admp-table td { display: block; width: 100%; }
-          .admp-table tbody tr {
-            border: 1px solid rgba(15,23,42,.07);
-            border-radius: 14px;
-            background: #fff;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(15,23,42,.04);
-          }
-          .admp-table th, .admp-table td { padding: 0; }
-          .admp-table td {
-            display: grid;
-            grid-template-columns: 96px minmax(0, 1fr);
-            gap: 12px;
-            padding: 12px;
-            border-bottom: 1px solid rgba(15,23,42,.06);
-            min-width: 0;
-          }
-          .admp-table td:last-child { border-bottom: none; }
-          .admp-table td::before {
-            content: attr(data-label);
-            font-size: .62rem;
-            font-weight: 900;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            color: #9ca3af;
-          }
-          .admp-student-cell, .admp-student-cell > div {
-            min-width: 0;
-          }
-          .admp-student-cell strong, .admp-student-cell span, .admp-table td {
-            overflow-wrap: anywhere;
-            word-break: break-word;
-          }
-        }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; line-height:1; }
+        .pay-root { --bg:#faf5ee; --surface:#fff; --surface-low:#f6f0e8; --line:#d8d0c8; --line-soft:rgba(216,208,200,.6); --text:#3a302a; --muted:#605850; --primary:#c2652a; --tertiary:#8c3c3c; min-height:100%; padding:48px 32px 58px; background:var(--bg); color:var(--text); font-family:'Manrope',sans-serif; }
+        .pay-root *, .pay-root *::before, .pay-root *::after { box-sizing:border-box; }
+        .pay-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:44px; }
+        .pay-hero h1 { margin:0; font-family:'EB Garamond',serif; font-size:clamp(2.7rem,5vw,4.6rem); line-height:.98; font-weight:700; color:var(--text); }
+        .pay-hero p { max-width:720px; margin:12px 0 0; color:var(--muted); font-size:1.05rem; line-height:1.75; }
+        .pay-primary { min-height:46px; display:inline-flex; align-items:center; justify-content:center; gap:9px; border:0; border-radius:8px; background:var(--primary); color:#fff; padding:0 18px; font-weight:800; cursor:pointer; box-shadow:0 14px 30px rgba(194,101,42,.18); }
+        .pay-primary:hover { opacity:.9; transform:translateY(-1px); }
+        .pay-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; margin-bottom:32px; }
+        .pay-metric { min-height:138px; border:1px solid var(--line-soft); border-radius:12px; background:#fff; padding:25px; box-shadow:0 2px 16px rgba(58,48,42,.04); }
+        .pay-metric p { margin:0 0 10px; color:#78706a; font-size:.72rem; font-weight:900; letter-spacing:.15em; text-transform:uppercase; }
+        .pay-metric div { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+        .pay-metric strong { color:var(--text); font-family:'EB Garamond',serif; font-size:clamp(1.85rem,2.8vw,2.55rem); line-height:1; }
+        .pay-metric span { color:var(--muted); font-size:.74rem; font-weight:800; }
+        .pay-metric em { width:72px; height:8px; display:block; overflow:hidden; border-radius:999px; background:#f2ece4; }
+        .pay-metric em i { display:block; height:100%; background:var(--primary); }
+        .pay-main-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,.95fr); gap:26px; margin-bottom:32px; }
+        .pay-panel { min-width:0; border:1px solid var(--line-soft); border-radius:12px; background:#fff; box-shadow:0 2px 16px rgba(58,48,42,.04); overflow:hidden; }
+        .pay-panel-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 24px; border-bottom:1px solid var(--line-soft); flex-wrap:wrap; }
+        .pay-panel h2, .pay-panel-head h2 { margin:0; font-family:'EB Garamond',serif; font-size:1.75rem; font-weight:600; color:var(--text); }
+        .pay-panel-head p { margin:4px 0 0; color:var(--muted); font-size:.82rem; }
+        .pay-search { position:relative; display:flex; align-items:center; }
+        .pay-search .material-symbols-outlined { position:absolute; left:11px; color:#9a9088; font-size:18px; }
+        .pay-search input { width:280px; height:40px; border:1px solid var(--line-soft); border-radius:8px; background:#faf5ee; padding:0 12px 0 36px; color:var(--text); outline:none; font-family:'Manrope',sans-serif; }
+        .pay-search input:focus { border-color:rgba(194,101,42,.55); box-shadow:0 0 0 3px rgba(194,101,42,.1); }
+        .pay-table-wrap { overflow-x:auto; }
+        .pay-table { width:100%; min-width:760px; border-collapse:collapse; text-align:left; }
+        .pay-table th { padding:15px 24px; background:rgba(246,240,232,.55); color:#78706a; font-size:.66rem; font-weight:900; letter-spacing:.15em; text-transform:uppercase; }
+        .pay-table td { padding:17px 24px; border-top:1px solid var(--line-soft); color:var(--muted); font-size:.88rem; vertical-align:middle; }
+        .pay-table tbody tr:hover { background:#f6f0e8; }
+        .pay-student { display:flex; align-items:center; gap:12px; min-width:0; }
+        .pay-avatar { width:36px; height:36px; flex-shrink:0; border-radius:999px; display:flex; align-items:center; justify-content:center; background:#fbe8d8; color:#8a4518; font-size:.72rem; font-weight:900; }
+        .pay-student strong { display:block; color:var(--text); font-weight:800; }
+        .pay-student span { display:block; color:#9a9088; font-size:.74rem; margin-top:2px; }
+        .pay-amount { color:var(--text) !important; font-weight:900; }
+        .pay-status { display:inline-flex; padding:5px 10px; border-radius:999px; font-size:.62rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
+        .pay-status--paid { background:#dcfce7; color:#166534; }
+        .pay-status--pending { background:#fef3c7; color:#92400e; }
+        .pay-ok { color:#047857 !important; font-weight:900; }
+        .pay-wait { color:#92400e !important; font-weight:900; }
+        .pay-table-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:18px 24px; border-top:1px solid var(--line-soft); flex-wrap:wrap; }
+        .pay-table-footer p { margin:0; color:#9a9088; font-size:.78rem; font-weight:800; }
+        .pay-table-footer div { display:flex; gap:8px; }
+        .pay-table-footer button { min-height:36px; border:1px solid var(--line-soft); border-radius:8px; background:#fff; color:var(--text); padding:0 13px; font-weight:800; cursor:pointer; }
+        .pay-table-footer button:disabled { opacity:.4; cursor:not-allowed; }
+        .pay-side { display:flex; flex-direction:column; gap:24px; }
+        .pay-donut-panel { padding:26px; text-align:center; }
+        .pay-donut { position:relative; width:220px; height:220px; margin:20px auto; }
+        .pay-donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+        .pay-donut-center strong { font-family:'EB Garamond',serif; font-size:2.55rem; line-height:1; color:var(--text); }
+        .pay-donut-center span { margin-top:5px; color:#78706a; font-size:.68rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+        .pay-legend { display:flex; flex-direction:column; gap:13px; text-align:left; }
+        .pay-legend div { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .pay-legend span { display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:.86rem; }
+        .pay-legend i { width:9px; height:9px; border-radius:999px; display:inline-block; }
+        .pay-legend strong { color:var(--text); font-size:.84rem; }
+        .pay-reminders .pay-panel-head span { min-width:28px; height:28px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:#fbe8d8; color:var(--primary); font-weight:900; }
+        .pay-reminder-list { padding:20px 24px 24px; display:flex; flex-direction:column; gap:18px; }
+        .pay-reminder { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+        .pay-reminder strong { display:block; color:var(--text); font-size:.88rem; }
+        .pay-reminder span, .pay-reminder small { display:block; color:#9a9088; font-size:.72rem; margin-top:2px; }
+        .pay-reminder small { color:var(--tertiary); font-weight:700; }
+        .pay-reminder button { border:1px solid var(--primary); border-radius:8px; background:#fff; color:var(--primary); padding:7px 12px; font-size:.7rem; font-weight:900; cursor:pointer; white-space:nowrap; }
+        .pay-reminder button:hover { background:#fff7f2; }
+        .pay-chart-section { padding-bottom:24px; }
+        .pay-chart { height:310px; padding:10px 20px 0; }
+        .pay-year-switch { display:flex; background:#f2ece4; border-radius:8px; padding:4px; }
+        .pay-year-switch button { border:0; background:#fff; color:var(--text); border-radius:6px; padding:7px 14px; font-weight:900; font-size:.72rem; }
+        .pay-empty { padding:48px 20px; text-align:center; color:#9a9088; font-weight:700; }
+        .pay-empty--small { padding:20px; border:1px dashed var(--line-soft); border-radius:10px; }
+        .al-root.al-dark .pay-root { --bg:#191512; --surface:#241f1a; --surface-low:#241f1a; --line:#3b3028; --line-soft:rgba(210,194,181,.16); --text:#f8efe5; --muted:#d5c8bc; --primary:#f0a878; --tertiary:#e8a0a0; }
+        .al-root.al-dark .pay-panel, .al-root.al-dark .pay-metric, .al-root.al-dark .pay-search input, .al-root.al-dark .pay-table-footer button, .al-root.al-dark .pay-reminder button { background:#241f1a; color:#d5c8bc; }
+        .al-root.al-dark .pay-table th, .al-root.al-dark .pay-year-switch { background:#1f1a16; }
+        .al-root.al-dark .pay-table tbody tr:hover { background:rgba(240,168,120,.07); }
+        .al-root.al-dark .pay-student strong, .al-root.al-dark .pay-panel h2, .al-root.al-dark .pay-panel-head h2, .al-root.al-dark .pay-metric strong, .al-root.al-dark .pay-donut-center strong, .al-root.al-dark .pay-legend strong { color:#f8efe5; }
+        .al-root.al-dark .recharts-tooltip-wrapper { color:#3a302a; }
+        @media (max-width:1180px) { .pay-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .pay-main-grid { grid-template-columns:1fr; } }
+        @media (max-width:700px) { .pay-root { padding:26px 14px 42px; } .pay-hero { align-items:flex-start; flex-direction:column; margin-bottom:28px; } .pay-primary, .pay-search, .pay-search input { width:100%; } .pay-metrics { grid-template-columns:1fr; } .pay-panel-head { padding:18px; } .pay-table { min-width:680px; } .pay-table th, .pay-table td { padding:14px 16px; } .pay-donut { width:190px; height:190px; } .pay-reminder { align-items:flex-start; flex-direction:column; } .pay-reminder button { width:100%; } .pay-chart { height:250px; padding:8px 6px 0; } }
       `}</style>
-
     </AdminLayout>
   )
 }

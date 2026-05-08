@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\PaymentInstallment;
+use Carbon\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,7 +29,7 @@ class PaymentController extends Controller
             ->with(['user', 'course'])
             ->get();
 
-        $totalExpected = (float) $enrollments->sum(fn (Enrollment $enrollment) => (float) $enrollment->course->price);
+        $totalExpected = (float) $enrollments->sum(fn (Enrollment $enrollment) => (float) ($enrollment->course?->price ?? 0));
         $totalCollected = (float) $payments->where('status', 'paid')->sum('amount');
         $pendingAmount = max($totalExpected - $totalCollected, 0);
         $paidPayments = $payments->where('status', 'paid');
@@ -37,13 +38,13 @@ class PaymentController extends Controller
 
         $stats = [
             [
-                'label' => 'Montant encaisse',
+                'label' => 'Total Encaissements',
                 'value' => number_format($totalCollected, 0, ',', ' ').' DH',
                 'sub' => 'encaissements confirms',
                 'accent' => 'green',
             ],
             [
-                'label' => 'Reste a percevoir',
+                'label' => 'Restes a percevoir',
                 'value' => number_format($pendingAmount, 0, ',', ' ').' DH',
                 'sub' => $installments->where('status', 'pending')->count().' echeance(s) encore ouvertes',
                 'accent' => 'orange',
@@ -62,13 +63,22 @@ class PaymentController extends Controller
             ],
         ];
 
-        $monthlyRevenue = $payments
-            ->groupBy(function (Payment $payment) {
-                return ($payment->paid_at ?? $payment->created_at)?->format('M') ?? 'N/A';
-            })
-            ->map(function ($group, string $month) {
+        $monthLabels = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthlyRevenue = collect(range(1, 12))
+            ->map(function (int $month) use ($monthLabels) {
+                $start = Carbon::create(now()->year, $month, 1)->startOfMonth();
+                $end = $start->copy()->endOfMonth();
+                $group = Payment::query()
+                    ->where(function ($query) use ($start, $end) {
+                        $query->whereBetween('paid_at', [$start, $end])
+                            ->orWhere(function ($nested) use ($start, $end) {
+                                $nested->whereNull('paid_at')->whereBetween('created_at', [$start, $end]);
+                            });
+                    })
+                    ->get();
+
                 return [
-                    'month' => $month,
+                    'month' => $monthLabels[$month - 1],
                     'collected' => (float) $group->where('status', 'paid')->sum('amount'),
                     'pending' => (float) $group->where('status', 'pending')->sum('amount'),
                 ];
@@ -79,17 +89,17 @@ class PaymentController extends Controller
             [
                 'name' => 'Regle',
                 'value' => (float) $paidPayments->sum('amount'),
-                'color' => '#10b981',
+                'color' => '#c2652a',
             ],
             [
                 'name' => 'En attente',
                 'value' => (float) $pendingPayments->sum('amount'),
-                'color' => '#ff8a3d',
+                'color' => '#8c3c3c',
             ],
             [
                 'name' => 'A encaisser',
                 'value' => max($pendingAmount - (float) $pendingPayments->sum('amount'), 0),
-                'color' => '#e7d7cb',
+                'color' => '#d8d0c8',
             ],
         ];
 
@@ -114,7 +124,7 @@ class PaymentController extends Controller
             });
 
         $paymentRows = $payments->map(function (Payment $payment) {
-            $coursePrice = (float) $payment->enrollment->course->price;
+            $coursePrice = (float) ($payment->enrollment->course?->price ?? 0);
             $studentPaid = (float) $payment->enrollment->payments->where('status', 'paid')->sum('amount');
             $studentRemaining = max($coursePrice - $studentPaid, 0);
 
