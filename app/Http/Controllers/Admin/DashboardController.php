@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\EnrollmentApplication;
 use App\Models\Payment;
 use App\Models\PaymentInstallment;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -112,6 +114,78 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function reports(Request $request): Response
+    {
+        $now = now();
+        $availableYears = $this->availableReportYears();
+        $selectedYear = (int) $request->integer('year', $now->year);
+
+        if (! in_array($selectedYear, $availableYears, true)) {
+            $selectedYear = $availableYears[0] ?? $now->year;
+        }
+
+        $yearStart = Carbon::create($selectedYear, 1, 1)->startOfDay();
+        $yearEnd = Carbon::create($selectedYear, 12, 31)->endOfDay();
+        $previousStart = $yearStart->copy()->subYear();
+        $previousEnd = $yearEnd->copy()->subYear();
+
+        $annualRevenue = $this->paidPaymentsBetween($yearStart, $yearEnd);
+        $previousRevenue = $this->paidPaymentsBetween($previousStart, $previousEnd);
+        $yearEnrollments = $this->enrollmentsBetween($yearStart, $yearEnd);
+        $yearApplications = EnrollmentApplication::query()->whereBetween('created_at', [$yearStart, $yearEnd])->count();
+        $approvedApplications = EnrollmentApplication::query()
+            ->where('status', 'approved')
+            ->whereBetween('created_at', [$yearStart, $yearEnd])
+            ->count();
+        $certificates = EnrollmentApplication::query()
+            ->whereNotNull('certificate_reference')
+            ->whereBetween('created_at', [$yearStart, $yearEnd])
+            ->count();
+
+        $activeEnrollments = Enrollment::query()->where('status', 'active')->count();
+        $completedEnrollments = Enrollment::query()
+            ->where(function ($query) {
+                $query->where('status', 'completed')->orWhere('progress', '>=', 100);
+            })
+            ->whereBetween(DB::raw('COALESCE(enrolled_at, created_at)'), [$yearStart, $yearEnd])
+            ->count();
+        $completionRate = $yearEnrollments > 0 ? (int) round(($completedEnrollments / $yearEnrollments) * 100) : 0;
+        $approvalRate = $yearApplications > 0 ? (int) round(($approvedApplications / $yearApplications) * 100) : 0;
+
+        $totalExpected = (float) Enrollment::query()
+            ->with('course:id,price')
+            ->whereBetween(DB::raw('COALESCE(enrolled_at, created_at)'), [$yearStart, $yearEnd])
+            ->get()
+            ->sum(fn (Enrollment $enrollment) => (float) ($enrollment->course?->price ?? 0));
+
+        $pendingPayments = (float) Payment::query()
+            ->where('status', 'pending')
+            ->whereBetween('created_at', [$yearStart, $yearEnd])
+            ->sum('amount');
+
+        return Inertia::render('Dashboard/Admin/Reports', [
+            'filters' => [
+                'year' => $selectedYear,
+                'availableYears' => $availableYears,
+            ],
+            'metrics' => [
+                'annualRevenue' => $annualRevenue,
+                'revenueGrowth' => $this->growthPercent($annualRevenue, $previousRevenue),
+                'yearEnrollments' => $yearEnrollments,
+                'activeEnrollments' => $activeEnrollments,
+                'certificates' => $certificates,
+                'completionRate' => $completionRate,
+                'approvalRate' => $approvalRate,
+            ],
+            'monthlyPerformance' => $this->monthlyReportPerformance($selectedYear),
+            'categoryDistribution' => $this->categoryDistributionForYear($yearStart, $yearEnd),
+            'financialStatus' => $this->financialStatusForYear($totalExpected, $annualRevenue, $pendingPayments),
+            'applicationStatus' => $this->applicationStatusForYear($yearStart, $yearEnd),
+            'historicalComparison' => $this->historicalComparison($availableYears),
+            'courseLeaders' => $this->courseLeadersForYear($yearStart, $yearEnd),
+        ]);
+    }
+
     private function paidPaymentsBetween(Carbon $start, Carbon $end): float
     {
         return (float) Payment::query()
@@ -123,6 +197,176 @@ class DashboardController extends Controller
                     });
             })
             ->sum('amount');
+    }
+
+    private function enrollmentsBetween(Carbon $start, Carbon $end): int
+    {
+        return Enrollment::query()
+            ->whereBetween(DB::raw('COALESCE(enrolled_at, created_at)'), [$start, $end])
+            ->count();
+    }
+
+    private function availableReportYears(): array
+    {
+        $years = collect([
+            now()->year,
+            ...Payment::query()
+                ->selectRaw("EXTRACT(YEAR FROM COALESCE(paid_at, created_at))::int as year")
+                ->distinct()
+                ->pluck('year')
+                ->all(),
+            ...Enrollment::query()
+                ->selectRaw("EXTRACT(YEAR FROM COALESCE(enrolled_at, created_at))::int as year")
+                ->distinct()
+                ->pluck('year')
+                ->all(),
+            ...EnrollmentApplication::query()
+                ->selectRaw('EXTRACT(YEAR FROM created_at)::int as year')
+                ->distinct()
+                ->pluck('year')
+                ->all(),
+        ]);
+
+        return $years
+            ->filter()
+            ->map(fn ($year) => (int) $year)
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->all();
+    }
+
+    private function monthlyReportPerformance(int $year)
+    {
+        $labels = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        return collect(range(1, 12))->map(function (int $month) use ($year, $labels) {
+            $start = Carbon::create($year, $month, 1)->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+
+            return [
+                'month' => $labels[$month - 1],
+                'revenue' => $this->paidPaymentsBetween($start, $end),
+                'applications' => EnrollmentApplication::query()->whereBetween('created_at', [$start, $end])->count(),
+                'enrollments' => $this->enrollmentsBetween($start, $end),
+            ];
+        })->values();
+    }
+
+    private function categoryDistributionForYear(Carbon $start, Carbon $end)
+    {
+        $colors = ['#c2652a', '#8c3c3c', '#78706a', '#e08850', '#605850', '#d47070'];
+
+        $distribution = Enrollment::query()
+            ->join('courses', 'courses.id', '=', 'enrollments.course_id')
+            ->select('courses.category as category', DB::raw('COUNT(*) as total'))
+            ->whereBetween(DB::raw('COALESCE(enrollments.enrolled_at, enrollments.created_at)'), [$start, $end])
+            ->groupBy('courses.category')
+            ->orderByDesc('total')
+            ->get();
+
+        if ($distribution->isEmpty()) {
+            $distribution = EnrollmentApplication::query()
+                ->select('category', DB::raw('COUNT(*) as total'))
+                ->whereBetween('created_at', [$start, $end])
+                ->groupBy('category')
+                ->orderByDesc('total')
+                ->get();
+        }
+
+        return $distribution->values()->map(fn ($row, int $index) => [
+            'name' => $this->categoryLabel($row->category),
+            'value' => (int) $row->total,
+            'color' => $colors[$index % count($colors)],
+        ]);
+    }
+
+    private function financialStatusForYear(float $expected, float $collected, float $pending)
+    {
+        $remaining = max($expected - $collected - $pending, 0);
+
+        return collect([
+            ['name' => 'Encaisse', 'value' => $collected, 'color' => '#c2652a'],
+            ['name' => 'En attente', 'value' => $pending, 'color' => '#8c3c3c'],
+            ['name' => 'Reste estime', 'value' => $remaining, 'color' => '#78706a'],
+        ])->filter(fn ($item) => $item['value'] > 0)->values();
+    }
+
+    private function applicationStatusForYear(Carbon $start, Carbon $end)
+    {
+        $colors = [
+            'approved' => '#c2652a',
+            'pending' => '#8c3c3c',
+            'rejected' => '#78706a',
+        ];
+
+        return EnrollmentApplication::query()
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('status')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn ($row) => [
+                'name' => match ($row->status) {
+                    'approved' => 'Validees',
+                    'rejected' => 'Rejetees',
+                    default => 'En attente',
+                },
+                'value' => (int) $row->total,
+                'color' => $colors[$row->status] ?? '#605850',
+            ])
+            ->values();
+    }
+
+    private function historicalComparison(array $years)
+    {
+        return collect($years)
+            ->take(4)
+            ->map(function (int $year) {
+                $start = Carbon::create($year, 1, 1)->startOfDay();
+                $end = Carbon::create($year, 12, 31)->endOfDay();
+                $revenue = $this->paidPaymentsBetween($start, $end);
+                $applications = EnrollmentApplication::query()->whereBetween('created_at', [$start, $end])->count();
+                $approved = EnrollmentApplication::query()
+                    ->where('status', 'approved')
+                    ->whereBetween('created_at', [$start, $end])
+                    ->count();
+                $enrollments = $this->enrollmentsBetween($start, $end);
+                $certificates = EnrollmentApplication::query()
+                    ->whereNotNull('certificate_reference')
+                    ->whereBetween('created_at', [$start, $end])
+                    ->count();
+
+                return [
+                    'year' => $year,
+                    'revenue' => $revenue,
+                    'monthlyAverage' => round($revenue / 12),
+                    'students' => $enrollments,
+                    'certificates' => $certificates,
+                    'approvalRate' => $applications > 0 ? (int) round(($approved / $applications) * 100) : 0,
+                ];
+            })
+            ->values();
+    }
+
+    private function courseLeadersForYear(Carbon $start, Carbon $end)
+    {
+        return Course::query()
+            ->leftJoin('enrollments', 'courses.id', '=', 'enrollments.course_id')
+            ->select('courses.title', 'courses.category', DB::raw('COUNT(enrollments.id) as total'))
+            ->where(function ($query) use ($start, $end) {
+                $query->whereNull('enrollments.id')
+                    ->orWhereBetween(DB::raw('COALESCE(enrollments.enrolled_at, enrollments.created_at)'), [$start, $end]);
+            })
+            ->groupBy('courses.id', 'courses.title', 'courses.category')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get()
+            ->map(fn (Course $course) => [
+                'title' => $course->title,
+                'category' => $this->categoryLabel($course->category),
+                'enrollments' => (int) $course->total,
+            ]);
     }
 
     private function conversionForPeriod(Carbon $start, Carbon $end): float
@@ -242,5 +486,14 @@ class DashboardController extends Controller
         $difference = round($current - $previous, 1);
 
         return ($difference > 0 ? '+' : '').$difference.'%';
+    }
+
+    private function growthPercent(float $current, float $previous): float
+    {
+        if ($previous <= 0) {
+            return $current > 0 ? 100.0 : 0.0;
+        }
+
+        return round((($current - $previous) / $previous) * 100, 1);
     }
 }

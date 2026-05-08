@@ -144,9 +144,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments');
 
-    Route::get('/reports', function () {
-        return Inertia::render('Dashboard/Admin/Reports');
-    })->name('reports');
+    Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports');
 });
 
 /*
