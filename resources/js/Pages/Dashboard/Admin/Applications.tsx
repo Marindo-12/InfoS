@@ -907,9 +907,7 @@ export default function Applications() {
 
         /* ── Dark mode ── */
         .al-root.al-dark .app-root {
-          background:
-            radial-gradient(circle at top left, rgba(240,168,120,.10), transparent 34%),
-            linear-gradient(180deg, #181411 0%, #14110f 48%, #100e0d 100%);
+          background: #191512;
           color: #f8efe5;
         }
         .al-root.al-dark .app-live,

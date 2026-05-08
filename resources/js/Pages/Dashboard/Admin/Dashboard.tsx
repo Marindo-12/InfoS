@@ -959,10 +959,7 @@ export default function AdminDashboard() {
           --secondary: #cec6be;
           --tertiary: #e8a0a0;
           --shadow: rgba(0,0,0,.32);
-          background:
-            radial-gradient(circle at 12% 0%, rgba(194,101,42,.18), transparent 34%),
-            radial-gradient(circle at 94% 18%, rgba(140,60,60,.22), transparent 30%),
-            var(--surface);
+          background: var(--surface);
         }
 
         .al-root.al-dark .admd-stat:hover {

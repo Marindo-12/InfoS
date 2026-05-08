@@ -512,6 +512,12 @@ export default function AdminLayout({
         @media (max-width: 767px) { .al-mobile-btn { display: flex; } }
 
         .al-topbar-title { flex: 1; min-width: 0; overflow: hidden; }
+        .al-root.al-dark .al-topbar-title span {
+          color: var(--al-t3) !important;
+        }
+        .al-root.al-dark .al-topbar-title span:last-child {
+          color: var(--al-t1) !important;
+        }
 
         .al-search {
           display: flex; align-items: center; gap: 8px;
@@ -703,7 +709,18 @@ export default function AdminLayout({
 
         @media (max-width: 767px) {
           .al-topbar { padding: 0 12px; gap: 8px; }
-          .al-admin-tag, .al-tb-user { display: none; }
+          .al-admin-tag { display: none; }
+          .al-tb-user {
+            display: flex;
+            min-height: 38px;
+            padding: 3px;
+            border-radius: 12px;
+          }
+          .al-tb-user > div:not(.al-av) { display: none; }
+          .al-tb-user .al-av--sm {
+            width: 30px;
+            height: 30px;
+          }
           .al-topbar-right { flex-shrink: 0; }
         }
       `}</style>
