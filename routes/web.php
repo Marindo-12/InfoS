@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\EnrollmentApplicationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
@@ -136,9 +137,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::patch('/students/{student}', [StudentController::class, 'update'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
 
-    Route::get('/courses', function () {
-        return Inertia::render('Dashboard/Admin/Courses');
-    })->name('courses');
+    Route::get('/courses', [AdminCourseController::class, 'index'])->name('courses');
+    Route::post('/courses', [AdminCourseController::class, 'store'])->name('courses.store');
+    Route::patch('/courses/{course}', [AdminCourseController::class, 'update'])->name('courses.update');
+    Route::delete('/courses/{course}', [AdminCourseController::class, 'destroy'])->name('courses.destroy');
 
     Route::get('/schedule', [AdminScheduleController::class, 'index'])->name('schedule');
     Route::post('/schedule', [AdminScheduleController::class, 'store'])->name('schedule.store');
