@@ -1,9 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
-
-/* ═══════════════════════════════════════════════════
-   TYPES
-═══════════════════════════════════════════════════ */
+import { Head, Link, usePage } from '@inertiajs/react';
 
 type Formation = {
   title: string;
@@ -24,11 +20,13 @@ type ProchaineCours = {
   instructorAvatar?: string;
 } | null;
 
+type SessionColor = 'orange' | 'teal' | 'emerald' | 'red' | 'blue';
+
 type DaySession = {
   title: string;
   time: string;
   room: string;
-  color: 'orange' | 'teal' | 'emerald' | 'red' | 'blue';
+  color: SessionColor;
   isActive?: boolean;
 };
 
@@ -59,791 +57,926 @@ type Document = {
 
 type PageProps = {
   auth: { user: { id: number; name: string; email: string } };
-  formation: Formation;
-  prochaineCours: ProchaineCours;
-  semaine: WeekDay[];
-  presences: AttendanceRow[];
-  performances: PerfMonth[];
-  documents: Document[];
-  globalPresence: number;
+  formation?: Formation;
+  prochaineCours?: ProchaineCours;
+  semaine?: WeekDay[];
+  presences?: AttendanceRow[];
+  performances?: PerfMonth[];
+  documents?: Document[];
+  globalPresence?: number;
 };
 
-/* ═══════════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════════ */
-
-const COLOR_MAP: Record<DaySession['color'], { bg: string; border: string; text: string; icon: string }> = {
-  orange:  { bg: '#fff8f4', border: '#ff9a56',  text: '#c2652a', icon: '#ff6b2b' },
-  teal:    { bg: '#f0f8f8', border: '#4db6ac',  text: '#00796b', icon: '#26a69a' },
-  emerald: { bg: '#f1f9f4', border: '#66bb6a',  text: '#2e7d32', icon: '#43a047' },
-  red:     { bg: '#fdf4f4', border: '#ef9a9a',  text: '#8c3c3c', icon: '#c0392b' },
-  blue:    { bg: '#f3f6fd', border: '#90caf9',  text: '#1565c0', icon: '#1976d2' },
+const COLORS: Record<SessionColor, { border: string; text: string; tint: string }> = {
+  orange: { border: '#c2652a', text: '#8a4518', tint: '#fbe8d8' },
+  teal: { border: '#2f8f83', text: '#1f6f67', tint: '#e2f3f1' },
+  emerald: { border: '#3a8f5f', text: '#276642', tint: '#e4f4ea' },
+  red: { border: '#8c3c3c', text: '#6e3030', tint: '#fce0e0' },
+  blue: { border: '#3f6ea8', text: '#294d78', tint: '#e3edf8' },
 };
 
-const DOC_TYPE: Record<Document['type'], { bg: string; text: string; icon: string }> = {
-  pdf: { bg: '#fee2e2', text: '#dc2626', icon: 'description' },
-  doc: { bg: '#dbeafe', text: '#2563eb', icon: 'article'     },
-  zip: { bg: '#ffedd5', text: '#ea580c', icon: 'folder'      },
-  img: { bg: '#f3e8ff', text: '#7c3aed', icon: 'image'       },
+const DOC_ICON: Record<Document['type'], string> = {
+  pdf: 'description',
+  doc: 'article',
+  zip: 'folder_zip',
+  img: 'image',
 };
 
-/* ═══════════════════════════════════════════════════
-   DEMO DATA — used when backend hasn't sent props
-═══════════════════════════════════════════════════ */
-
-const DEMO: Omit<PageProps, 'auth'> = {
-  formation: {
-    title: 'Formation Bureautique Avancée',
-    category: 'Inscription active',
-    startDate: '12 Jan 2025',
-    endDate:   '28 Avr 2025',
-    duration:  '2 mois',
-    studentsCount: 24,
-    progress: 62,
-  },
-  prochaineCours: {
-    title:    'Microsoft Excel — Niveau Avancé',
-    type:     'Atelier pratique · Salle 204',
-    room:     'Salle 204',
-    time:     '10:00',
-    instructor: 'M. Rachid Alami',
-  },
-  semaine: [
-    { label: 'Lun', dayNum: 12, sessions: [
-      { title: 'Word — Mise en page',    time: '09:00 — 10:30', room: 'Salle 101', color: 'orange' },
-      { title: 'PowerPoint Créatif',     time: '14:00 — 15:30', room: 'Labo B',    color: 'teal'   },
-    ]},
-    { label: 'Mar', dayNum: 13, isToday: true, sessions: [
-      { title: 'Excel Avancé',           time: '10:00 — 11:30', room: 'Salle 204', color: 'orange', isActive: true },
-    ]},
-    { label: 'Mer', dayNum: 14, sessions: [
-      { title: 'Word — Documents longs', time: '09:00 — 10:30', room: 'Salle 101', color: 'orange' },
-      { title: 'Infographie — Figma',    time: '14:00 — 16:00', room: 'Labo Créa', color: 'red'    },
-    ]},
-    { label: 'Jeu', dayNum: 15, sessions: [
-      { title: 'Excel — Tableaux croisés', time: '11:00 — 12:30', room: 'Labo B', color: 'emerald' },
-    ]},
-    { label: 'Ven', dayNum: 16, sessions: [] },
-    { label: 'Sam', dayNum: 17, sessions: [] },
-    { label: 'Dim', dayNum: 18, sessions: [] },
-  ],
-  presences: [
-    { course: 'Microsoft Word',       attended: 9,  total: 10 },
-    { course: 'Microsoft Excel',      attended: 8,  total: 8  },
-    { course: 'Microsoft PowerPoint', attended: 6,  total: 7  },
-  ],
-  performances: [
-    { month: 'Jan', exams: 60, quiz: 45 },
-    { month: 'Fév', exams: 75, quiz: 50 },
-    { month: 'Mar', exams: 80, quiz: 70 },
-  ],
-  documents: [
-    { name: 'Cours_Word_01.pdf',  size: '3.2 Mo', type: 'pdf' },
-    { name: 'Exercices_Excel.docx', size: '1.1 Mo', type: 'doc' },
-    { name: 'Ressources.zip',     size: '84 Mo',  type: 'zip' },
-    { name: 'Cours_PPT.pdf',      size: '2.8 Mo', type: 'pdf' },
-  ],
-  globalPresence: 92,
+const fallbackFormation: Formation = {
+  title: 'Aucune formation active',
+  category: 'Planning',
+  startDate: 'A definir',
+  endDate: 'A definir',
+  duration: '0h',
+  studentsCount: 0,
+  progress: 0,
 };
 
-/* ═══════════════════════════════════════════════════
-   ICONS
-═══════════════════════════════════════════════════ */
+function countSessions(week: WeekDay[]) {
+  return week.reduce((total, day) => total + day.sessions.length, 0);
+}
 
-const Ic = {
-  arrow: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>,
-  star:  () => <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" opacity=".18"/></svg>,
-  check: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>,
-  cal:   () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-  user:  () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-  sync:  () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>,
-  dl:    () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>,
-  map:   () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,
-  book:  () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
-  moon:  () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
-};
+function estimateHours(week: WeekDay[]) {
+  const minutes = week.flatMap((day) => day.sessions).reduce((total, session) => {
+    const match = session.time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+    if (!match) return total;
 
-/* ═══════════════════════════════════════════════════
-   MAIN PAGE
-═══════════════════════════════════════════════════ */
+    const [, sh, sm, eh, em] = match.map(Number);
+    const start = sh * 60 + sm;
+    const end = eh * 60 + em;
+
+    return end > start ? total + (end - start) : total;
+  }, 0);
+
+  if (minutes <= 0) return '0h';
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h${String(rest).padStart(2, '0')}` : `${hours}h`;
+}
+
+function clampPercent(value: number | undefined) {
+  return Math.max(0, Math.min(100, Number(value ?? 0)));
+}
+
+function materialIcon(name: string, className = '') {
+  return <span className={`material-symbols-outlined ${className}`}>{name}</span>;
+}
 
 export default function Schedule() {
   const { props } = usePage<PageProps>();
-  const user = props.auth.user;
-
-  const {
-    formation       = { title: 'Aucune formation active', category: 'Planning', startDate: 'A definir', endDate: 'A definir', duration: '0h', studentsCount: 0, progress: 0 },
-    prochaineCours  = null,
-    semaine         = [],
-    presences       = [],
-    performances    = [],
-    documents       = [],
-    globalPresence  = 0,
-  } = props as Partial<typeof DEMO>;
+  const formation = props.formation ?? fallbackFormation;
+  const prochaineCours = props.prochaineCours ?? null;
+  const semaine = props.semaine ?? [];
+  const presences = props.presences ?? [];
+  const performances = props.performances ?? [];
+  const documents = props.documents ?? [];
+  const progress = clampPercent(formation.progress);
+  const globalPresence = clampPercent(props.globalPresence);
+  const weeklySessions = countSessions(semaine);
+  const weeklyHours = estimateHours(semaine);
 
   return (
     <AuthenticatedLayout header={<h2>Planning</h2>}>
       <Head title="Planning" />
 
-      <div className="pl-root">
+      <div className="student-schedule">
+        <section className="schedule-hero">
+          <div>
+            <p className="schedule-kicker">L'excellence academique</p>
+            <h1>Votre programme academique</h1>
+            <p className="schedule-subtitle">
+              {formation.title}
+            </p>
+          </div>
 
-        {/* ══════════════════════════════════════════
-            HERO GRID — Formation overview + Prochaine séance
-        ══════════════════════════════════════════ */}
-        <div className="pl-hero-grid">
+          <button type="button" className="schedule-primary" onClick={() => window.print()}>
+            {materialIcon('calendar_month')}
+            Telecharger le planning
+          </button>
+        </section>
 
-          {/* Formation Overview */}
-          <section className="pl-card pl-overview">
-            <span className="pl-kicker">{formation.category}</span>
-            <h2 className="pl-overview-title">{formation.title}</h2>
+        <section className="schedule-stats" aria-label="Resume du planning">
+          <article className="schedule-stat">
+            <div>
+              {materialIcon('school')}
+              <span>Cours de la semaine</span>
+            </div>
+            <strong>{weeklySessions}</strong>
+            <small>Seance{weeklySessions > 1 ? 's' : ''}</small>
+          </article>
 
-            <div className="pl-overview-meta">
+          <article className="schedule-stat">
+            <div>
+              {materialIcon('schedule')}
+              <span>Heures totales</span>
+            </div>
+            <strong>{weeklyHours}</strong>
+            <small>Cette semaine</small>
+          </article>
+
+          <article className="schedule-stat">
+            <div>
+              {materialIcon('analytics')}
+              <span>Progression globale</span>
+            </div>
+            <div className="schedule-progress-row">
+              <strong>{progress}%</strong>
+              <div className="schedule-track" aria-hidden>
+                <span style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section className="schedule-intro-grid">
+          <article className="schedule-panel schedule-formation">
+            <p className="schedule-kicker">{formation.category}</p>
+            <h2>{formation.title}</h2>
+
+            <div className="schedule-meta-grid">
               <div>
-                <p className="pl-meta-label">Début</p>
-                <p className="pl-meta-val">{formation.startDate}</p>
+                <span>Debut</span>
+                <strong>{formation.startDate}</strong>
               </div>
               <div>
-                <p className="pl-meta-label">Fin</p>
-                <p className="pl-meta-val">{formation.endDate}</p>
+                <span>Fin</span>
+                <strong>{formation.endDate}</strong>
               </div>
               <div>
-                <p className="pl-meta-label">Durée</p>
-                <p className="pl-meta-val">{formation.duration}</p>
+                <span>Duree</span>
+                <strong>{formation.duration}</strong>
               </div>
             </div>
 
-            {/* Progress bar */}
-            <div className="pl-progress-wrap">
-              <div className="pl-progress-head">
-                <span className="pl-meta-label">Progression</span>
-                <span className="pl-progress-pct">{formation.progress}%</span>
-              </div>
-              <div className="pl-progress-track">
-                <div className="pl-progress-fill" style={{ width: `${formation.progress}%` }} />
-              </div>
+            <div className="schedule-formation-footer">
+              <span>{formation.studentsCount} etudiant{formation.studentsCount > 1 ? 's' : ''} inscrit{formation.studentsCount > 1 ? 's' : ''}</span>
+              <Link href={route('student.courses')}>Voir mes formations</Link>
             </div>
+          </article>
 
-            <div className="pl-overview-footer">
-              <div className="pl-avatars">
-                <div className="pl-avatar-bubble pl-avatar-count">
-                  {formation.studentsCount}
+          <article className="schedule-panel schedule-next">
+            <p>A venir</p>
+            {prochaineCours ? (
+              <>
+                <h2>{prochaineCours.title}</h2>
+                <span>{prochaineCours.type}</span>
+                <div className="schedule-next-details">
+                  <strong>{prochaineCours.time}</strong>
+                  <i />
+                  <span>{prochaineCours.instructor || 'Formateur a confirmer'}</span>
                 </div>
-                <span className="pl-students-label">etudiant{formation.studentsCount > 1 ? 's' : ''} inscrit{formation.studentsCount > 1 ? 's' : ''}</span>
-              </div>
-              <button className="pl-link-btn">
-                Voir le programme <Ic.arrow />
-              </button>
-            </div>
-          </section>
+              </>
+            ) : (
+              <>
+                <h2>Aucune seance prevue</h2>
+                <span>Votre prochaine seance apparaitra ici des qu'elle sera planifiee.</span>
+              </>
+            )}
+          </article>
+        </section>
 
-          {/* Prochaine séance */}
-          <section className="pl-card pl-next-session">
-            {/* Decorative star */}
-            <div className="pl-next-deco" aria-hidden="true"><Ic.star /></div>
-
-            <div className="pl-next-inner">
-              <div>
-                <span className="pl-next-badge">À venir</span>
-                {prochaineCours ? (
-                  <>
-                    <h3 className="pl-next-title">{prochaineCours.title}</h3>
-                    <p className="pl-next-sub">{prochaineCours.type}</p>
-                  </>
-                ) : (
-                  <h3 className="pl-next-title">Aucune séance prévue</h3>
-                )}
-              </div>
-
-              {prochaineCours && (
-                <div className="pl-next-details">
-                  <div className="pl-next-time-block">
-                    <p className="pl-next-time-label">Aujourd'hui</p>
-                    <p className="pl-next-time">{prochaineCours.time}</p>
-                  </div>
-                  <div className="pl-next-sep" aria-hidden="true" />
-                  <div className="pl-next-instructor">
-                    <div className="pl-instructor-avatar"><Ic.user /></div>
-                    <div>
-                      <p className="pl-instructor-label">Formateur</p>
-                      <p className="pl-instructor-name">{prochaineCours.instructor}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <button className="pl-join-btn">
-                <Ic.cal />
-                Rejoindre la séance
-              </button>
-            </div>
-          </section>
-        </div>
-
-        {/* ══════════════════════════════════════════
-            CALENDRIER HEBDOMADAIRE
-        ══════════════════════════════════════════ */}
         <section>
-          <div className="pl-week-header">
-            <h2 className="pl-section-title">Planning de la semaine</h2>
-            <div className="pl-week-toggle">
-              <button className="pl-toggle-btn pl-toggle-btn--active">Semaine</button>
-              <button className="pl-toggle-btn">Mois</button>
+          <div className="schedule-section-head">
+            <h2>Planning de la semaine</h2>
+            <div className="schedule-toggle" aria-label="Mode d'affichage">
+              <button type="button" className="active">Semaine</button>
+              <button type="button">Mois</button>
             </div>
           </div>
 
-          <div className="pl-week-grid">
-            {semaine.map((day) => (
-              <div key={day.label} className="pl-day-col">
-                {/* Day header */}
-                <div className={`pl-day-header ${day.isToday ? 'pl-day-header--today' : ''}`}>
-                  <p className="pl-day-label">{day.label}</p>
-                  <p className={`pl-day-num ${day.isToday ? 'pl-day-num--today' : ''}`}>
-                    {day.dayNum}
-                  </p>
-                </div>
+          <div className="schedule-week">
+            {semaine.length > 0 ? semaine.map((day) => (
+              <article className="schedule-day" key={`${day.label}-${day.dayNum}`}>
+                <header className={day.isToday ? 'today' : ''}>
+                  <span>{day.label}</span>
+                  <strong>{day.dayNum}</strong>
+                </header>
 
-                {/* Sessions */}
-                <div className="pl-sessions">
-                  {day.sessions.length > 0 ? (
-                    day.sessions.map((s, si) => {
-                      const col = COLOR_MAP[s.color];
-                      return (
-                        <div key={si} className={`pl-session ${s.isActive ? 'pl-session--active' : ''}`}
-                          style={{
-                            background: s.isActive ? '#fff4ef' : col.bg,
-                            borderLeftColor: col.border,
-                            outline: s.isActive ? `2px solid ${col.border}` : 'none',
-                            outlineOffset: '0px',
-                          }}>
-                          <p className="pl-session-title" style={{ color: s.isActive ? col.text : '#111' }}>
-                            {s.title}
-                          </p>
-                          <p className="pl-session-time" style={{ color: s.isActive ? col.text : '#9a9088' }}>
-                            {s.time}
-                          </p>
-                          <div className="pl-session-meta">
-                            <span className="pl-session-dot" style={{ background: col.icon }} />
-                            <span className="pl-session-room" style={{ color: '#605850' }}>{s.room}</span>
-                          </div>
-                          {s.isActive && (
-                            <span className="pl-session-active-badge">En cours</span>
-                          )}
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="pl-session-empty">
-                      <div className="pl-session-empty-icon">
-                        <Ic.moon />
+                <div className="schedule-day-sessions">
+                  {day.sessions.length > 0 ? day.sessions.map((session, index) => {
+                    const color = COLORS[session.color] ?? COLORS.orange;
+
+                    return (
+                      <div
+                        className={`schedule-session ${session.isActive ? 'active' : ''}`}
+                        key={`${session.title}-${session.time}-${index}`}
+                        style={{ borderLeftColor: color.border }}
+                      >
+                        <span style={{ color: color.text }}>{session.time}</span>
+                        <strong>{session.title}</strong>
+                        <small>{materialIcon('location_on')}{session.room || 'Salle a confirmer'}</small>
+                        {session.isActive && <em>En cours</em>}
                       </div>
-                      <p>Pas de séance</p>
-                    </div>
+                    );
+                  }) : (
+                    <div className="schedule-empty">Pas de seance prevue</div>
                   )}
                 </div>
-              </div>
-            ))}
+              </article>
+            )) : (
+              <div className="schedule-week-empty">Aucun planning disponible pour cette semaine.</div>
+            )}
           </div>
         </section>
 
-        {/* ══════════════════════════════════════════
-            SUIVI ACADÉMIQUE
-        ══════════════════════════════════════════ */}
-        <section>
-          <h2 className="pl-section-title" style={{ marginBottom: 20 }}>Suivi académique</h2>
-
-          <div className="pl-academic-grid">
-
-            {/* Présences */}
-            <div className="pl-card">
-              <div className="pl-card-head">
-                <h3 className="pl-card-title">Présences</h3>
-                <span className="pl-card-badge">Global : {globalPresence}%</span>
-              </div>
-
-              <div className="pl-presence-table">
-                <div className="pl-presence-header">
-                  <span style={{ gridColumn: '1 / 3' }}>Formation</span>
-                  <span style={{ textAlign: 'center' }}>Séances</span>
-                  <span>Taux</span>
+        <section className="schedule-bottom-grid">
+          <div>
+            <h2>Suivi academique</h2>
+            <div className="schedule-academic">
+              <article className="schedule-panel">
+                <div className="schedule-card-head">
+                  <h3>Presences</h3>
+                  <span>Taux: {globalPresence}%</span>
                 </div>
+                <div className="schedule-presences">
+                  {presences.length > 0 ? presences.map((row) => {
+                    const pct = row.total > 0 ? Math.round((row.attended / row.total) * 100) : 0;
 
-                {presences.map((row) => {
-                  const pct = row.total > 0 ? Math.round((row.attended / row.total) * 100) : 0;
-                  const color = pct >= 90 ? '#10b981' : pct >= 75 ? '#ff9a56' : '#ef4444';
-                  return (
-                    <div key={row.course} className="pl-presence-row">
-                      <div className="pl-presence-name" style={{ gridColumn: '1 / 3' }}>{row.course}</div>
-                      <div className="pl-presence-count">{row.attended} / {row.total}</div>
-                      <div className="pl-presence-bar-wrap">
-                        <div className="pl-presence-track">
-                          <div className="pl-presence-fill" style={{ width: `${pct}%`, background: color }} />
+                    return (
+                      <div className="schedule-presence" key={row.course}>
+                        <div>
+                          <span>{row.course}</span>
+                          <strong>{row.attended}/{row.total}</strong>
+                        </div>
+                        <div className="schedule-track" aria-hidden>
+                          <span style={{ width: `${clampPercent(pct)}%` }} />
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-                {presences.length === 0 && (
-                  <div className="pl-session-empty">
-                    <p>Aucune donnee de presence pour le moment.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Performance */}
-            <div className="pl-card">
-              <div className="pl-card-head">
-                <h3 className="pl-card-title">Progression des notes</h3>
-                <div className="pl-legend">
-                  <span><span className="pl-legend-dot" style={{ background: '#ff6b2b' }} />Examens</span>
-                  <span><span className="pl-legend-dot" style={{ background: '#8c3c3c' }} />Contrôles</span>
+                    );
+                  }) : (
+                    <p className="schedule-muted">Aucune donnee de presence pour le moment.</p>
+                  )}
                 </div>
-              </div>
+              </article>
 
-              <div className="pl-chart">
-                {performances.length > 0 ? performances.map((m) => (
-                  <div key={m.month} className="pl-chart-col">
-                    <div className="pl-chart-bars">
-                      {/* Quiz bar (behind) */}
-                      <div className="pl-bar pl-bar--quiz"
-                        style={{ height: `${m.quiz}%` }} />
-                      {/* Exam bar (front) */}
-                      <div className="pl-bar pl-bar--exam"
-                        style={{ height: `${m.exams}%` }} />
-                    </div>
-                    <span className="pl-chart-label">{m.month}</span>
+              <article className="schedule-panel">
+                <div className="schedule-card-head">
+                  <h3>Progression des notes</h3>
+                </div>
+                {performances.length > 0 ? (
+                  <div className="schedule-bars">
+                    {performances.map((month) => (
+                      <div key={month.month}>
+                        <span style={{ height: `${clampPercent(month.quiz)}%` }} />
+                        <strong style={{ height: `${clampPercent(month.exams)}%` }} />
+                        <small>{month.month}</small>
+                      </div>
+                    ))}
                   </div>
-                )) : (
-                  <div className="pl-session-empty">
-                    <p>Aucune note disponible pour le moment.</p>
-                  </div>
+                ) : (
+                  <p className="schedule-muted">Aucune note disponible pour le moment.</p>
                 )}
-              </div>
+              </article>
             </div>
           </div>
-        </section>
 
-        {/* ══════════════════════════════════════════
-            SUPPORTS DE COURS
-        ══════════════════════════════════════════ */}
-        <section className="pl-card">
-          <div className="pl-card-head">
-            <h3 className="pl-card-title">Supports de cours</h3>
-            <button className="pl-sync-btn">
-              <Ic.sync /> Mettre à jour
-            </button>
-          </div>
-
-          <div className="pl-docs-grid">
-            {documents.map((doc, i) => {
-              const dt = DOC_TYPE[doc.type];
-              return (
-                <div key={i} className="pl-doc-item">
-                  <div className="pl-doc-left">
-                    <div className="pl-doc-icon" style={{ background: dt.bg, color: dt.text }}>
-                      {/* Icon by type */}
-                      {doc.type === 'pdf' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
-                      {doc.type === 'doc' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>}
-                      {doc.type === 'zip' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>}
-                      {doc.type === 'img' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>}
-                    </div>
-                    <div>
-                      <p className="pl-doc-name">{doc.name}</p>
-                      <p className="pl-doc-size">{doc.size}</p>
-                    </div>
+          <div>
+            <h2>Supports de cours</h2>
+            <div className="schedule-documents">
+              {documents.length > 0 ? documents.map((document, index) => (
+                <article className="schedule-document" key={`${document.name}-${index}`}>
+                  <div>
+                    {materialIcon(DOC_ICON[document.type] ?? 'article')}
+                    <span>
+                      <strong>{document.name}</strong>
+                      <small>{document.size}</small>
+                    </span>
                   </div>
-                  <button className="pl-dl-btn" title="Télécharger">
-                    <Ic.dl />
+                  <button type="button" title="Telecharger">
+                    {materialIcon('download')}
                   </button>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════
-            ESPACE ÉTUDE — Image banner
-        ══════════════════════════════════════════ */}
-        <section className="pl-campus-banner">
-          <div className="pl-campus-img-wrap">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeaTiZNs5SEstcCDjgMMdq8IEs59pBB4vEaKcQ3mzmFHeXefl7-pelgzINzozOXqsmwoFUm8vefK8wHWjBx5irtGUDbaqk0bBI6zdjXC_IZDILFubnmFKHDqdiujbt3YvsZctyfp5KyrWOFPFb7x4SToCkBJGL2--srDNXIOS9Nsh70Wgel-PUJJAQ-YFm2ED4kEjf2AzmZXkz72VvQgzd86d4zLGLqTSG2tg_-K15WEDNXnrigz5zd_GFlm0DiMc_mFp2Dt1Zo933"
-              alt="Espace de travail du centre"
-              className="pl-campus-img"
-            />
-            <div className="pl-campus-overlay" aria-hidden="true" />
-          </div>
-          <div className="pl-campus-content">
-            <h3 className="pl-campus-title">Espace de formation</h3>
-            <p className="pl-campus-text">
-              Accédez à nos salles équipées, laboratoires informatiques et ressources pédagogiques.
-              Nos espaces sont conçus pour favoriser l'apprentissage individuel et collectif dans les
-              meilleures conditions.
-            </p>
-            <div className="pl-campus-actions">
-              <button className="pl-campus-btn">
-                <Ic.map /> Plan du centre
-              </button>
-              <button className="pl-campus-btn">
-                <Ic.book /> Réserver une salle
-              </button>
+                </article>
+              )) : (
+                <article className="schedule-document-empty">
+                  Aucun support de cours disponible.
+                </article>
+              )}
             </div>
           </div>
         </section>
-
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-        /* ── Root ── */
-        .pl-root {
-          display: flex; flex-direction: column; gap: 24px;
-          font-family: 'Manrope', sans-serif; color: #3a302a;
-          width: 100%; min-width: 0;
-        }
-        .pl-root *, .pl-root *::before, .pl-root *::after { box-sizing: border-box; }
-
-        /* ── Base card ── */
-        .pl-card {
-          background: #fff; border-radius: 18px;
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-          padding: 28px;
-        }
-        .pl-card-head {
-          display: flex; align-items: center; justify-content: space-between;
-          gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
-        }
-        .pl-card-title { margin: 0; font-size: 1rem; font-weight: 800; color: #111; }
-        .pl-card-badge {
-          font-size: .68rem; font-weight: 800; text-transform: uppercase;
-          letter-spacing: .08em; padding: 4px 10px; border-radius: 99px;
-          background: rgba(194,101,42,.1); color: #c2652a;
+        .student-schedule {
+          --surface: #faf5ee;
+          --surface-low: #f6f0e8;
+          --surface-mid: #ece6dc;
+          --surface-high: #ffffff;
+          --text: #3a302a;
+          --muted: #605850;
+          --soft: #9a9088;
+          --line: #d8d0c8;
+          --primary: #c2652a;
+          --primary-soft: #fbe8d8;
+          color: var(--text);
+          display: flex;
+          flex-direction: column;
+          gap: 38px;
+          font-family: 'Manrope', sans-serif;
+          margin: -28px;
+          min-height: calc(100vh - 64px);
+          padding: 46px clamp(18px, 4vw, 48px) 64px;
+          background-color: var(--surface);
+          background-image: radial-gradient(rgba(216, 208, 200, .85) .6px, transparent .6px);
+          background-size: 24px 24px;
         }
 
-        /* ── Shared label ── */
-        .pl-kicker {
-          display: block; font-size: .7rem; font-weight: 800;
-          letter-spacing: .13em; text-transform: uppercase; color: #c2652a; margin-bottom: 8px;
+        .student-schedule * { box-sizing: border-box; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24; }
+
+        .schedule-hero {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
         }
-        .pl-section-title {
+
+        .schedule-kicker {
+          color: var(--primary);
+          font-size: .72rem;
+          font-weight: 800;
+          letter-spacing: .16em;
+          margin: 0 0 10px;
+          text-transform: uppercase;
+        }
+
+        .schedule-hero h1 {
           font-family: 'EB Garamond', serif;
-          font-size: 1.7rem; font-weight: 700; color: #3a302a; margin: 0;
+          font-size: clamp(3.4rem, 8vw, 6.8rem);
+          font-weight: 600;
+          line-height: .9;
+          margin: 0;
+          max-width: 820px;
         }
 
-        /* ══════════ HERO GRID ══════════ */
-        .pl-hero-grid {
-          display: grid; grid-template-columns: 7fr 5fr; gap: 20px;
-        }
-        @media (max-width: 900px) { .pl-hero-grid { grid-template-columns: 1fr; } }
-
-        /* Overview card */
-        .pl-overview {
-          display: flex; flex-direction: column; justify-content: space-between;
-          background: #f6f0e8;
-        }
-        .pl-overview-title {
-          font-family: 'EB Garamond', serif;
-          font-size: clamp(1.4rem, 2.5vw, 1.9rem);
-          font-weight: 700; color: #3a302a;
-          margin: 0 0 20px; line-height: 1.2;
-        }
-        .pl-overview-meta {
-          display: grid; grid-template-columns: repeat(3,1fr); gap: 16px;
-          padding-bottom: 20px;
-        }
-        .pl-meta-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: #9a9088; margin: 0 0 3px; }
-        .pl-meta-val   { font-size: .9rem; font-weight: 700; color: #3a302a; margin: 0; }
-
-        .pl-progress-wrap { padding: 16px 0 20px; border-top: 1px solid rgba(0,0,0,0.08); }
-        .pl-progress-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .pl-progress-pct  { font-size: .78rem; font-weight: 800; color: #c2652a; }
-        .pl-progress-track {
-          width: 100%; height: 8px; border-radius: 99px;
-          background: rgba(0,0,0,0.08); overflow: hidden;
-        }
-        .pl-progress-fill {
-          height: 100%; border-radius: inherit;
-          background: linear-gradient(90deg, #f0a878, #c2652a);
-          transition: width .5s ease;
+        .schedule-subtitle {
+          color: var(--muted);
+          font-size: .95rem;
+          font-weight: 700;
+          margin: 18px 0 0;
         }
 
-        .pl-overview-footer {
-          display: flex; align-items: center; justify-content: space-between;
-          border-top: 1px solid rgba(0,0,0,0.08); padding-top: 20px;
-        }
-        .pl-avatars { display: flex; }
-        .pl-avatar-bubble {
-          width: 32px; height: 32px; border-radius: 50%;
-          border: 2px solid #f6f0e8;
-          display: flex; align-items: center; justify-content: center;
-          font-size: .62rem; font-weight: 800; color: #fff;
-          margin-left: -8px; position: relative;
-        }
-        .pl-avatars .pl-avatar-bubble:first-child { margin-left: 0; }
-        .pl-avatar-count { background: #e08850; color: #fff; font-size: .58rem; }
-        .pl-students-label { align-self: center; margin-left: 8px; color: #605850; font-size: .78rem; font-weight: 800; }
-        .pl-link-btn {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: .8rem; font-weight: 700; color: #c2652a;
-          background: none; border: none; cursor: pointer;
-          transition: gap .15s;
-        }
-        .pl-link-btn:hover { gap: 8px; }
-
-        /* Next session card */
-        .pl-next-session {
-          position: relative; overflow: hidden;
-          background: #3a302a; color: #faf5ee;
-          padding: 28px;
-        }
-        .pl-next-deco {
-          position: absolute; top: 12px; right: 12px; opacity: .15;
-          animation: pl-float 6s ease-in-out infinite;
-        }
-        @keyframes pl-float { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-6px) scale(1.05)} }
-        .pl-next-inner {
-          position: relative; z-index: 1; height: 100%;
-          display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
-        }
-        .pl-next-badge {
-          display: inline-block; background: #c2652a; color: #fff;
-          font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-          padding: 3px 8px; border-radius: 4px; margin-bottom: 10px;
-        }
-        .pl-next-title {
-          font-family: 'EB Garamond', serif;
-          font-size: 1.55rem; font-weight: 700; color: #faf5ee; margin: 0 0 4px;
-        }
-        .pl-next-sub { font-size: .8rem; color: rgba(250,245,238,.55); margin: 0; }
-
-        .pl-next-details { display: flex; align-items: center; gap: 16px; }
-        .pl-next-time-block {
-          background: rgba(250,245,238,.1); border-radius: 10px;
-          padding: 10px 14px; min-width: 72px; text-align: center;
-        }
-        .pl-next-time-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; opacity: .55; margin: 0 0 2px; }
-        .pl-next-time { font-size: 1.1rem; font-weight: 800; color: #faf5ee; margin: 0; }
-        .pl-next-sep { width: 1px; height: 40px; background: rgba(250,245,238,.15); }
-        .pl-next-instructor { display: flex; align-items: center; gap: 10px; }
-        .pl-instructor-avatar {
-          width: 38px; height: 38px; border-radius: 50%;
-          background: rgba(250,245,238,.15);
-          display: flex; align-items: center; justify-content: center;
-          color: rgba(250,245,238,.7);
-        }
-        .pl-instructor-label { font-size: .62rem; opacity: .55; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 2px; }
-        .pl-instructor-name  { font-size: .85rem; font-weight: 700; color: #faf5ee; margin: 0; }
-
-        .pl-join-btn {
-          display: flex; align-items: center; justify-content: center; gap: 8px;
-          width: 100%; padding: 12px;
-          background: rgba(250,245,238,.1); border: 1px solid rgba(250,245,238,.18);
-          border-radius: 10px; color: #faf5ee;
-          font-family: 'Manrope',sans-serif; font-size: .86rem; font-weight: 700;
+        .schedule-primary {
+          align-items: center;
+          background: var(--primary);
+          border: 0;
+          border-radius: 8px;
+          color: white;
           cursor: pointer;
-          transition: background .15s, border-color .15s;
-        }
-        .pl-join-btn:hover { background: #c2652a; border-color: #c2652a; }
-
-        /* ══════════ WEEK GRID ══════════ */
-        .pl-week-header {
-          display: flex; align-items: center; justify-content: space-between;
-          gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
-        }
-        .pl-week-toggle {
-          display: flex; align-items: center;
-          background: #f2ece4; border-radius: 8px; padding: 4px;
-        }
-        .pl-toggle-btn {
-          padding: 6px 14px; font-family: 'Manrope',sans-serif;
-          font-size: .74rem; font-weight: 800; border: none; background: none;
-          border-radius: 6px; cursor: pointer; color: #9a9088;
-          transition: all .15s;
-        }
-        .pl-toggle-btn--active {
-          background: #fff; color: #c2652a;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+          display: inline-flex;
+          flex-shrink: 0;
+          font-family: 'Manrope', sans-serif;
+          font-size: .9rem;
+          font-weight: 800;
+          gap: 9px;
+          min-height: 48px;
+          padding: 0 20px;
         }
 
-        .pl-week-grid {
-          display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;
-        }
-        @media (max-width: 900px) { .pl-week-grid { grid-template-columns: repeat(4,1fr); } }
-        @media (max-width: 600px) { .pl-week-grid { grid-template-columns: repeat(2,1fr); } }
+        .schedule-primary:hover { filter: brightness(.96); }
 
-        .pl-day-col { display: flex; flex-direction: column; gap: 10px; }
-
-        .pl-day-header {
-          text-align: center; padding-bottom: 10px;
-          border-bottom: 1px solid #d8d0c8;
-        }
-        .pl-day-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .18em; font-weight: 800; color: #9a9088; margin: 0 0 3px; }
-        .pl-day-num   { font-family: 'EB Garamond', serif; font-size: 1.3rem; font-weight: 700; margin: 0; color: #3a302a; }
-        .pl-day-num--today { color: #c2652a; }
-        .pl-day-header--today .pl-day-label { color: #c2652a; }
-
-        .pl-sessions { display: flex; flex-direction: column; gap: 8px; }
-
-        .pl-session {
-          padding: 12px; border-radius: 12px;
-          border-left: 4px solid transparent;
-          cursor: pointer; transition: box-shadow .15s;
-        }
-        .pl-session:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .pl-session-title { font-size: .8rem; font-weight: 700; margin: 0 0 4px; }
-        .pl-session-time  { font-size: .68rem; margin: 0 0 6px; }
-        .pl-session-meta  { display: flex; align-items: center; gap: 5px; }
-        .pl-session-dot   { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-        .pl-session-room  { font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-        .pl-session-active-badge {
-          display: inline-block; margin-top: 6px;
-          background: #c2652a; color: #fff;
-          font-size: .58rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-          padding: 2px 7px; border-radius: 99px;
+        .schedule-stats {
+          display: grid;
+          gap: 18px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
-        .pl-session-empty {
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          padding: 32px 12px; border-radius: 12px;
-          background: #f6f0e8; border: 1.5px dashed #d8d0c8;
-          color: #cec6be; text-align: center;
-        }
-        .pl-session-empty-icon { opacity: .4; margin-bottom: 6px; }
-        .pl-session-empty p { font-size: .72rem; font-weight: 700; margin: 0; }
-
-        /* ══════════ ACADEMIC ══════════ */
-        .pl-academic-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-        }
-        @media (max-width: 768px) { .pl-academic-grid { grid-template-columns: 1fr; } }
-
-        /* Presence table */
-        .pl-presence-table { display: flex; flex-direction: column; gap: 14px; }
-        .pl-presence-header {
-          display: grid; grid-template-columns: 1fr 1fr 80px 1fr;
-          font-size: .62rem; text-transform: uppercase; font-weight: 800;
-          letter-spacing: .1em; color: #9a9088;
-          border-bottom: 1px solid #ece6dc; padding-bottom: 8px;
-        }
-        .pl-presence-row {
-          display: grid; grid-template-columns: 1fr 1fr 80px 1fr;
-          align-items: center; gap: 10px; font-size: .84rem;
-        }
-        .pl-presence-name  { font-weight: 600; color: #3a302a; }
-        .pl-presence-count { text-align: center; color: #9a9088; font-size: .8rem; }
-        .pl-presence-bar-wrap { display: flex; align-items: center; }
-        .pl-presence-track { flex: 1; height: 6px; border-radius: 99px; background: #f2ece4; overflow: hidden; }
-        .pl-presence-fill  { height: 100%; border-radius: inherit; transition: width .4s ease; }
-
-        /* Bar chart */
-        .pl-legend { display: flex; gap: 14px; }
-        .pl-legend span { display: flex; align-items: center; gap: 5px; font-size: .68rem; font-weight: 700; color: #605850; }
-        .pl-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-
-        .pl-chart {
-          display: flex; align-items: flex-end; justify-content: space-around;
-          height: 150px; gap: 12px; margin-top: 8px;
-          padding: 0 8px;
-        }
-        .pl-chart-col {
-          flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
-        }
-        .pl-chart-bars {
-          flex: 1; width: 100%; display: flex; align-items: flex-end;
-          position: relative; gap: 3px;
-        }
-        .pl-bar {
-          flex: 1; border-radius: 4px 4px 0 0; min-height: 4px;
-          transition: height .4s ease;
-        }
-        .pl-bar--exam { background: #c2652a; opacity: .85; }
-        .pl-bar--quiz { background: #8c3c3c; opacity: .5;  }
-        .pl-chart-label {
-          font-size: .62rem; text-transform: uppercase; letter-spacing: .12em;
-          font-weight: 800; color: #9a9088;
+        .schedule-stat,
+        .schedule-panel {
+          background: var(--surface-high);
+          border: 1px solid rgba(216, 208, 200, .75);
+          border-radius: 12px;
+          box-shadow: 0 2px 16px rgba(58, 48, 42, .045);
         }
 
-        /* ══════════ DOCUMENTS ══════════ */
-        .pl-sync-btn {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: .72rem; font-weight: 800; text-transform: uppercase;
-          letter-spacing: .1em; color: #c2652a;
-          background: none; border: none; cursor: pointer;
-          transition: opacity .15s;
-        }
-        .pl-sync-btn:hover { opacity: .75; }
-
-        .pl-docs-grid {
-          display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
-        }
-        @media (max-width: 900px) { .pl-docs-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 500px) { .pl-docs-grid { grid-template-columns: 1fr; } }
-
-        .pl-doc-item {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 12px; border-radius: 12px;
-          background: #f6f0e8; border: 1px solid #ece6dc;
-          transition: border-color .15s;
-        }
-        .pl-doc-item:hover { border-color: #c2652a; }
-        .pl-doc-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-        .pl-doc-icon {
-          width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .pl-doc-name { font-size: .78rem; font-weight: 700; color: #3a302a; margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-        .pl-doc-size { font-size: .65rem; color: #9a9088; margin: 0; }
-        .pl-dl-btn {
-          color: #9a9088; background: none; border: none; cursor: pointer;
-          padding: 4px; border-radius: 6px; transition: color .15s;
-          display: flex; align-items: center;
-        }
-        .pl-dl-btn:hover { color: #c2652a; }
-
-        /* ══════════ CAMPUS BANNER ══════════ */
-        .pl-campus-banner {
-          display: grid; grid-template-columns: 1fr 1fr;
-          border-radius: 18px; overflow: hidden;
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-        }
-        @media (max-width: 768px) { .pl-campus-banner { grid-template-columns: 1fr; } }
-
-        .pl-campus-img-wrap {
-          position: relative; min-height: 240px; overflow: hidden;
-        }
-        .pl-campus-img {
-          width: 100%; height: 100%; object-fit: cover;
-          display: block;
-        }
-        .pl-campus-overlay {
-          position: absolute; inset: 0;
-          background: rgba(194,101,42,.12);
-          mix-blend-mode: multiply;
+        .schedule-stat {
+          min-height: 154px;
+          padding: 26px;
         }
 
-        .pl-campus-content {
-          background: #fff; padding: 36px;
-          display: flex; flex-direction: column; justify-content: center; gap: 14px;
+        .schedule-stat div:first-child {
+          align-items: flex-start;
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 18px;
         }
-        .pl-campus-title {
+
+        .schedule-stat .material-symbols-outlined {
+          background: var(--primary-soft);
+          border-radius: 8px;
+          color: var(--primary);
+          padding: 11px;
+        }
+
+        .schedule-stat div:first-child span:last-child {
+          color: var(--muted);
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .08em;
+          text-align: right;
+          text-transform: uppercase;
+        }
+
+        .schedule-stat strong {
+          display: inline-block;
           font-family: 'EB Garamond', serif;
-          font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; font-style: italic;
-          color: #3a302a; margin: 0;
+          font-size: 2.75rem;
+          font-weight: 600;
+          line-height: 1;
         }
-        .pl-campus-text { font-size: .88rem; color: #605850; line-height: 1.7; margin: 0; }
-        .pl-campus-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
-        .pl-campus-btn {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 10px 18px; border-radius: 10px;
-          border: 1.5px solid #d8d0c8;
-          background: #fff; color: #3a302a;
-          font-family: 'Manrope',sans-serif; font-size: .84rem; font-weight: 700;
-          cursor: pointer; transition: all .15s;
+
+        .schedule-stat small {
+          color: var(--muted);
+          font-size: .85rem;
+          margin-left: 7px;
         }
-        .pl-campus-btn:hover { background: #f2ece4; border-color: #c2652a; color: #c2652a; }
+
+        .schedule-progress-row {
+          align-items: flex-end;
+          display: flex;
+          gap: 16px;
+        }
+
+        .schedule-track {
+          background: var(--surface-mid);
+          border-radius: 999px;
+          height: 7px;
+          overflow: hidden;
+          width: 100%;
+        }
+
+        .schedule-track span {
+          background: var(--primary);
+          border-radius: inherit;
+          display: block;
+          height: 100%;
+        }
+
+        .schedule-intro-grid {
+          display: grid;
+          gap: 22px;
+          grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+        }
+
+        .schedule-panel { padding: 28px; }
+
+        .schedule-formation {
+          background: var(--surface-low);
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+        }
+
+        .schedule-formation h2,
+        .schedule-next h2,
+        .schedule-section-head h2,
+        .schedule-bottom-grid h2 {
+          font-family: 'EB Garamond', serif;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .schedule-formation h2,
+        .schedule-next h2 { font-size: clamp(1.75rem, 3vw, 2.45rem); line-height: 1.05; }
+
+        .schedule-meta-grid {
+          display: grid;
+          gap: 14px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .schedule-meta-grid span,
+        .schedule-presence span,
+        .schedule-card-head span {
+          color: var(--soft);
+          display: block;
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .09em;
+          margin-bottom: 5px;
+          text-transform: uppercase;
+        }
+
+        .schedule-meta-grid strong { font-size: .92rem; }
+
+        .schedule-formation-footer {
+          align-items: center;
+          border-top: 1px solid rgba(216, 208, 200, .9);
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          padding-top: 20px;
+        }
+
+        .schedule-formation-footer span { color: var(--muted); font-size: .82rem; font-weight: 800; }
+        .schedule-formation-footer a { color: var(--primary); font-size: .82rem; font-weight: 900; text-decoration: none; }
+
+        .schedule-next {
+          background: var(--text);
+          color: var(--surface);
+          min-height: 100%;
+        }
+
+        .schedule-next p {
+          background: var(--primary);
+          border-radius: 4px;
+          color: white;
+          display: inline-block;
+          font-size: .66rem;
+          font-weight: 900;
+          letter-spacing: .1em;
+          margin: 0 0 14px;
+          padding: 4px 9px;
+          text-transform: uppercase;
+        }
+
+        .schedule-next span { color: rgba(250, 245, 238, .68); display: block; font-size: .84rem; line-height: 1.65; }
+
+        .schedule-next-details {
+          align-items: center;
+          display: flex;
+          gap: 16px;
+          margin-top: 24px;
+        }
+
+        .schedule-next-details strong {
+          background: rgba(250, 245, 238, .11);
+          border-radius: 8px;
+          padding: 11px 14px;
+        }
+
+        .schedule-next-details i {
+          background: rgba(250, 245, 238, .18);
+          display: block;
+          height: 38px;
+          width: 1px;
+        }
+
+        .schedule-section-head {
+          align-items: center;
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .schedule-section-head h2,
+        .schedule-bottom-grid h2 { font-size: 2rem; }
+
+        .schedule-toggle {
+          background: var(--surface-low);
+          border-radius: 8px;
+          display: flex;
+          padding: 4px;
+        }
+
+        .schedule-toggle button {
+          background: transparent;
+          border: 0;
+          border-radius: 6px;
+          color: var(--muted);
+          cursor: pointer;
+          font-family: 'Manrope', sans-serif;
+          font-size: .78rem;
+          font-weight: 800;
+          padding: 8px 15px;
+        }
+
+        .schedule-toggle .active {
+          background: white;
+          box-shadow: 0 1px 5px rgba(58, 48, 42, .08);
+          color: var(--primary);
+        }
+
+        .schedule-week {
+          background: rgba(216, 208, 200, .45);
+          border: 1px solid rgba(216, 208, 200, .8);
+          border-radius: 16px;
+          display: grid;
+          gap: 1px;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(58, 48, 42, .045);
+        }
+
+        .schedule-day {
+          background: rgba(246, 240, 232, .88);
+          min-height: 430px;
+          padding: 22px 16px;
+        }
+
+        .schedule-day header {
+          margin-bottom: 28px;
+          text-align: center;
+        }
+
+        .schedule-day header span {
+          color: var(--muted);
+          display: block;
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .16em;
+          margin-bottom: 4px;
+          text-transform: uppercase;
+        }
+
+        .schedule-day header strong {
+          color: var(--text);
+          font-family: 'EB Garamond', serif;
+          font-size: 1.8rem;
+          font-weight: 600;
+        }
+
+        .schedule-day header.today span,
+        .schedule-day header.today strong { color: var(--primary); }
+
+        .schedule-day-sessions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .schedule-session {
+          background: white;
+          border-left: 4px solid var(--primary);
+          border-radius: 8px;
+          box-shadow: 0 1px 8px rgba(58, 48, 42, .05);
+          padding: 14px;
+          transition: box-shadow .18s ease, transform .18s ease;
+        }
+
+        .schedule-session:hover {
+          box-shadow: 0 8px 22px rgba(58, 48, 42, .1);
+          transform: translateY(-1px);
+        }
+
+        .schedule-session.active { outline: 2px solid rgba(194, 101, 42, .28); }
+
+        .schedule-session > span {
+          display: block;
+          font-size: .66rem;
+          font-weight: 900;
+          letter-spacing: .08em;
+          margin-bottom: 5px;
+          text-transform: uppercase;
+        }
+
+        .schedule-session strong {
+          color: var(--text);
+          display: block;
+          font-size: .86rem;
+          line-height: 1.32;
+          margin-bottom: 10px;
+        }
+
+        .schedule-session small {
+          align-items: center;
+          color: var(--muted);
+          display: flex;
+          font-size: .72rem;
+          font-weight: 800;
+          gap: 4px;
+        }
+
+        .schedule-session small .material-symbols-outlined { font-size: 15px; }
+
+        .schedule-session em {
+          background: var(--primary);
+          border-radius: 999px;
+          color: white;
+          display: inline-block;
+          font-size: .62rem;
+          font-style: normal;
+          font-weight: 900;
+          letter-spacing: .08em;
+          margin-top: 10px;
+          padding: 3px 9px;
+          text-transform: uppercase;
+        }
+
+        .schedule-empty,
+        .schedule-week-empty,
+        .schedule-document-empty {
+          align-items: center;
+          border: 1.5px dashed rgba(154, 144, 136, .45);
+          border-radius: 12px;
+          color: var(--soft);
+          display: flex;
+          font-size: .78rem;
+          font-style: italic;
+          justify-content: center;
+          min-height: 118px;
+          padding: 16px;
+          text-align: center;
+        }
+
+        .schedule-week-empty { grid-column: 1 / -1; background: var(--surface-low); min-height: 220px; }
+
+        .schedule-bottom-grid {
+          display: grid;
+          gap: 34px;
+          grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr);
+        }
+
+        .schedule-bottom-grid h2 { margin-bottom: 18px; }
+
+        .schedule-academic {
+          display: grid;
+          gap: 18px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .schedule-card-head {
+          align-items: center;
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+
+        .schedule-card-head h3 { font-size: .95rem; margin: 0; }
+        .schedule-card-head span {
+          background: var(--primary-soft);
+          border-radius: 6px;
+          color: var(--primary);
+          margin: 0;
+          padding: 5px 8px;
+        }
+
+        .schedule-presences {
+          display: flex;
+          flex-direction: column;
+          gap: 17px;
+        }
+
+        .schedule-presence div:first-child {
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 8px;
+        }
+
+        .schedule-presence strong { color: var(--muted); font-size: .76rem; }
+
+        .schedule-bars {
+          align-items: end;
+          display: flex;
+          gap: 12px;
+          height: 170px;
+          justify-content: space-around;
+          padding: 8px 6px 0;
+        }
+
+        .schedule-bars > div {
+          align-items: end;
+          display: grid;
+          flex: 1;
+          gap: 3px;
+          grid-template-columns: 1fr 1fr;
+          height: 100%;
+          position: relative;
+        }
+
+        .schedule-bars span,
+        .schedule-bars strong {
+          align-self: end;
+          border-radius: 5px 5px 0 0;
+          display: block;
+          min-height: 5px;
+        }
+
+        .schedule-bars span { background: rgba(140, 60, 60, .45); }
+        .schedule-bars strong { background: rgba(194, 101, 42, .86); }
+
+        .schedule-bars small {
+          bottom: -18px;
+          color: var(--soft);
+          font-size: .66rem;
+          font-weight: 900;
+          left: 0;
+          letter-spacing: .08em;
+          position: absolute;
+          right: 0;
+          text-align: center;
+          text-transform: uppercase;
+        }
+
+        .schedule-documents {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .schedule-document {
+          align-items: center;
+          background: var(--surface-low);
+          border: 1px solid transparent;
+          border-radius: 12px;
+          display: flex;
+          gap: 12px;
+          justify-content: space-between;
+          padding: 16px;
+          transition: background .18s ease, border-color .18s ease;
+        }
+
+        .schedule-document:hover {
+          background: white;
+          border-color: rgba(194, 101, 42, .24);
+        }
+
+        .schedule-document > div {
+          align-items: center;
+          display: flex;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .schedule-document > div > .material-symbols-outlined {
+          align-items: center;
+          background: white;
+          border-radius: 9px;
+          color: var(--primary);
+          display: flex;
+          flex-shrink: 0;
+          height: 42px;
+          justify-content: center;
+          width: 42px;
+        }
+
+        .schedule-document span { min-width: 0; }
+        .schedule-document strong {
+          color: var(--text);
+          display: block;
+          font-size: .84rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .schedule-document small {
+          color: var(--muted);
+          display: block;
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .06em;
+          margin-top: 3px;
+          text-transform: uppercase;
+        }
+
+        .schedule-document button {
+          align-items: center;
+          background: transparent;
+          border: 0;
+          border-radius: 8px;
+          color: var(--muted);
+          cursor: pointer;
+          display: flex;
+          flex-shrink: 0;
+          height: 38px;
+          justify-content: center;
+          width: 38px;
+        }
+
+        .schedule-document button:hover {
+          background: var(--primary-soft);
+          color: var(--primary);
+        }
+
+        .schedule-muted {
+          color: var(--soft);
+          font-size: .82rem;
+          margin: 0;
+        }
+
+        @media (max-width: 1180px) {
+          .schedule-week { grid-template-columns: repeat(4, minmax(180px, 1fr)); }
+          .schedule-day { min-height: 330px; }
+          .schedule-bottom-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+          .student-schedule { margin: -18px -16px -32px; padding: 30px 16px 44px; }
+          .schedule-hero { align-items: flex-start; flex-direction: column; }
+          .schedule-stats,
+          .schedule-intro-grid,
+          .schedule-academic { grid-template-columns: 1fr; }
+          .schedule-week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 560px) {
+          .schedule-hero h1 { font-size: 3rem; }
+          .schedule-stats { gap: 12px; }
+          .schedule-stat,
+          .schedule-panel { padding: 20px; }
+          .schedule-meta-grid { grid-template-columns: 1fr; }
+          .schedule-formation-footer,
+          .schedule-section-head { align-items: flex-start; flex-direction: column; }
+          .schedule-week { display: flex; flex-direction: column; }
+          .schedule-day { min-height: auto; }
+        }
       `}</style>
     </AuthenticatedLayout>
   );
