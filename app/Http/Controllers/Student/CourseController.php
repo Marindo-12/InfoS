@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\CourseSession;
 use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,6 +20,7 @@ class CourseController extends Controller
             ->where('user_id', $user->id)
             ->orderByDesc('progress')
             ->get();
+        $courseIds = $enrollments->pluck('course_id')->filter()->values();
 
         $featuredEnrollment = $enrollments->first();
         $sideEnrollments = $enrollments->slice(1)->values();
@@ -41,12 +43,7 @@ class CourseController extends Controller
             ],
         ];
 
-        $weeklyMetrics = collect([
-            ['week' => 'S1', 'hours' => 6, 'projects' => 1],
-            ['week' => 'S2', 'hours' => 8, 'projects' => 1],
-            ['week' => 'S3', 'hours' => 7, 'projects' => 2],
-            ['week' => 'S4', 'hours' => 12, 'projects' => 4],
-        ]);
+        $weeklyMetrics = $this->weeklyMetrics($courseIds);
 
         $schedule = $enrollments
             ->filter(fn (Enrollment $enrollment) => $enrollment->next_session_at !== null)
@@ -107,5 +104,55 @@ class CourseController extends Controller
                 default => '#ff6b2b',
             },
         ];
+    }
+
+    private function weeklyMetrics($courseIds)
+    {
+        $weekStarts = collect(range(3, 0))
+            ->map(fn (int $offset) => now()->startOfWeek()->subWeeks($offset));
+
+        if ($courseIds->isEmpty()) {
+            return $weekStarts
+                ->values()
+                ->map(fn ($weekStart, int $index) => [
+                    'week' => 'S'.($index + 1),
+                    'hours' => 0,
+                    'sessions' => 0,
+                ]);
+        }
+
+        $periodStart = $weekStarts->first()->copy()->startOfDay();
+        $periodEnd = $weekStarts->last()->copy()->endOfWeek();
+
+        $sessions = CourseSession::query()
+            ->whereIn('course_id', $courseIds)
+            ->whereBetween('starts_at', [$periodStart, $periodEnd])
+            ->whereIn('status', ['scheduled', 'completed'])
+            ->get();
+
+        return $weekStarts
+            ->values()
+            ->map(function ($weekStart, int $index) use ($sessions) {
+                $weekEnd = $weekStart->copy()->endOfWeek();
+                $weekSessions = $sessions->filter(
+                    fn (CourseSession $session) => $session->starts_at->betweenIncluded($weekStart, $weekEnd)
+                );
+
+                $minutes = $weekSessions->sum(function (CourseSession $session) {
+                    if ($session->duration_minutes) {
+                        return (int) $session->duration_minutes;
+                    }
+
+                    return $session->ends_at
+                        ? $session->starts_at->diffInMinutes($session->ends_at)
+                        : 0;
+                });
+
+                return [
+                    'week' => 'S'.($index + 1),
+                    'hours' => round($minutes / 60, 1),
+                    'sessions' => $weekSessions->count(),
+                ];
+            });
     }
 }
