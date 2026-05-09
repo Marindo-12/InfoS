@@ -68,6 +68,16 @@ export default function Edit({
           overflow: hidden;
         }
         .prof-card--danger { border-color: rgba(239,68,68,0.15); }
+
+        .a-root--dark .prof-page { color: #e5e2e1; }
+        .a-root--dark .prof-breadcrumb { color: #a38c80; }
+        .a-root--dark .prof-breadcrumb-active { color: #e5e2e1; }
+        .a-root--dark .prof-card {
+          background: #201f1f;
+          border-color: rgba(255,255,255,.08);
+          box-shadow: 0 12px 32px rgba(0,0,0,.24);
+        }
+        .a-root--dark .prof-card--danger { border-color: rgba(255,180,171,.22); }
       `}</style>
     </AuthenticatedLayout>
   );

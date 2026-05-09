@@ -314,6 +314,26 @@ export default function Dashboard() {
         .sdb-notif p { margin:0; color:#78716c; font-size:.74rem; line-height:1.55; }
         .sdb-notif small { display:block; margin-top:8px; color:#aaa29a; font-size:.68rem; }
         .sdb-empty { padding:34px 20px; color:#9a9088; text-align:center; font-size:.86rem; }
+        .a-root--dark .sdb-root { --bg:#131313; --surface:#201f1f; --surface-low:#1c1b1b; --line:#554339; --line-soft:rgba(255,255,255,.08); --text:#e5e2e1; --muted:#dbc1b5; --primary:#ffb68e; --primary-soft:rgba(255,182,142,.14); background:var(--bg); }
+        .a-root--dark .sdb-hero p,
+        .a-root--dark .sdb-stat p,
+        .a-root--dark .sdb-table td,
+        .a-root--dark .sdb-session-meta,
+        .a-root--dark .sdb-notif p,
+        .a-root--dark .sdb-course a { color:var(--muted); }
+        .a-root--dark .sdb-stat,
+        .a-root--dark .sdb-panel { background:var(--surface); border-color:var(--line-soft); box-shadow:0 12px 32px rgba(0,0,0,.22); }
+        .a-root--dark .sdb-table th,
+        .a-root--dark .sdb-panel-foot,
+        .a-root--dark .sdb-table tbody tr:hover,
+        .a-root--dark .sdb-notif:hover { background:rgba(255,182,142,.08); }
+        .a-root--dark .sdb-chips span,
+        .a-root--dark .sdb-notif-icon,
+        .a-root--dark .sdb-stat .material-symbols-outlined,
+        .a-root--dark .sdb-status--pending { background:var(--primary-soft); color:var(--primary); }
+        .a-root--dark .sdb-chips span + span,
+        .a-root--dark .sdb-status--paid { background:rgba(58,143,95,.18); color:#7dd3a2; }
+        .a-root--dark .sdb-track { background:#353534; }
         @media (max-width:1180px) { .sdb-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .sdb-grid { grid-template-columns:1fr; } }
         @media (max-width:760px) { .sdb-root { padding:24px 14px 40px; } .sdb-hero { align-items:flex-start; flex-direction:column; margin-bottom:24px; } .sdb-today { text-align:left; } .sdb-stats { grid-template-columns:1fr; } .sdb-panel-head { padding:18px; } .sdb-session-body { grid-template-columns:1fr; padding:18px; } .sdb-session-media { height:180px; } .sdb-session-copy h3 { font-size:1.75rem; } .sdb-session-meta { grid-template-columns:1fr; } .sdb-table { min-width:720px; } .sdb-course-list { padding:18px; } }
       `}</style>

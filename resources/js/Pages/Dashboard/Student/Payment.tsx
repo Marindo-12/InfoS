@@ -1032,6 +1032,46 @@ export default function Payment() {
           text-align: center;
         }
 
+        .a-root--dark .student-payment {
+          --surface: #131313;
+          --surface-low: #1c1b1b;
+          --surface-mid: #353534;
+          --text: #e5e2e1;
+          --muted: #dbc1b5;
+          --soft: #a38c80;
+          --line: #554339;
+          --primary: #ffb68e;
+          --primary-soft: rgba(255, 182, 142, .14);
+          background-color: var(--surface);
+          background-image: radial-gradient(rgba(85, 67, 57, .72) .6px, transparent .6px);
+        }
+
+        .a-root--dark .payment-stat,
+        .a-root--dark .payment-panel,
+        .a-root--dark .payment-document,
+        .a-root--dark .payment-mobile-row,
+        .a-root--dark .payment-step div,
+        .a-root--dark .payment-table-wrap {
+          background: #201f1f;
+          border-color: rgba(255, 255, 255, .08);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+        }
+
+        .a-root--dark .payment-balance,
+        .a-root--dark .payment-bars,
+        .a-root--dark .payment-table-wrap thead,
+        .a-root--dark .payment-document:hover,
+        .a-root--dark .payment-actions a {
+          background: #1c1b1b;
+        }
+
+        .a-root--dark .payment-progress { background: #0e0e0e; }
+        .a-root--dark .payment-table-wrap tbody tr:hover { background: rgba(255, 182, 142, .08); }
+        .a-root--dark .payment-ring { background: radial-gradient(circle, #201f1f 0 57%, transparent 58%), conic-gradient(var(--primary) var(--progress), var(--surface-mid) 0); }
+        .a-root--dark .payment-document > div > .material-symbols-outlined,
+        .a-root--dark .payment-help > .material-symbols-outlined { background: #131313; }
+        .a-root--dark .payment-step.current div { background: rgba(255, 182, 142, .12); }
+
         @media (max-width: 1180px) {
           .payment-main-grid,
           .payment-overview-grid { grid-template-columns: 1fr; }

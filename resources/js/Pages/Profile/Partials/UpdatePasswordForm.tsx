@@ -276,6 +276,31 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
         .pw-submit-btn:disabled { opacity: .6; cursor: not-allowed; }
         .pw-spinner { width: 15px; height: 15px; animation: pw-spin .7s linear infinite; }
         @keyframes pw-spin { to { transform: rotate(360deg); } }
+        .a-root--dark .pw-kicker { color: #ffb68e; }
+        .a-root--dark .pw-title { color: #e5e2e1; }
+        .a-root--dark .pw-sub,
+        .a-root--dark .pw-label { color: #dbc1b5; }
+        .a-root--dark .pw-input {
+          background: #1c1b1b;
+          border-color: #554339;
+          color: #e5e2e1;
+        }
+        .a-root--dark .pw-input::placeholder { color: #a38c80; }
+        .a-root--dark .pw-input:focus {
+          background: #201f1f;
+          border-color: #ffb68e;
+          box-shadow: 0 0 0 3px rgba(255,182,142,.12);
+        }
+        .a-root--dark .pw-input-icon,
+        .a-root--dark .pw-eye { color: #a38c80; }
+        .a-root--dark .pw-eye:hover { color: #ffb68e; }
+        .a-root--dark .pw-saved-badge {
+          background: rgba(58,143,95,.16);
+          border-color: rgba(125,211,162,.28);
+          color: #7dd3a2;
+        }
+        .a-root--dark .pw-bar { background: #353534; }
+        .a-root--dark .pw-match { color: #7dd3a2; }
         @media (max-width: 900px) { .pw-grid { grid-template-columns: 1fr; } }
         @media (max-width: 500px) { .pw-header, .pw-body { padding-left: 20px; padding-right: 20px; } }
       `}</style>

@@ -508,6 +508,40 @@ export default function Notifications() {
           font-size: 0.78rem;
         }
 
+        .a-root--dark .notif-root { color: #e5e2e1; }
+        .a-root--dark .notif-hero,
+        .a-root--dark .notif-panel,
+        .a-root--dark .notif-item,
+        .a-root--dark .notif-filter {
+          background: #201f1f;
+          border-color: rgba(255, 255, 255, .08);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+        }
+        .a-root--dark .notif-hero,
+        .a-root--dark .notif-panel--accent { background: linear-gradient(180deg, #201f1f 0%, #1c1b1b 100%); }
+        .a-root--dark .notif-subtitle,
+        .a-root--dark .notif-item-copy p,
+        .a-root--dark .notif-panel--accent p,
+        .a-root--dark .notif-upcoming-item span { color: #dbc1b5; }
+        .a-root--dark .notif-title,
+        .a-root--dark .notif-item-head h3,
+        .a-root--dark .notif-panel-head h3,
+        .a-root--dark .notif-panel--accent h3,
+        .a-root--dark .notif-upcoming-item p { color: #e5e2e1; }
+        .a-root--dark .notif-filter { color: #dbc1b5; }
+        .a-root--dark .notif-filter span,
+        .a-root--dark .notif-badge--read,
+        .a-root--dark .notif-category,
+        .a-root--dark .notif-empty,
+        .a-root--dark .notif-upcoming-item { background: #1c1b1b; border-color: rgba(255, 255, 255, .08); color: #a38c80; }
+        .a-root--dark .notif-filter--active,
+        .a-root--dark .notif-badge--unread,
+        .a-root--dark .notif-icon--academic { background: rgba(255, 182, 142, .14); color: #ffb68e; }
+        .a-root--dark .notif-icon--financial { background: rgba(255, 180, 171, .14); color: #ffb4ab; }
+        .a-root--dark .notif-icon--news { background: rgba(198, 198, 199, .14); color: #c6c6c7; }
+        .a-root--dark .notif-kicker,
+        .a-root--dark .notif-action-link { color: #ffb68e; }
+
         @media (max-width: 1100px) {
           .notif-grid {
             grid-template-columns: 1fr;

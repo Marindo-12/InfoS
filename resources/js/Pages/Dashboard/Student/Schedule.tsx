@@ -951,6 +951,39 @@ export default function Schedule() {
           margin: 0;
         }
 
+        .a-root--dark .student-schedule {
+          --surface: #131313;
+          --surface-low: #1c1b1b;
+          --surface-mid: #353534;
+          --surface-high: #201f1f;
+          --text: #e5e2e1;
+          --muted: #dbc1b5;
+          --soft: #a38c80;
+          --line: #554339;
+          --primary: #ffb68e;
+          --primary-soft: rgba(255, 182, 142, .14);
+          background-color: var(--surface);
+          background-image: radial-gradient(rgba(85, 67, 57, .72) .6px, transparent .6px);
+        }
+
+        .a-root--dark .schedule-stat,
+        .a-root--dark .schedule-panel,
+        .a-root--dark .schedule-session,
+        .a-root--dark .schedule-document,
+        .a-root--dark .schedule-document > div > .material-symbols-outlined,
+        .a-root--dark .schedule-toggle .active {
+          background: var(--surface-high);
+          border-color: rgba(255, 255, 255, .08);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+        }
+
+        .a-root--dark .schedule-day { background: rgba(19, 19, 19, .92); }
+        .a-root--dark .schedule-week { background: rgba(85, 67, 57, .45); border-color: rgba(85, 67, 57, .75); }
+        .a-root--dark .schedule-next { background: #0e0e0e; }
+        .a-root--dark .schedule-session:hover,
+        .a-root--dark .schedule-document:hover { border-color: rgba(255, 182, 142, .34); box-shadow: 0 12px 32px rgba(194, 101, 42, .12); }
+        .a-root--dark .schedule-bars span { background: rgba(255, 182, 142, .22); }
+
         @media (max-width: 1180px) {
           .schedule-week { grid-template-columns: repeat(4, minmax(180px, 1fr)); }
           .schedule-day { min-height: 330px; }

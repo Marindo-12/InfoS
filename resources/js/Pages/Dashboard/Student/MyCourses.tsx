@@ -362,6 +362,45 @@ export default function MyCourses() {
           box-sizing: border-box;
         }
 
+        .a-root--dark .student-courses-page {
+          --sc-bg: #131313;
+          --sc-card: #201f1f;
+          --sc-low: #1c1b1b;
+          --sc-high: #353534;
+          --sc-text: #e5e2e1;
+          --sc-muted: #dbc1b5;
+          --sc-border: #554339;
+          --sc-primary: #ffb68e;
+          --sc-primary-soft: rgba(255, 182, 142, .14);
+          --sc-dark: #0e0e0e;
+        }
+
+        .a-root--dark .student-courses-page {
+          background: #131313;
+        }
+
+        .a-root--dark .sc-metric-card,
+        .a-root--dark .sc-feature-card,
+        .a-root--dark .sc-chart-card,
+        .a-root--dark .sc-agenda-card,
+        .a-root--dark .sc-side-course,
+        .a-root--dark .sc-empty-state {
+          border-color: rgba(255, 255, 255, .08);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+        }
+
+        .a-root--dark .sc-live-chip,
+        .a-root--dark .sc-agenda-list article,
+        .a-root--dark .sc-empty-agenda {
+          background: #1c1b1b;
+          border-color: rgba(255, 255, 255, .08);
+        }
+
+        .a-root--dark .sc-dark-card {
+          background: #0e0e0e;
+          border-color: rgba(255, 255, 255, .08);
+        }
+
         .student-courses-hero {
           display: flex;
           justify-content: space-between;

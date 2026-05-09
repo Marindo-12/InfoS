@@ -18,6 +18,7 @@ const I = {
   Menu:          () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
   Close:         () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
   Sun:           () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+  Moon:          () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>,
   Settings:      () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
 }
 
@@ -108,6 +109,12 @@ export default function Authenticated({
   const [scrolled, setScrolled] = useState(false)
   const [windowWidth, setWindowWidth] = useState(0)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const saved = window.localStorage.getItem('student-dashboard-theme')
+    if (saved) return saved === 'dark'
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
 
   // Détection de la largeur d'écran
   useEffect(() => {
@@ -144,6 +151,11 @@ export default function Authenticated({
     return () => el.removeEventListener('scroll', fn)
   }, [])
 
+  useEffect(() => {
+    window.localStorage.setItem('student-dashboard-theme', darkMode ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', darkMode)
+  }, [darkMode])
+
   return (
     <>
       <style>{`
@@ -170,11 +182,29 @@ export default function Authenticated({
           --tr:           .2s cubic-bezier(.4,0,.2,1);
         }
 
+        .a-root--dark {
+          --orange:       #ffb68e;
+          --orange-light: #d9773a;
+          --orange-pale:  rgba(255, 182, 142, .12);
+          --orange-pale2: rgba(255, 182, 142, .18);
+          --sidebar-bg:   #0e0e0e;
+          --page-bg:      #131313;
+          --border:       #554339;
+          --text-1:       #e5e2e1;
+          --text-2:       #dbc1b5;
+          --text-3:       #a38c80;
+          --shadow-sm:    0 1px 0 rgba(255,255,255,0.04), 0 18px 44px rgba(0,0,0,0.24);
+          --shadow-md:    0 20px 60px rgba(0,0,0,0.42);
+        }
+
         .a-root {
           display: flex; min-height: 100vh;
           background: var(--page-bg);
           font-family: var(--font);
+          color: var(--text-1);
+          color-scheme: light;
         }
+        .a-root--dark { color-scheme: dark; }
 
         .a-overlay {
           position: fixed; inset: 0;
@@ -426,6 +456,7 @@ export default function Authenticated({
           gap: 14px;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
+        .a-root--dark .a-topbar { background: rgba(19,19,19,.88); }
         .a-topbar--scrolled { border-bottom-color: var(--border); box-shadow: 0 1px 12px rgba(0,0,0,0.06); }
 
         .a-mobile-menu {
@@ -433,7 +464,7 @@ export default function Authenticated({
           align-items: center; justify-content: center;
           width: 36px; height: 36px;
           border-radius: 9px; border: 1px solid var(--border);
-          background: #fff;
+          background: var(--sidebar-bg);
           color: var(--text-2);
           cursor: pointer; flex-shrink: 0;
         }
@@ -447,7 +478,7 @@ export default function Authenticated({
           height: 36px; padding: 0 12px;
           border-radius: 10px;
           border: 1px solid var(--border);
-          background: #fff;
+          background: var(--sidebar-bg);
           gap: 8px;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
@@ -463,7 +494,7 @@ export default function Authenticated({
           width: 36px; height: 36px;
           border-radius: 10px;
           border: 1px solid var(--border);
-          background: #fff;
+          background: var(--sidebar-bg);
           color: var(--text-2);
           align-items: center; justify-content: center;
           cursor: pointer;
@@ -486,8 +517,8 @@ export default function Authenticated({
         .a-notif-menu {
           position: absolute; top: 44px; right: 0;
           width: min(360px, calc(100vw - 32px));
-          background: #fff;
-          border: 1px solid rgba(0,0,0,.08);
+          background: var(--sidebar-bg);
+          border: 1px solid var(--border);
           border-radius: 14px;
           box-shadow: 0 18px 50px rgba(15,23,42,.16);
           z-index: 80;
@@ -496,7 +527,7 @@ export default function Authenticated({
         .a-notif-head {
           display: flex; align-items: center; justify-content: space-between; gap: 12px;
           padding: 14px 16px;
-          border-bottom: 1px solid rgba(15,23,42,.07);
+          border-bottom: 1px solid var(--border);
         }
         .a-notif-head strong { font-size: .86rem; color: var(--text-1); }
         .a-notif-head button {
@@ -508,31 +539,31 @@ export default function Authenticated({
           display: block;
           padding: 13px 16px;
           text-decoration: none;
-          border-bottom: 1px solid rgba(15,23,42,.06);
-          background: #fff;
+          border-bottom: 1px solid var(--border);
+          background: var(--sidebar-bg);
         }
-        .a-notif-item:hover { background: #fffaf6; }
-        .a-notif-item--unread { background: #fff7ed; }
+        .a-notif-item:hover { background: var(--orange-pale); }
+        .a-notif-item--unread { background: var(--orange-pale); }
         .a-notif-item strong {
           display: block; color: var(--text-1); font-size: .8rem; margin-bottom: 4px;
         }
         .a-notif-item span {
-          display: block; color: #6b7280; font-size: .73rem; line-height: 1.45;
+          display: block; color: var(--text-2); font-size: .73rem; line-height: 1.45;
         }
         .a-notif-item small {
-          display: block; color: #a1a1aa; font-size: .67rem; margin-top: 6px;
+          display: block; color: var(--text-3); font-size: .67rem; margin-top: 6px;
         }
-        .a-notif-empty { padding: 18px 16px; color: #6b7280; font-size: .8rem; }
+        .a-notif-empty { padding: 18px 16px; color: var(--text-2); font-size: .8rem; }
         .a-notif-foot {
           display: block; padding: 12px 16px; color: var(--orange);
-          background: #faf8f5; text-decoration: none; font-size: .78rem; font-weight: 800;
-          border-top: 1px solid rgba(15,23,42,.07);
+          background: var(--orange-pale); text-decoration: none; font-size: .78rem; font-weight: 800;
+          border-top: 1px solid var(--border);
         }
 
         .a-tb-user {
           display: flex; align-items: center; gap: 9px;
           min-height: 50px; padding: 4px 14px 4px 5px;
-          background: #fff;
+          background: var(--sidebar-bg);
           border-radius: 20px;
           cursor: pointer;
           box-shadow: 0 10px 24px rgba(36, 28, 20, .08);
@@ -543,6 +574,12 @@ export default function Authenticated({
           border-color: var(--orange-pale2);
           box-shadow: 0 14px 30px rgba(194,101,42,.14);
           transform: translateY(-1px);
+        }
+        .a-theme-toggle {
+          overflow: hidden;
+        }
+        .a-theme-toggle svg {
+          transition: transform var(--tr), opacity var(--tr);
         }
         .a-tb-username { font-size: .86rem; font-weight: 800; color: var(--text-1); white-space: nowrap; }
         .a-tb-role { font-size: .68rem; color: var(--text-3); white-space: nowrap; }
@@ -561,7 +598,7 @@ export default function Authenticated({
         }
       `}</style>
 
-      <div className="a-root">
+      <div className={`a-root ${darkMode ? 'a-root--dark' : ''}`}>
         {mobileOpen && <div className="a-overlay" onClick={() => setMobileOpen(false)} aria-hidden />}
 
         {/* SIDEBAR */}
@@ -691,6 +728,15 @@ export default function Authenticated({
                   </div>
                 )}
               </div>
+              <button
+                className="a-tb-btn a-theme-toggle flex"
+                aria-label={darkMode ? 'Activer le mode clair' : 'Activer le mode sombre'}
+                title={darkMode ? 'Mode clair' : 'Mode sombre'}
+                type="button"
+                onClick={() => setDarkMode(mode => !mode)}
+              >
+                {darkMode ? <I.Sun /> : <I.Moon />}
+              </button>
               <div className="a-tb-user">
                 <div className="a-avatar a-avatar--sm">
                   {avatarUrl ? <img src={avatarUrl} alt={user.name} className="a-avatar-img" /> : initials}
@@ -708,4 +754,3 @@ export default function Authenticated({
     </>
   )
 }
-

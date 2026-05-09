@@ -606,6 +606,59 @@ export default function UpdateProfileInformationForm({
         }
         .pf-tip-list li { font-size: .78rem; color: #777; line-height: 1.5; }
 
+        .a-root--dark .pf-header { border-bottom-color: rgba(255,255,255,.08); }
+        .a-root--dark .pf-kicker,
+        .a-root--dark .pf-info-title,
+        .a-root--dark .pf-tip-title { color: #ffb68e; }
+        .a-root--dark .pf-title,
+        .a-root--dark .pf-info-val { color: #e5e2e1; }
+        .a-root--dark .pf-label,
+        .a-root--dark .pf-info-label { color: #dbc1b5; }
+        .a-root--dark .pf-divider { background: rgba(255,255,255,.08); }
+        .a-root--dark .pf-input {
+          background: #1c1b1b;
+          border-color: #554339;
+          color: #e5e2e1;
+        }
+        .a-root--dark .pf-input::placeholder { color: #a38c80; }
+        .a-root--dark .pf-input:focus {
+          background: #201f1f;
+          border-color: #ffb68e;
+          box-shadow: 0 0 0 3px rgba(255,182,142,.12);
+        }
+        .a-root--dark .pf-input-icon { color: #a38c80; }
+        .a-root--dark .pf-avatar { border-color: #201f1f; }
+        .a-root--dark .pf-avatar-btn,
+        .a-root--dark .pf-avatar-delete { border-color: #201f1f; }
+        .a-root--dark .pf-info-card {
+          background: #1c1b1b;
+          border-color: rgba(255,255,255,.08);
+        }
+        .a-root--dark .pf-tip-card {
+          background: rgba(255,182,142,.08);
+          border-color: rgba(255,182,142,.18);
+        }
+        .a-root--dark .pf-tip-icon { background: rgba(255,182,142,.14); color: #ffb68e; }
+        .a-root--dark .pf-tip-list li { color: #dbc1b5; }
+        .a-root--dark .pf-saved-badge {
+          background: rgba(58,143,95,.16);
+          border-color: rgba(125,211,162,.28);
+          color: #7dd3a2;
+        }
+        .a-root--dark .pf-verify-notice {
+          background: rgba(217,119,6,.12);
+          border-color: rgba(251,191,36,.24);
+          color: #facc15;
+        }
+        .a-root--dark .pf-verify-link { color: #ffb68e; }
+        .a-root--dark .pf-success-notice {
+          background: rgba(58,143,95,.16);
+          border-color: rgba(125,211,162,.28);
+          color: #7dd3a2;
+        }
+        .a-root--dark .pf-status-badge--ok { background: rgba(58,143,95,.16); color: #7dd3a2; }
+        .a-root--dark .pf-status-badge--warn { background: rgba(217,119,6,.16); color: #facc15; }
+
         /* Responsive */
         @media (max-width: 900px) {
           .pf-body { grid-template-columns: 1fr; }

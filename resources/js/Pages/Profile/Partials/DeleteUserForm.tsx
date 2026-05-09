@@ -320,6 +320,36 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
         .del-spinner { width: 15px; height: 15px; animation: del-spin .7s linear infinite; }
         @keyframes del-spin { to { transform: rotate(360deg); } }
 
+        .a-root--dark .del-title,
+        .a-root--dark .del-modal-title { color: #e5e2e1; }
+        .a-root--dark .del-sub,
+        .a-root--dark .del-modal-text,
+        .a-root--dark .del-label { color: #dbc1b5; }
+        .a-root--dark .del-modal {
+          background: #201f1f;
+          box-shadow: 0 22px 70px rgba(0,0,0,.48), 0 0 0 1px rgba(255,180,171,.14);
+        }
+        .a-root--dark .del-modal-close,
+        .a-root--dark .del-cancel-btn {
+          background: #1c1b1b;
+          border-color: rgba(255,255,255,.08);
+          color: #dbc1b5;
+        }
+        .a-root--dark .del-modal-close:hover,
+        .a-root--dark .del-cancel-btn:hover {
+          background: #353534;
+          color: #e5e2e1;
+        }
+        .a-root--dark .del-input {
+          background: #1c1b1b;
+          border-color: #554339;
+          color: #e5e2e1;
+        }
+        .a-root--dark .del-input::placeholder { color: #a38c80; }
+        .a-root--dark .del-input-icon,
+        .a-root--dark .del-eye { color: #a38c80; }
+        .a-root--dark .del-eye:hover { color: #ffb4ab; }
+
         @media (max-width: 600px) {
           .del-header { padding: 20px; flex-direction: column; }
           .del-trigger-btn { width: 100%; justify-content: center; }
