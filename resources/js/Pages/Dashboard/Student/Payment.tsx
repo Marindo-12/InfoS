@@ -1,13 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import {
-  Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from 'recharts';
-
-/* ═══════════════════════════════════════════════════
-   TYPES — match your Laravel controller props
-═══════════════════════════════════════════════════ */
 
 type Stat = {
   label: string;
@@ -24,762 +16,1051 @@ type Summary = {
   nextDueLabel: string;
 };
 
-type MonthlyChartItem   = { month: string; expected: number; paid: number };
-type DistributionItem   = { name: string; value: number; color: string };
+type MonthlyChartItem = { month: string; expected: number; paid: number };
+type DistributionItem = { name: string; value: number; color: string };
 type PaymentHistoryItem = {
-  date: string; method: string; type: 'card' | 'bank' | 'cash';
-  amount: string; status: 'paid' | 'pending';
+  date: string;
+  method: string;
+  type: 'card' | 'bank' | 'cash';
+  amount: string;
+  status: 'paid' | 'pending';
 };
-type InvoiceItem      = { title: string; issuedAt: string };
-type InstallmentItem  = {
-  month: string; amount: string;
+type InvoiceItem = { title: string; issuedAt: string };
+type InstallmentItem = {
+  month: string;
+  amount: string;
   state: 'paid' | 'current' | 'upcoming' | 'final';
 };
 
 type PageProps = {
   auth: { user: { id: number; name: string; email: string } };
-  stats: Stat[];
-  summary: Summary;
-  monthlyChart: MonthlyChartItem[];
-  distributionChart: DistributionItem[];
-  paymentHistory: PaymentHistoryItem[];
-  invoices: InvoiceItem[];
-  installments: InstallmentItem[];
+  stats?: Stat[];
+  summary?: Summary;
+  monthlyChart?: MonthlyChartItem[];
+  distributionChart?: DistributionItem[];
+  paymentHistory?: PaymentHistoryItem[];
+  invoices?: InvoiceItem[];
+  installments?: InstallmentItem[];
 };
 
-/* ═══════════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════════ */
+const fallbackSummary: Summary = {
+  remaining: '0,00 DH',
+  paid: '0 / 0 DH',
+  completion: 0,
+  nextDueLabel: 'Aucune echeance',
+};
 
-const fmtDh = (v: number | string | undefined) =>
-  `${Number(v ?? 0).toLocaleString('fr-FR')} DH`;
+const methodIcon: Record<PaymentHistoryItem['type'], string> = {
+  card: 'credit_card',
+  bank: 'account_balance',
+  cash: 'payments',
+};
 
-const statusMeta = (s: 'paid' | 'pending') =>
-  s === 'paid'
-    ? { label: 'Payé', cls: 'pay-badge--success' }
-    : { label: 'En attente', cls: 'pay-badge--pending' };
+const statIcon: Record<Stat['icon'], string> = {
+  check: 'check_circle',
+  wallet: 'account_balance_wallet',
+  receipt: 'receipt_long',
+};
 
-/* ═══════════════════════════════════════════════════
-   ICONS
-═══════════════════════════════════════════════════ */
+const installmentLabel: Record<InstallmentItem['state'], string> = {
+  paid: 'Regle',
+  current: 'En cours',
+  upcoming: 'Programme',
+  final: 'Final',
+};
 
-const IconWallet    = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M18 9h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2"/><circle cx="16" cy="12" r="1"/></svg>;
-const IconCheck     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>;
-const IconReceipt   = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 3v18l3-2 2 2 2-2 2 2 2-2 2 2 3-2V3z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>;
-const IconCard      = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>;
-const IconBank      = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10 12 4l9 6"/><path d="M4 10h16"/><path d="M6 10v8"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M18 10v8"/><path d="M3 21h18"/></svg>;
-const IconCash      = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg>;
-const IconDownload  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>;
-const IconDocument  = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/></svg>;
-const IconHelp      = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>;
-
-const methodIcon = (t: PaymentHistoryItem['type']) =>
-  t === 'bank' ? <IconBank /> : t === 'cash' ? <IconCash /> : <IconCard />;
-
-const statIcon = (i: Stat['icon']) =>
-  i === 'check' ? <IconCheck /> : i === 'receipt' ? <IconReceipt /> : <IconWallet />;
-
-/* ═══════════════════════════════════════════════════
-   SUB-COMPONENTS
-═══════════════════════════════════════════════════ */
-
-function StatCard({ label, value, sub, color, icon }: Stat) {
-  return (
-    <div className="pay-stat-card">
-      <div className="pay-stat-icon" style={{ background: `${color}16`, color }}>
-        {statIcon(icon)}
-      </div>
-      <div className="pay-stat-body">
-        <p className="pay-eyebrow">{label}</p>
-        <p className="pay-stat-value">{value}</p>
-        <p className="pay-muted">{sub}</p>
-      </div>
-    </div>
-  );
+function clampPercent(value: number | undefined) {
+  return Math.max(0, Math.min(100, Number(value ?? 0)));
 }
 
-/* Responsive table — cards on mobile */
-function PaymentTable({ rows }: { rows: PaymentHistoryItem[] }) {
-  return (
-    <>
-      {/* Desktop table */}
-      <div className="pay-table-wrap">
-        <table className="pay-table">
-          <thead>
-            <tr>
-              <th>Date</th><th>Mode</th><th>Montant</th><th>Statut</th>
-              <th style={{ textAlign: 'right' }}>Reçu</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((item, i) => {
-              const { label, cls } = statusMeta(item.status);
-              return (
-                <tr key={i}>
-                  <td>{item.date}</td>
-                  <td>
-                    <div className="pay-method">
-                      <span className="pay-method-icon">{methodIcon(item.type)}</span>
-                      <span>{item.method}</span>
-                    </div>
-                  </td>
-                  <td className="pay-amount">{item.amount}</td>
-                  <td><span className={`pay-badge ${cls}`}>{label}</span></td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button className="pay-icon-btn" disabled={item.status === 'pending'}>
-                      <IconDownload />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile cards */}
-      <div className="pay-mobile-list">
-        {rows.map((item, i) => {
-          const { label, cls } = statusMeta(item.status);
-          return (
-            <div key={i} className="pay-mobile-row">
-              <div className="pay-mobile-left">
-                <div className="pay-method-icon">{methodIcon(item.type)}</div>
-                <div>
-                  <p className="pay-mobile-method">{item.method}</p>
-                  <p className="pay-muted">{item.date}</p>
-                </div>
-              </div>
-              <div className="pay-mobile-right">
-                <p className="pay-amount">{item.amount}</p>
-                <span className={`pay-badge ${cls}`}>{label}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
+function formatDh(value: number) {
+  return `${Number(value ?? 0).toLocaleString('fr-FR')} DH`;
 }
 
-/* ═══════════════════════════════════════════════════
-   MAIN PAGE
-═══════════════════════════════════════════════════ */
+function icon(name: string, className = '') {
+  return <span className={`material-symbols-outlined ${className}`}>{name}</span>;
+}
+
+function statusMeta(status: PaymentHistoryItem['status']) {
+  return status === 'paid'
+    ? { label: 'Paye', className: 'paid' }
+    : { label: 'En attente', className: 'pending' };
+}
+
+function maxChartValue(items: MonthlyChartItem[]) {
+  return Math.max(1, ...items.flatMap((item) => [item.expected, item.paid]));
+}
 
 export default function Payment() {
   const { props } = usePage<PageProps>();
-  const {
-    stats = [], summary, monthlyChart = [], distributionChart = [],
-    paymentHistory = [], invoices = [], installments = [],
-  } = props;
-
   const user = props.auth.user;
-  const firstName = user.name.split(' ')[0];
-
-  /* Fallback summary when backend hasn't sent data yet */
-  const s: Summary = summary ?? {
-    remaining: '— DH', paid: '— DH', completion: 0, nextDueLabel: 'Aucune échéance',
-  };
+  const firstName = user.name.split(' ')[0] || user.name;
+  const stats = props.stats ?? [];
+  const summary = props.summary ?? fallbackSummary;
+  const monthlyChart = props.monthlyChart ?? [];
+  const distributionChart = props.distributionChart ?? [];
+  const paymentHistory = props.paymentHistory ?? [];
+  const invoices = props.invoices ?? [];
+  const installments = props.installments ?? [];
+  const completion = clampPercent(summary.completion);
+  const chartMax = maxChartValue(monthlyChart);
+  const paidInstallments = installments.filter((item) => item.state === 'paid').length;
+  const timelineProgress = installments.length > 0 ? Math.round((paidInstallments / installments.length) * 100) : 0;
 
   return (
     <AuthenticatedLayout header={<h2>Paiements</h2>}>
       <Head title="Paiements" />
 
-      <div className="pay-root">
-
-        {/* ── Hero ── */}
-        <section className="pay-hero">
-          <div className="pay-hero-copy">
-            <p className="pay-eyebrow">Espace financier</p>
-            <h1 className="pay-hero-title">
-              Suivi des paiements de <span>{firstName}</span>
-            </h1>
-            <p className="pay-hero-text">
-              Retrouvez votre solde, vos échéances, l'historique des règlements et vos documents
-              administratifs pour l'année en cours.
+      <div className="student-payment">
+        <section className="payment-hero">
+          <div>
+            <p className="payment-kicker">Espace financier</p>
+            <h1>Suivi des paiements de {firstName}</h1>
+            <p className="payment-subtitle">
+              Retrouvez vos reglements, echeances et documents financiers directement depuis les donnees de votre dossier.
             </p>
           </div>
-          <div className="pay-hero-side">
-            <div className="pay-chip">
-              <span className="pay-chip-dot" />
-              {s.nextDueLabel}
-            </div>
-            <div className="pay-chip pay-chip--soft">
-              Transactions sécurisées SSL 256 bits
-            </div>
-          </div>
+
+          <button type="button" className="payment-primary" onClick={() => window.print()}>
+            {icon('download')}
+            Telecharger le releve
+          </button>
         </section>
 
-        {/* ── Balance + Progress ── */}
-        <section className="pay-top-grid">
-          <div className="pay-balance-card">
-            <div className="pay-flex-between">
+        <section className="payment-stats" aria-label="Resume financier">
+          {stats.length > 0 ? stats.map((stat) => (
+            <article className="payment-stat" key={stat.label}>
               <div>
-                <p className="pay-eyebrow">Solde restant</p>
-                <h3 className="pay-balance-value">{s.remaining}</h3>
+                {icon(statIcon[stat.icon] ?? 'receipt_long')}
+                <span>{stat.label}</span>
               </div>
-              <span className="pay-badge pay-badge--highlight">{s.nextDueLabel}</span>
-            </div>
-            <p className="pay-balance-text">
-              Votre dossier est à jour à {s.completion}%. Il reste une partie du montant annuel
-              à régler pour finaliser la scolarité.
+              <strong>{stat.value}</strong>
+              <small>{stat.sub}</small>
+            </article>
+          )) : (
+            <>
+              <article className="payment-stat">
+                <div>{icon('payments')}<span>Montant regle</span></div>
+                <strong>{summary.paid}</strong>
+                <small>Depuis votre dossier</small>
+              </article>
+              <article className="payment-stat">
+                <div>{icon('account_balance_wallet')}<span>Reste a payer</span></div>
+                <strong>{summary.remaining}</strong>
+                <small>{summary.nextDueLabel}</small>
+              </article>
+              <article className="payment-stat">
+                <div>{icon('analytics')}<span>Progression</span></div>
+                <strong>{completion}%</strong>
+                <small>Regle</small>
+              </article>
+            </>
+          )}
+        </section>
+
+        <section className="payment-overview-grid">
+          <article className="payment-panel payment-balance">
+            <p className="payment-kicker">Solde restant</p>
+            <h2>{summary.remaining}</h2>
+            <p>
+              Votre dossier est regle a {completion}%. La prochaine information financiere disponible est:
+              <strong> {summary.nextDueLabel}</strong>.
             </p>
-            <div className="pay-balance-actions">
-              <button type="button" className="pay-btn pay-btn--primary">Régler maintenant</button>
-              <button type="button" className="pay-btn pay-btn--secondary">Voir les échéances</button>
+            <div className="payment-actions">
+              <button type="button">{icon('credit_card')} Regler maintenant</button>
+              <a href="#payment-timeline">{icon('event')} Voir les echeances</a>
             </div>
-          </div>
+          </article>
 
-          <div className="pay-progress-card">
-            <div className="pay-flex-between">
-              <div>
-                <p className="pay-eyebrow">Progression annuelle</p>
-                <h3 className="pay-progress-value">{s.paid}</h3>
-              </div>
-              <span className="pay-badge pay-badge--success">{s.completion}% réglé</span>
+          <article className="payment-panel payment-progress">
+            <p className="payment-kicker">Progression annuelle</p>
+            <h2>{summary.paid}</h2>
+            <div className="payment-track" aria-hidden>
+              <span style={{ width: `${completion}%` }} />
             </div>
-            <div className="pay-progress-track">
-              <div className="pay-progress-fill" style={{ width: `${s.completion}%` }} />
-            </div>
-            <p className="pay-muted">
-              Une lecture claire de vos versements pour garder un suivi financier stable tout au long
-              de la formation.
-            </p>
-          </div>
+            <strong>{completion}% regle</strong>
+          </article>
         </section>
 
-        {/* ── Stats ── */}
-        {stats.length > 0 && (
-          <section className="pay-stats-grid">
-            {stats.map((stat) => <StatCard key={stat.label} {...stat} />)}
-          </section>
-        )}
-
-        {/* ── Main content grid ── */}
-        <section className="pay-content-grid">
-
-          {/* Left — history */}
-          <div className="pay-panel">
-            <div className="pay-flex-between pay-mb">
+        <section className="payment-main-grid">
+          <article className="payment-panel payment-history-panel">
+            <div className="payment-section-head">
               <div>
-                <h3 className="pay-panel-title">Historique des paiements</h3>
-                <p className="pay-muted">Vue détaillée des règlements déjà enregistrés.</p>
+                <h2>Historique des paiements</h2>
+                <p>Reglements deja enregistres dans votre espace etudiant.</p>
               </div>
             </div>
-            {paymentHistory.length > 0
-              ? <PaymentTable rows={paymentHistory} />
-              : <div className="pay-empty">Aucun paiement enregistré pour le moment.</div>
-            }
-          </div>
 
-          {/* Right stack */}
-          <div className="pay-side-stack">
-
-            {/* Donut chart */}
-            {distributionChart.length > 0 && (
-              <div className="pay-panel">
-                <h3 className="pay-panel-title pay-mb-sm">Répartition du budget</h3>
-                <p className="pay-muted">Entre le montant déjà réglé et le reste à solder.</p>
-                <div className="pay-chart-donut">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={distributionChart} dataKey="value" nameKey="name"
-                        innerRadius={60} outerRadius={88} paddingAngle={3} stroke="none">
-                        {distributionChart.map((e) => <Cell key={e.name} fill={e.color} />)}
-                      </Pie>
-                      <Tooltip formatter={(v) => fmtDh(v as number)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="pay-chart-center">
-                    <strong>{s.completion}%</strong>
-                    <span>réglé</span>
-                  </div>
-                </div>
-                <div className="pay-legend">
-                  {distributionChart.map((e) => (
-                    <div key={e.name} className="pay-legend-item">
-                      <span className="pay-legend-dot" style={{ background: e.color }} />
-                      <span>{e.name}</span>
-                      <strong>{e.value.toLocaleString('fr-FR')} DH</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Invoices */}
-            <div className="pay-panel">
-              <h3 className="pay-panel-title pay-mb-sm">Factures officielles</h3>
-              <p className="pay-muted">Documents disponibles au téléchargement.</p>
-              {invoices.length > 0 ? (
-                <div className="pay-doc-list">
-                  {invoices.map((inv) => (
-                    <div key={`${inv.title}-${inv.issuedAt}`} className="pay-doc-card">
-                      <div className="pay-doc-icon"><IconDocument /></div>
-                      <div className="pay-doc-copy">
-                        <p className="pay-doc-title">{inv.title}</p>
-                        <p className="pay-muted">Édité le {inv.issuedAt}</p>
-                      </div>
-                      <button type="button" className="pay-icon-btn"><IconDownload /></button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="pay-empty">Aucune facture disponible.</div>
-              )}
-            </div>
-
-            {/* Help */}
-            <div className="pay-help-card pay-panel">
-              <div className="pay-help-icon"><IconHelp /></div>
-              <div>
-                <h3 className="pay-panel-title pay-mb-sm">Facture manquante ?</h3>
-                <p className="pay-muted">
-                  Contactez l'administration pour demander un duplicata ou un justificatif supplémentaire.
-                </p>
-              </div>
-              <Link href={route('contact')} className="pay-text-link">
-                Contacter le centre
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Bar chart + Timeline ── */}
-        {(monthlyChart.length > 0 || installments.length > 0) && (
-          <section className="pay-panel">
-            <h3 className="pay-panel-title pay-mb-sm">Calendrier des échéances</h3>
-            <p className="pay-muted">Suivi mois par mois des versements de l'année.</p>
-
-            {monthlyChart.length > 0 && (
-              <div className="pay-chart-block">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyChart} barGap={6} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                    <CartesianGrid vertical={false} stroke="rgba(15,23,42,0.07)" />
-                    <XAxis dataKey="month" tickLine={false} axisLine={false}
-                      tick={{ fill: '#8b8b8b', fontSize: 11 }} />
-                    <YAxis tickLine={false} axisLine={false}
-                      tick={{ fill: '#8b8b8b', fontSize: 11 }} width={55} />
-                    <Tooltip formatter={(v) => fmtDh(v as number)} />
-                    <Bar dataKey="expected" fill="#f2d7c7" radius={[6,6,0,0]} name="Prévu" maxBarSize={32}/>
-                    <Bar dataKey="paid"     fill="#ff6b2b" radius={[6,6,0,0]} name="Réglé" maxBarSize={32}/>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {installments.length > 0 && (
+            {paymentHistory.length > 0 ? (
               <>
-                {/* Legend */}
-                <div className="pay-legend pay-legend--row">
-                  <div className="pay-legend-item">
-                    <span className="pay-legend-dot" style={{ background: '#ff6b2b' }} />
-                    <span>Payé</span>
-                  </div>
-                  <div className="pay-legend-item">
-                    <span className="pay-legend-dot" style={{ background: '#e2ddd9' }} />
-                    <span>À venir</span>
-                  </div>
+                <div className="payment-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Mode</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Recu</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentHistory.map((item, index) => {
+                        const status = statusMeta(item.status);
+
+                        return (
+                          <tr key={`${item.date}-${item.amount}-${index}`}>
+                            <td>{item.date}</td>
+                            <td>
+                              <span className="payment-method">
+                                {icon(methodIcon[item.type] ?? 'credit_card')}
+                                {item.method}
+                              </span>
+                            </td>
+                            <td className="payment-amount">{item.amount}</td>
+                            <td><span className={`payment-badge ${status.className}`}>{status.label}</span></td>
+                            <td>
+                              <button type="button" className="payment-icon-btn" disabled={item.status === 'pending'} title="Telecharger">
+                                {icon('download')}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* Timeline — horizontal scroll container with proper overflow */}
-                <div className="pay-timeline-wrap">
-                  <div className="pay-timeline">
-                    {/* Progress line */}
-                    <div className="pay-timeline-track" aria-hidden="true">
-                      <div className="pay-timeline-fill"
-                        style={{
-                          width: `${Math.round(
-                            (installments.filter(i => i.state === 'paid').length /
-                            installments.length) * 100
-                          )}%`
-                        }}
-                      />
-                    </div>
+                <div className="payment-mobile-list">
+                  {paymentHistory.map((item, index) => {
+                    const status = statusMeta(item.status);
 
-                    {installments.map((step, idx) => (
-                      <div key={idx} className={`pay-step pay-step--${step.state}`}>
-                        <p className="pay-step-month">{step.month}</p>
-                        <div className="pay-step-dot">
-                          {step.state === 'current' && (
-                            <span className="pay-step-pulse" />
-                          )}
+                    return (
+                      <article className="payment-mobile-row" key={`${item.method}-${item.amount}-${index}`}>
+                        <div>
+                          {icon(methodIcon[item.type] ?? 'credit_card')}
+                          <span>
+                            <strong>{item.method}</strong>
+                            <small>{item.date}</small>
+                          </span>
                         </div>
-                        <div className="pay-step-card">
-                          <p className="pay-step-amount">{step.amount}</p>
-                          <p className="pay-step-state">
-                            {step.state === 'paid'     && 'Réglé'}
-                            {step.state === 'current'  && 'En cours'}
-                            {step.state === 'upcoming' && 'Programmé'}
-                            {step.state === 'final'    && 'Final'}
-                          </p>
+                        <div>
+                          <strong>{item.amount}</strong>
+                          <span className={`payment-badge ${status.className}`}>{status.label}</span>
                         </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className="payment-empty">Aucun paiement enregistre pour le moment.</div>
+            )}
+          </article>
+
+          <aside className="payment-side">
+            <article className="payment-panel">
+              <div className="payment-section-head">
+                <div>
+                  <h2>Repartition</h2>
+                  <p>Montants regles et restant a solder.</p>
+                </div>
+              </div>
+
+              {distributionChart.length > 0 ? (
+                <div className="payment-distribution">
+                  <div className="payment-ring" style={{ '--progress': `${completion}%` } as React.CSSProperties}>
+                    <strong>{completion}%</strong>
+                    <span>regle</span>
+                  </div>
+                  <div className="payment-legend">
+                    {distributionChart.map((item) => (
+                      <div key={item.name}>
+                        <span style={{ background: item.color }} />
+                        <small>{item.name}</small>
+                        <strong>{formatDh(item.value)}</strong>
                       </div>
                     ))}
                   </div>
                 </div>
-              </>
+              ) : (
+                <div className="payment-empty">Aucune repartition disponible.</div>
+              )}
+            </article>
+
+            <article className="payment-panel">
+              <div className="payment-section-head">
+                <div>
+                  <h2>Factures officielles</h2>
+                  <p>Documents disponibles au telechargement.</p>
+                </div>
+              </div>
+
+              <div className="payment-documents">
+                {invoices.length > 0 ? invoices.map((invoice) => (
+                  <article className="payment-document" key={`${invoice.title}-${invoice.issuedAt}`}>
+                    <div>
+                      {icon('description')}
+                      <span>
+                        <strong>{invoice.title}</strong>
+                        <small>Edite le {invoice.issuedAt}</small>
+                      </span>
+                    </div>
+                    <button type="button" title="Telecharger">
+                      {icon('download')}
+                    </button>
+                  </article>
+                )) : (
+                  <div className="payment-empty">Aucune facture disponible.</div>
+                )}
+              </div>
+            </article>
+
+            <article className="payment-panel payment-help">
+              {icon('help')}
+              <div>
+                <h2>Facture manquante ?</h2>
+                <p>Contactez l'administration pour demander un duplicata ou un justificatif supplementaire.</p>
+                <Link href={route('contact')}>Contacter le centre</Link>
+              </div>
+            </article>
+          </aside>
+        </section>
+
+        {(monthlyChart.length > 0 || installments.length > 0) && (
+          <section className="payment-panel" id="payment-timeline">
+            <div className="payment-section-head">
+              <div>
+                <h2>Calendrier des echeances</h2>
+                <p>Suivi mois par mois des versements de l'annee.</p>
+              </div>
+            </div>
+
+            {monthlyChart.length > 0 && (
+              <div className="payment-bars">
+                {monthlyChart.map((item) => (
+                  <div key={item.month}>
+                    <div>
+                      <span style={{ height: `${Math.max(4, (item.expected / chartMax) * 100)}%` }} title={`Prevu: ${formatDh(item.expected)}`} />
+                      <strong style={{ height: `${Math.max(4, (item.paid / chartMax) * 100)}%` }} title={`Regle: ${formatDh(item.paid)}`} />
+                    </div>
+                    <small>{item.month}</small>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {installments.length > 0 && (
+              <div className="payment-timeline-wrap">
+                <div className="payment-timeline">
+                  <div className="payment-timeline-line" aria-hidden>
+                    <span style={{ width: `${timelineProgress}%` }} />
+                  </div>
+
+                  {installments.map((item, index) => (
+                    <article className={`payment-step ${item.state}`} key={`${item.month}-${index}`}>
+                      <span>{item.month}</span>
+                      <i />
+                      <div>
+                        <strong>{item.amount}</strong>
+                        <small>{installmentLabel[item.state]}</small>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
             )}
           </section>
         )}
-
-        <footer className="pay-footer">
-          Toutes les opérations financières sont protégées et archivées dans votre espace étudiant.
-        </footer>
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-        /* ── Reset scroll containment ── */
-        .pay-root {
-          display: flex; flex-direction: column; gap: 20px;
-          font-family: 'Manrope', sans-serif; color: #18181b;
-          /* KEY FIX: contain width, never let children overflow */
-          width: 100%; min-width: 0; overflow-x: hidden;
-          box-sizing: border-box;
-        }
-        .pay-root *, .pay-root *::before, .pay-root *::after { box-sizing: border-box; }
-
-        /* ── Shared panel base ── */
-        .pay-hero, .pay-panel, .pay-balance-card, .pay-progress-card,
-        .pay-help-card, .pay-stat-card {
-          background: #fff;
-          border: 1px solid rgba(15,23,42,0.07);
-          box-shadow: 0 2px 12px rgba(15,23,42,0.04);
-          border-radius: 20px;
-          padding: 24px;
-          min-width: 0; /* prevent flex/grid blowout */
-        }
-
-        /* ── Utilities ── */
-        .pay-flex-between { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
-        .pay-mb    { margin-bottom: 16px; }
-        .pay-mb-sm { margin-bottom: 6px; }
-        .pay-eyebrow {
-          margin: 0 0 6px; font-size: .72rem; font-weight: 800;
-          letter-spacing: .13em; text-transform: uppercase; color: #ff6b2b;
-        }
-        .pay-muted { margin: 0; color: #7a7a7a; font-size: .84rem; line-height: 1.6; }
-        .pay-empty {
-          padding: 32px; text-align: center; color: #aaa;
-          font-size: .85rem; border: 1.5px dashed #e5e5e5;
-          border-radius: 14px; margin-top: 12px;
+        .student-payment {
+          --surface: #faf5ee;
+          --surface-low: #f6f0e8;
+          --surface-mid: #ece6dc;
+          --text: #3a302a;
+          --muted: #605850;
+          --soft: #9a9088;
+          --line: #d8d0c8;
+          --primary: #c2652a;
+          --primary-soft: #fbe8d8;
+          color: var(--text);
+          display: flex;
+          flex-direction: column;
+          gap: 34px;
+          font-family: 'Manrope', sans-serif;
+          margin: -28px;
+          min-height: calc(100vh - 64px);
+          padding: 46px clamp(18px, 4vw, 48px) 64px;
+          background-color: var(--surface);
+          background-image: radial-gradient(rgba(216, 208, 200, .85) .6px, transparent .6px);
+          background-size: 24px 24px;
         }
 
-        /* ── Hero ── */
-        .pay-hero {
-          position: relative; overflow: hidden;
-          display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-          background: radial-gradient(circle at top right, rgba(255,154,86,.16), transparent 28%),
-                      linear-gradient(180deg,#fffaf6 0%,#fff 100%);
-        }
-        .pay-hero::before {
-          content: ''; position: absolute; inset: 0 auto auto 0;
-          width: 100%; height: 4px;
-          background: linear-gradient(90deg,#ff6b2b,#ff9a56,#ffbf7a);
-        }
-        .pay-hero-copy { max-width: 680px; position: relative; z-index: 1; }
-        .pay-hero-title {
-          margin: 0; font-family: 'EB Garamond', serif;
-          font-size: clamp(1.8rem, 3vw, 2.8rem); line-height: 1.1;
-          letter-spacing: -.03em; color: #151515;
-        }
-        .pay-hero-title span { color: #ff6b2b; }
-        .pay-hero-text { margin: 12px 0 0; font-size: .92rem; line-height: 1.7; color: #666; }
-        .pay-hero-side { display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; }
+        .student-payment * { box-sizing: border-box; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24; }
 
-        .pay-chip {
-          display: inline-flex; align-items: center; gap: 10px;
-          padding: 10px 14px; border-radius: 999px;
-          background: rgba(255,255,255,.84);
-          border: 1px solid rgba(255,107,43,.12);
-          color: #6b4b3e; font-size: .8rem; font-weight: 700;
+        .payment-hero {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
+        }
+
+        .payment-kicker {
+          color: var(--primary);
+          font-size: .72rem;
+          font-weight: 800;
+          letter-spacing: .16em;
+          margin: 0 0 10px;
+          text-transform: uppercase;
+        }
+
+        .payment-hero h1 {
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(3.25rem, 7.2vw, 6.2rem);
+          font-weight: 600;
+          line-height: .9;
+          margin: 0;
+          max-width: 880px;
+        }
+
+        .payment-subtitle {
+          color: var(--muted);
+          font-size: .95rem;
+          font-weight: 700;
+          line-height: 1.6;
+          margin: 18px 0 0;
+          max-width: 720px;
+        }
+
+        .payment-primary,
+        .payment-actions button,
+        .payment-actions a {
+          align-items: center;
+          border-radius: 8px;
+          display: inline-flex;
+          font-family: 'Manrope', sans-serif;
+          font-size: .9rem;
+          font-weight: 800;
+          gap: 9px;
+          min-height: 48px;
+          padding: 0 20px;
+          text-decoration: none;
+        }
+
+        .payment-primary,
+        .payment-actions button {
+          background: var(--primary);
+          border: 0;
+          color: white;
+          cursor: pointer;
+        }
+
+        .payment-stats {
+          display: grid;
+          gap: 18px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .payment-stat,
+        .payment-panel {
+          background: white;
+          border: 1px solid rgba(216, 208, 200, .75);
+          border-radius: 12px;
+          box-shadow: 0 2px 16px rgba(58, 48, 42, .045);
+        }
+
+        .payment-stat {
+          min-height: 154px;
+          padding: 26px;
+        }
+
+        .payment-stat div:first-child {
+          align-items: flex-start;
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 18px;
+        }
+
+        .payment-stat .material-symbols-outlined {
+          background: var(--primary-soft);
+          border-radius: 8px;
+          color: var(--primary);
+          padding: 11px;
+        }
+
+        .payment-stat div:first-child span:last-child {
+          color: var(--muted);
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .08em;
+          text-align: right;
+          text-transform: uppercase;
+        }
+
+        .payment-stat strong {
+          display: block;
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(1.8rem, 3vw, 2.55rem);
+          font-weight: 600;
+          line-height: 1.04;
+        }
+
+        .payment-stat small {
+          color: var(--muted);
+          display: block;
+          font-size: .8rem;
+          margin-top: 8px;
+        }
+
+        .payment-overview-grid {
+          display: grid;
+          gap: 22px;
+          grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+        }
+
+        .payment-panel { padding: 28px; }
+
+        .payment-balance {
+          background: var(--surface-low);
+        }
+
+        .payment-balance h2,
+        .payment-progress h2,
+        .payment-section-head h2,
+        .payment-help h2 {
+          font-family: 'EB Garamond', serif;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .payment-balance h2,
+        .payment-progress h2 {
+          font-size: clamp(2.1rem, 4vw, 3.45rem);
+          line-height: 1;
+        }
+
+        .payment-balance p:not(.payment-kicker),
+        .payment-section-head p,
+        .payment-help p {
+          color: var(--muted);
+          font-size: .88rem;
+          line-height: 1.7;
+          margin: 14px 0 0;
+        }
+
+        .payment-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 24px;
+        }
+
+        .payment-actions a {
+          background: white;
+          border: 1px solid var(--line);
+          color: var(--text);
+        }
+
+        .payment-progress {
+          background: var(--text);
+          color: var(--surface);
+        }
+
+        .payment-progress .payment-kicker,
+        .payment-progress strong { color: var(--primary-soft); }
+
+        .payment-progress h2 { color: var(--surface); font-size: clamp(1.6rem, 3vw, 2.4rem); }
+
+        .payment-track {
+          background: rgba(250, 245, 238, .16);
+          border-radius: 999px;
+          height: 9px;
+          margin: 28px 0 14px;
+          overflow: hidden;
+        }
+
+        .payment-track span {
+          background: var(--primary);
+          border-radius: inherit;
+          display: block;
+          height: 100%;
+        }
+
+        .payment-main-grid {
+          align-items: start;
+          display: grid;
+          gap: 22px;
+          grid-template-columns: minmax(0, 1.45fr) minmax(330px, .75fr);
+        }
+
+        .payment-side {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .payment-section-head {
+          align-items: flex-start;
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 18px;
+        }
+
+        .payment-section-head h2,
+        .payment-help h2 { font-size: 1.9rem; line-height: 1; }
+
+        .payment-table-wrap {
+          border: 1px solid rgba(216, 208, 200, .72);
+          border-radius: 12px;
+          overflow-x: auto;
+        }
+
+        .payment-table-wrap table {
+          border-collapse: collapse;
+          min-width: 620px;
+          width: 100%;
+        }
+
+        .payment-table-wrap thead { background: var(--surface-low); }
+
+        .payment-table-wrap th,
+        .payment-table-wrap td {
+          border-bottom: 1px solid rgba(216, 208, 200, .58);
+          font-size: .84rem;
+          padding: 15px 16px;
+          text-align: left;
+        }
+
+        .payment-table-wrap th {
+          color: var(--soft);
+          font-size: .68rem;
+          font-weight: 900;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+        }
+
+        .payment-table-wrap tbody tr:hover { background: #fffaf6; }
+        .payment-table-wrap td:last-child,
+        .payment-table-wrap th:last-child { text-align: right; }
+
+        .payment-method {
+          align-items: center;
+          display: inline-flex;
+          gap: 8px;
+        }
+
+        .payment-method .material-symbols-outlined,
+        .payment-mobile-row .material-symbols-outlined {
+          background: var(--primary-soft);
+          border-radius: 8px;
+          color: var(--primary);
+          font-size: 19px;
+          padding: 8px;
+        }
+
+        .payment-amount { color: var(--text); font-weight: 900; }
+
+        .payment-badge {
+          border-radius: 999px;
+          display: inline-flex;
+          font-size: .66rem;
+          font-weight: 900;
+          letter-spacing: .08em;
+          padding: 5px 10px;
+          text-transform: uppercase;
           white-space: nowrap;
         }
-        .pay-chip--soft { border-radius: 14px; color: #757575; font-weight: 600; border-color: rgba(15,23,42,.08); }
-        .pay-chip-dot {
-          width: 10px; height: 10px; border-radius: 50%;
-          background: #10b981; box-shadow: 0 0 0 5px rgba(16,185,129,.14);
+
+        .payment-badge.paid {
+          background: rgba(58, 143, 95, .14);
+          color: #276642;
+        }
+
+        .payment-badge.pending {
+          background: rgba(194, 101, 42, .14);
+          color: var(--primary);
+        }
+
+        .payment-icon-btn,
+        .payment-document button {
+          align-items: center;
+          background: var(--primary-soft);
+          border: 0;
+          border-radius: 8px;
+          color: var(--primary);
+          cursor: pointer;
+          display: inline-flex;
+          height: 38px;
+          justify-content: center;
+          width: 38px;
+        }
+
+        .payment-icon-btn:disabled {
+          cursor: not-allowed;
+          opacity: .4;
+        }
+
+        .payment-mobile-list {
+          display: none;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .payment-mobile-row {
+          align-items: center;
+          background: var(--surface-low);
+          border: 1px solid rgba(216, 208, 200, .7);
+          border-radius: 12px;
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 14px;
+        }
+
+        .payment-mobile-row > div {
+          align-items: center;
+          display: flex;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .payment-mobile-row > div:last-child {
+          align-items: flex-end;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .payment-mobile-row strong { display: block; font-size: .86rem; }
+        .payment-mobile-row small { color: var(--soft); display: block; font-size: .72rem; margin-top: 2px; }
+
+        .payment-distribution {
+          align-items: center;
+          display: grid;
+          gap: 20px;
+          grid-template-columns: auto minmax(0, 1fr);
+        }
+
+        .payment-ring {
+          --progress: 0%;
+          align-items: center;
+          background:
+            radial-gradient(circle, white 0 57%, transparent 58%),
+            conic-gradient(var(--primary) var(--progress), var(--surface-mid) 0);
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          height: 150px;
+          justify-content: center;
+          width: 150px;
+        }
+
+        .payment-ring strong {
+          font-family: 'EB Garamond', serif;
+          font-size: 2.1rem;
+          line-height: 1;
+        }
+
+        .payment-ring span {
+          color: var(--soft);
+          font-size: .7rem;
+          font-weight: 900;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+        }
+
+        .payment-legend {
+          display: flex;
+          flex-direction: column;
+          gap: 11px;
+        }
+
+        .payment-legend div {
+          align-items: center;
+          display: grid;
+          gap: 8px;
+          grid-template-columns: auto 1fr auto;
+        }
+
+        .payment-legend span {
+          border-radius: 50%;
+          height: 10px;
+          width: 10px;
+        }
+
+        .payment-legend small { color: var(--muted); font-size: .8rem; }
+        .payment-legend strong { font-size: .82rem; }
+
+        .payment-documents {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .payment-document {
+          align-items: center;
+          background: var(--surface-low);
+          border: 1px solid transparent;
+          border-radius: 12px;
+          display: flex;
+          gap: 12px;
+          justify-content: space-between;
+          padding: 16px;
+        }
+
+        .payment-document:hover {
+          background: white;
+          border-color: rgba(194, 101, 42, .24);
+        }
+
+        .payment-document > div {
+          align-items: center;
+          display: flex;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .payment-document > div > .material-symbols-outlined,
+        .payment-help > .material-symbols-outlined {
+          align-items: center;
+          background: white;
+          border-radius: 9px;
+          color: var(--primary);
+          display: flex;
           flex-shrink: 0;
+          height: 42px;
+          justify-content: center;
+          width: 42px;
         }
 
-        /* ── Grids ── */
-        .pay-top-grid   { display: grid; gap: 16px; grid-template-columns: 1.8fr 1fr; }
-        .pay-stats-grid { display: grid; gap: 14px; grid-template-columns: repeat(3,1fr); }
-        .pay-content-grid { display: grid; gap: 16px; grid-template-columns: 1.55fr 1fr; align-items: start; }
-
-        /* ── Balance ── */
-        .pay-balance-card {
-          background: radial-gradient(circle at bottom right, rgba(255,107,43,.10), transparent 30%), #fff;
-          position: relative; overflow: hidden;
-        }
-        .pay-balance-value {
-          margin: 6px 0 0; font-family: 'EB Garamond', serif;
-          font-size: clamp(2rem,4vw,3.2rem); color: #ff6b2b; line-height: 1;
-        }
-        .pay-balance-text { margin: 16px 0 0; font-size: .86rem; line-height: 1.6; color: #7a7a7a; }
-        .pay-balance-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-
-        .pay-btn {
-          border: none; border-radius: 12px; padding: 11px 18px;
-          font-family: 'Manrope', sans-serif; font-size: .86rem; font-weight: 800; cursor: pointer;
-          transition: all .15s;
-        }
-        .pay-btn--primary {
-          background: linear-gradient(135deg,#ff7a35,#ff5b14); color: #fff;
-          box-shadow: 0 8px 20px rgba(255,107,43,.22);
-        }
-        .pay-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(255,107,43,.30); }
-        .pay-btn--secondary {
-          background: #fff7f1; color: #8f4c2d;
-          border: 1px solid rgba(255,107,43,.18);
-        }
-        .pay-btn--secondary:hover { background: #ffefe6; }
-
-        /* ── Progress ── */
-        .pay-progress-value { margin: 6px 0 0; font-size: 1.35rem; font-weight: 800; line-height: 1; }
-        .pay-progress-track {
-          width: 100%; height: 10px; border-radius: 999px;
-          background: #f0ece8; overflow: hidden; margin: 16px 0 12px;
-        }
-        .pay-progress-fill {
-          height: 100%; border-radius: inherit;
-          background: linear-gradient(90deg,#ff9a56,#ff6b2b);
-          transition: width .6s ease;
+        .payment-document span { min-width: 0; }
+        .payment-document strong {
+          display: block;
+          font-size: .84rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
-        /* ── Stat cards ── */
-        .pay-stat-card { display: flex; align-items: flex-start; gap: 14px; }
-        .pay-stat-icon { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .pay-stat-body { min-width: 0; }
-        .pay-stat-value { margin: 4px 0 2px; font-size: 1.45rem; font-weight: 800; line-height: 1; }
-
-        /* ── Badges ── */
-        .pay-badge {
-          display: inline-flex; align-items: center; border-radius: 999px;
-          padding: 5px 10px; font-size: .66rem; font-weight: 800;
-          letter-spacing: .07em; text-transform: uppercase; white-space: nowrap;
-        }
-        .pay-badge--highlight { background: rgba(255,107,43,.10); color: #ff6b2b; }
-        .pay-badge--success   { background: rgba(16,185,129,.12); color: #0f9d70; }
-        .pay-badge--pending   { background: rgba(120,113,108,.12); color: #6b6762; }
-
-        /* ── Panel ── */
-        .pay-panel-title { margin: 0; font-size: .96rem; font-weight: 800; color: #18181b; }
-        .pay-side-stack  { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-
-        /* ── Table — desktop only ── */
-        .pay-table-wrap {
-          overflow-x: auto; margin-top: 16px;
-          border-radius: 14px; border: 1px solid rgba(15,23,42,.06);
-          /* ensure it never pushes parent wider */
-          max-width: 100%;
-        }
-        .pay-table {
-          width: 100%; border-collapse: collapse; background: #fff;
-          /* table must stay within its scroll wrapper */
-          min-width: 520px;
-        }
-        .pay-table thead tr { background: #faf7f4; }
-        .pay-table th, .pay-table td {
-          padding: 14px 16px; text-align: left;
-          border-bottom: 1px solid rgba(15,23,42,.05); font-size: .84rem;
-        }
-        .pay-table th { color: #8b8b8b; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-        .pay-table tbody tr:hover { background: #fffaf6; }
-        .pay-method { display: inline-flex; align-items: center; gap: 9px; }
-        .pay-method-icon, .pay-doc-icon, .pay-help-icon {
-          width: 38px; height: 38px; border-radius: 11px;
-          background: #faf7f4; color: #ff6b2b;
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .pay-amount { font-weight: 800; color: #161616; }
-        .pay-icon-btn {
-          width: 36px; height: 36px; border: 1px solid rgba(255,107,43,.14);
-          border-radius: 10px; background: #fff7f1; color: #ff6b2b;
-          display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-          transition: background .15s;
-        }
-        .pay-icon-btn:hover:not(:disabled) { background: #ffece0; }
-        .pay-icon-btn:disabled { opacity: .4; cursor: not-allowed; }
-
-        /* ── Mobile payment list (hidden on desktop) ── */
-        .pay-mobile-list { display: none; flex-direction: column; gap: 10px; margin-top: 14px; }
-        .pay-mobile-row {
-          display: flex; align-items: center; justify-content: space-between; gap: 12px;
-          padding: 14px; border-radius: 14px;
-          border: 1px solid rgba(15,23,42,.06); background: #fafaf9;
-        }
-        .pay-mobile-left  { display: flex; align-items: center; gap: 12px; }
-        .pay-mobile-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .pay-mobile-method { margin: 0; font-size: .84rem; font-weight: 700; color: #18181b; }
-
-        /* ── Donut chart ── */
-        .pay-chart-donut {
-          position: relative; width: 100%; height: 220px; margin-top: 14px;
-        }
-        .pay-chart-center {
-          position: absolute; inset: 0; display: flex; flex-direction: column;
-          align-items: center; justify-content: center; pointer-events: none;
-        }
-        .pay-chart-center strong { font-size: 1.9rem; line-height: 1; color: #18181b; }
-        .pay-chart-center span {
-          margin-top: 4px; font-size: .72rem; font-weight: 700;
-          text-transform: uppercase; letter-spacing: .1em; color: #8b8b8b;
+        .payment-document small {
+          color: var(--muted);
+          display: block;
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .06em;
+          margin-top: 3px;
+          text-transform: uppercase;
         }
 
-        /* ── Legend ── */
-        .pay-legend { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
-        .pay-legend--row { flex-direction: row; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
-        .pay-legend-item {
-          display: grid; grid-template-columns: auto 1fr auto;
-          align-items: center; gap: 9px; font-size: .82rem; color: #666;
-        }
-        .pay-legend--row .pay-legend-item { display: flex; align-items: center; gap: 7px; }
-        .pay-legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-        .pay-legend-item strong { color: #18181b; font-size: .8rem; }
-
-        /* ── Invoices ── */
-        .pay-doc-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-        .pay-doc-card {
-          display: flex; align-items: center; gap: 12px; padding: 13px;
-          border-radius: 14px; background: #fafafa;
-          border: 1px solid rgba(15,23,42,.06);
-          transition: border-color .15s;
-        }
-        .pay-doc-card:hover { border-color: rgba(255,107,43,.3); }
-        .pay-doc-copy { flex: 1; min-width: 0; }
-        .pay-doc-title { margin: 0 0 2px; font-size: .88rem; font-weight: 700; color: #18181b; }
-
-        /* ── Help card ── */
-        .pay-help-card { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
-        .pay-text-link {
-          grid-column: 1 / -1; color: #ff6b2b; font-weight: 800; font-size: .82rem;
-          text-decoration: none; cursor: pointer; transition: color .15s;
-        }
-        .pay-text-link:hover { color: #e25817; }
-
-        /* ── Bar chart ── */
-        .pay-chart-block {
-          width: 100%; height: 260px; margin-top: 18px; padding: 8px 4px 0;
-          border-radius: 16px;
-          background: linear-gradient(180deg,#fffaf6 0%,#fff 100%);
-          border: 1px solid rgba(15,23,42,.05);
+        .payment-help {
+          align-items: flex-start;
+          background: var(--surface-low);
+          display: grid;
+          gap: 14px;
+          grid-template-columns: auto 1fr;
         }
 
-        /* ── Timeline — KEY FIX for horizontal scroll ── */
-        .pay-timeline-wrap {
-          width: 100%;
+        .payment-help a {
+          color: var(--primary);
+          display: inline-block;
+          font-size: .82rem;
+          font-weight: 900;
+          margin-top: 12px;
+          text-decoration: none;
+        }
+
+        .payment-bars {
+          align-items: end;
+          background: linear-gradient(180deg, #fffaf6 0%, white 100%);
+          border: 1px solid rgba(216, 208, 200, .62);
+          border-radius: 12px;
+          display: flex;
+          gap: 14px;
+          height: 260px;
+          margin-top: 18px;
           overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          padding-bottom: 8px;     /* room for scrollbar */
-          margin-top: 20px;
-          /* scrollbar styling */
-          scrollbar-width: thin;
-          scrollbar-color: rgba(255,107,43,.3) transparent;
+          padding: 26px 18px 34px;
         }
-        .pay-timeline-wrap::-webkit-scrollbar { height: 4px; }
-        .pay-timeline-wrap::-webkit-scrollbar-thumb { background: rgba(255,107,43,.3); border-radius: 99px; }
 
-        .pay-timeline {
-          position: relative;
-          display: flex;           /* flex instead of grid — no blowout */
-          gap: 0;
-          min-width: max-content;  /* expand to content, scrolls inside wrapper */
+        .payment-bars > div {
+          align-items: end;
+          display: flex;
+          flex: 1 0 58px;
+          flex-direction: column;
+          gap: 8px;
+          height: 100%;
+          justify-content: flex-end;
+        }
+
+        .payment-bars > div > div {
+          align-items: end;
+          display: grid;
+          gap: 4px;
+          grid-template-columns: 1fr 1fr;
+          height: 100%;
+          width: 100%;
+        }
+
+        .payment-bars span,
+        .payment-bars strong {
+          align-self: end;
+          border-radius: 5px 5px 0 0;
+          display: block;
+          min-height: 4px;
+        }
+
+        .payment-bars span { background: #f2d7c7; }
+        .payment-bars strong { background: var(--primary); }
+
+        .payment-bars small {
+          color: var(--soft);
+          font-size: .66rem;
+          font-weight: 900;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+        }
+
+        .payment-timeline-wrap {
+          margin-top: 24px;
+          overflow-x: auto;
+          padding-bottom: 8px;
+        }
+
+        .payment-timeline {
+          display: flex;
+          min-width: max-content;
           padding: 0 4px 4px;
+          position: relative;
         }
 
-        /* Shared track line behind all steps */
-        .pay-timeline-track {
-          position: absolute; top: 33px; left: 0; right: 0; height: 4px;
-          background: #e2ddd9; border-radius: 999px; overflow: hidden;
-        }
-        .pay-timeline-fill {
-          height: 100%; background: #ff6b2b; border-radius: inherit; transition: width .5s ease;
+        .payment-timeline-line {
+          background: var(--surface-mid);
+          border-radius: 999px;
+          height: 4px;
+          left: 0;
+          overflow: hidden;
+          position: absolute;
+          right: 0;
+          top: 34px;
         }
 
-        .pay-step {
-          position: relative; z-index: 1;
-          display: flex; flex-direction: column; align-items: center;
-          min-width: 130px; padding: 0 12px;
+        .payment-timeline-line span {
+          background: var(--primary);
+          display: block;
+          height: 100%;
         }
-        .pay-step-month {
-          margin: 0 0 10px; font-size: .68rem; font-weight: 800;
-          letter-spacing: .12em; text-transform: uppercase; color: #9b9b9b;
+
+        .payment-step {
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          min-width: 136px;
+          padding: 0 12px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .payment-step > span {
+          color: var(--soft);
+          font-size: .68rem;
+          font-weight: 900;
+          letter-spacing: .1em;
+          margin-bottom: 10px;
+          text-align: center;
+          text-transform: uppercase;
+        }
+
+        .payment-step i {
+          background: var(--line);
+          border: 4px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 7px rgba(58, 48, 42, .14);
+          display: block;
+          height: 22px;
+          margin-bottom: 12px;
+          width: 22px;
+        }
+
+        .payment-step div {
+          background: white;
+          border: 1px solid rgba(216, 208, 200, .7);
+          border-radius: 12px;
+          padding: 12px;
+          text-align: center;
+          width: 100%;
+        }
+
+        .payment-step div strong { display: block; font-size: .86rem; }
+        .payment-step div small {
+          color: var(--soft);
+          display: block;
+          font-size: .62rem;
+          font-weight: 900;
+          letter-spacing: .08em;
+          margin-top: 4px;
+          text-transform: uppercase;
+        }
+
+        .payment-step.paid i,
+        .payment-step.current i { background: var(--primary); }
+        .payment-step.current > span,
+        .payment-step.current strong,
+        .payment-step.current small { color: var(--primary); }
+        .payment-step.current div {
+          background: #fff7f1;
+          border-color: rgba(194, 101, 42, .24);
+        }
+
+        .payment-empty {
+          align-items: center;
+          border: 1.5px dashed rgba(154, 144, 136, .45);
+          border-radius: 12px;
+          color: var(--soft);
+          display: flex;
+          font-size: .82rem;
+          font-style: italic;
+          justify-content: center;
+          min-height: 118px;
+          padding: 16px;
           text-align: center;
         }
-        .pay-step-dot {
-          width: 20px; height: 20px; border-radius: 50%; margin-bottom: 12px;
-          background: #dbd6d1; border: 4px solid #fff;
-          box-shadow: 0 2px 6px rgba(15,23,42,.12);
-          position: relative; display: flex; align-items: center; justify-content: center;
-        }
-        .pay-step-pulse {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: #fff;
-          animation: step-pulse 1.6s ease-in-out infinite;
-        }
-        @keyframes step-pulse {
-          0%,100% { transform: scale(1); opacity: 1; }
-          50%      { transform: scale(1.5); opacity: .5; }
-        }
-        .pay-step-card {
-          padding: 12px 14px; border-radius: 14px; width: 100%;
-          background: #fbfbfb; border: 1px solid rgba(15,23,42,.06);
-          text-align: center;
-        }
-        .pay-step-amount {
-          margin: 0; font-size: .9rem; font-weight: 800; color: #18181b;
-        }
-        .pay-step-state {
-          margin: 3px 0 0; font-size: .64rem; font-weight: 800;
-          letter-spacing: .08em; text-transform: uppercase; color: #9c9c9c;
+
+        @media (max-width: 1180px) {
+          .payment-main-grid,
+          .payment-overview-grid { grid-template-columns: 1fr; }
+          .payment-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .payment-help { grid-column: 1 / -1; }
         }
 
-        /* Step state variants */
-        .pay-step--paid .pay-step-dot { background: #ff6b2b; }
-        .pay-step--paid .pay-step-state { color: #10b981; }
-        .pay-step--current .pay-step-dot { background: #ff6b2b; width: 24px; height: 24px; }
-        .pay-step--current .pay-step-month,
-        .pay-step--current .pay-step-amount,
-        .pay-step--current .pay-step-state { color: #ff6b2b; }
-        .pay-step--current .pay-step-card { background: #fff7f1; border-color: rgba(255,107,43,.2); }
-        .pay-step--final .pay-step-state { color: #a16207; }
-
-        /* ── Footer ── */
-        .pay-footer { text-align: center; color: #8a8a8a; font-size: .78rem; padding: 4px 0 10px; }
-
-        /* ══════════════════════════════════════
-           RESPONSIVE BREAKPOINTS
-        ══════════════════════════════════════ */
-
-        /* Tablet landscape → 2 cols shrink */
-        @media (max-width: 1100px) {
-          .pay-top-grid     { grid-template-columns: 1fr; }
-          .pay-content-grid { grid-template-columns: 1fr; }
-          .pay-stats-grid   { grid-template-columns: repeat(2,1fr); }
+        @media (max-width: 900px) {
+          .student-payment { margin: -18px -16px -32px; padding: 30px 16px 44px; }
+          .payment-hero { align-items: flex-start; flex-direction: column; }
+          .payment-stats,
+          .payment-side { grid-template-columns: 1fr; }
+          .payment-table-wrap { display: none; }
+          .payment-mobile-list { display: flex; }
+          .payment-distribution { grid-template-columns: 1fr; justify-items: center; }
+          .payment-legend { width: 100%; }
         }
 
-        /* Tablet portrait */
-        @media (max-width: 800px) {
-          .pay-stats-grid { grid-template-columns: 1fr 1fr; }
-          /* Switch table → mobile cards */
-          .pay-table-wrap  { display: none; }
-          .pay-mobile-list { display: flex; }
-        }
-
-        /* Mobile */
-        @media (max-width: 600px) {
-          .pay-hero, .pay-panel, .pay-balance-card, .pay-progress-card,
-          .pay-help-card, .pay-stat-card { padding: 18px; border-radius: 16px; }
-          .pay-stats-grid { grid-template-columns: 1fr; }
-          .pay-hero-title { font-size: 1.8rem; }
-          .pay-balance-actions { flex-direction: column; }
-          .pay-btn { width: 100%; text-align: center; }
-          .pay-help-card { grid-template-columns: 1fr; }
-          .pay-hero-side { width: 100%; }
-          .pay-chip { width: 100%; }
+        @media (max-width: 560px) {
+          .payment-hero h1 { font-size: 3rem; }
+          .payment-stat,
+          .payment-panel { padding: 20px; }
+          .payment-actions { flex-direction: column; }
+          .payment-actions button,
+          .payment-actions a,
+          .payment-primary { justify-content: center; width: 100%; }
+          .payment-mobile-row { align-items: flex-start; flex-direction: column; }
+          .payment-mobile-row > div:last-child { align-items: flex-start; }
+          .payment-help { grid-template-columns: 1fr; }
         }
       `}</style>
     </AuthenticatedLayout>
