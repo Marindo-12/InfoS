@@ -93,6 +93,7 @@ class DashboardController extends Controller
             ->values()
             ->map(function (Payment $payment) {
                 return [
+                    'reference' => $payment->reference,
                     'course' => $payment->enrollment->course->title,
                     'amount' => number_format((float) $payment->amount, 2, ',', ' ').' DH',
                     'status' => $payment->status,
@@ -105,6 +106,8 @@ class DashboardController extends Controller
                 'title' => $notification->title,
                 'message' => $notification->message,
                 'category' => $notification->category,
+                'icon' => $notification->icon,
+                'isRead' => $notification->read_at !== null,
                 'timeLabel' => $notification->published_at?->diffForHumans(),
             ];
         });
@@ -113,9 +116,11 @@ class DashboardController extends Controller
             'stats' => $stats,
             'nextSession' => $nextSession ? [
                 'title' => $nextSession->course->title,
+                'category' => $nextSession->course->category,
                 'date' => $nextSession->next_session_at?->locale('fr')->translatedFormat('l d F Y'),
                 'time' => $nextSession->next_session_at?->format('H:i'),
                 'room' => $nextSession->room,
+                'group' => $nextSession->group_name,
             ] : null,
             'courseCards' => $courseCards,
             'recentPayments' => $recentPayments,

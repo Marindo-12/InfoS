@@ -1,628 +1,322 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
-
-/* ═══════════════════════════════════════════════
-   TYPES
-═══════════════════════════════════════════════ */
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { Head, Link, usePage } from '@inertiajs/react'
 
 type Stat = {
-  label: string;
-  value: string;
-  sub: string;
-  color: string;
-  icon: 'formation' | 'calendar' | 'payment' | 'certificate';
-};
-
-type NextSession = {
-  title: string;
-  date: string | null;
-  time: string | null;
-  room: string | null;
-} | null;
-
-type CourseCard = {
-  title: string;
-  category: string;
-  progress: number;
-  description: string | null;
-};
-
-type RecentPayment = {
-  course: string;
-  amount: string;
-  status: 'paid' | 'pending';
-  date: string;
-};
-
-type NotificationCard = {
-  title: string;
-  message: string;
-  category: string;
-  timeLabel: string | null;
-};
-
-type PageProps = {
-  auth: { user: { id: number; name: string; email: string } };
-  stats: Stat[];
-  nextSession: NextSession;
-  courseCards: CourseCard[];
-  recentPayments: RecentPayment[];
-  notificationCards: NotificationCard[];
-};
-
-/* ═══════════════════════════════════════════════
-   ICONS
-═══════════════════════════════════════════════ */
-
-const IconFormation = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-  </svg>
-);
-const IconCalendar = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-  </svg>
-);
-const IconPayment = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-  </svg>
-);
-const IconCert = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
-  </svg>
-);
-const IconArrow = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
-  </svg>
-);
-const IconClock = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-  </svg>
-);
-const IconMapPin = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-  </svg>
-);
-const IconBell = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-  </svg>
-);
-
-const statIcon = (icon: Stat['icon']) => {
-  if (icon === 'calendar')    return <IconCalendar />;
-  if (icon === 'payment')     return <IconPayment />;
-  if (icon === 'certificate') return <IconCert />;
-  return <IconFormation />;
-};
-
-/* ═══════════════════════════════════════════════
-   HERO ILLUSTRATION — inline SVG scene
-═══════════════════════════════════════════════ */
-
-const HeroIllustration = () => (
-  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"
-    className="db-hero-svg" aria-hidden="true">
-    {/* Desk */}
-    <rect x="40" y="140" width="240" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
-    {/* Monitor stand */}
-    <rect x="148" y="110" width="24" height="32" rx="3" fill="rgba(255,255,255,0.18)"/>
-    {/* Monitor */}
-    <rect x="90" y="55" width="140" height="88" rx="8" fill="rgba(255,255,255,0.22)"/>
-    <rect x="96" y="61" width="128" height="72" rx="5" fill="rgba(255,255,255,0.1)"/>
-    {/* Screen content — chart bars */}
-    <rect x="108" y="108" width="10" height="18" rx="2" fill="#ff9a56" opacity="0.9"/>
-    <rect x="122" y="100" width="10" height="26" rx="2" fill="#ff6b2b" opacity="0.9"/>
-    <rect x="136" y="90"  width="10" height="36" rx="2" fill="#ff9a56" opacity="0.9"/>
-    <rect x="150" y="98"  width="10" height="28" rx="2" fill="#ff6b2b" opacity="0.9"/>
-    <rect x="164" y="85"  width="10" height="41" rx="2" fill="#ff9a56" opacity="0.9"/>
-    <rect x="178" y="93"  width="10" height="33" rx="2" fill="#ff6b2b" opacity="0.9"/>
-    <rect x="192" y="80"  width="10" height="46" rx="2" fill="#ffb347" opacity="0.9"/>
-    {/* Screen top bar */}
-    <rect x="96" y="61" width="128" height="10" rx="3" fill="rgba(255,255,255,0.15)"/>
-    <circle cx="103" cy="66" r="2.5" fill="rgba(255,255,255,0.5)"/>
-    <circle cx="111" cy="66" r="2.5" fill="rgba(255,255,255,0.35)"/>
-    <circle cx="119" cy="66" r="2.5" fill="rgba(255,255,255,0.25)"/>
-    {/* Book stack left */}
-    <rect x="44" y="120" width="34" height="6"  rx="3" fill="rgba(255,255,255,0.28)"/>
-    <rect x="47" y="114" width="28" height="6"  rx="3" fill="rgba(255,255,255,0.22)"/>
-    <rect x="50" y="108" width="22" height="6"  rx="3" fill="rgba(255,255,255,0.16)"/>
-    {/* Pencil */}
-    <line x1="258" y1="128" x2="272" y2="112" stroke="rgba(255,255,255,0.55)" strokeWidth="3" strokeLinecap="round"/>
-    <polygon points="258,128 263,122 268,127" fill="rgba(255,255,255,0.4)"/>
-    {/* Certificate badge */}
-    <circle cx="275" cy="80" r="18" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-    <path d="M268 80l4 4 8-8" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-    {/* Floating dots */}
-    <circle cx="60"  cy="70"  r="4" fill="rgba(255,255,255,0.2)"/>
-    <circle cx="50"  cy="90"  r="2.5" fill="rgba(255,255,255,0.15)"/>
-    <circle cx="285" cy="130" r="3"   fill="rgba(255,255,255,0.2)"/>
-    <circle cx="300" cy="110" r="2"   fill="rgba(255,255,255,0.15)"/>
-    {/* Stars */}
-    {[[72,50],[280,60],[55,155],[295,150]].map(([x,y],i) => (
-      <g key={i} transform={`translate(${x},${y})`}>
-        <line x1="0" y1="-5" x2="0" y2="5" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" strokeLinecap="round"/>
-        <line x1="-5" y1="0" x2="5" y2="0" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" strokeLinecap="round"/>
-      </g>
-    ))}
-    {/* Wave bottom */}
-    <path d="M0 175 Q80 160 160 170 Q240 180 320 165 L320 200 L0 200 Z" fill="rgba(0,0,0,0.08)"/>
-  </svg>
-);
-
-/* ═══════════════════════════════════════════════
-   SECTION ILLUSTRATIONS — small inline SVGs
-═══════════════════════════════════════════════ */
-
-const IlluSession = () => (
-  <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" width="80" height="60" aria-hidden="true">
-    <rect x="8"  y="8"  width="64" height="44" rx="6" fill="#fff3eb" stroke="#ffe0cc" strokeWidth="1"/>
-    <rect x="8"  y="8"  width="64" height="12" rx="6" fill="#ff9a56" opacity=".6"/>
-    <rect x="8"  y="14" width="64" height="6"  fill="#ff9a56" opacity=".6"/>
-    {[0,1,2,3].map(i => (
-      <rect key={i} x={16+i*14} y="10" width="8" height="8" rx="2" fill="rgba(255,255,255,.7)"/>
-    ))}
-    {[[16,28],[30,28],[44,28],[58,28],[16,38],[30,38],[44,38]].map(([x,y],i)=>(
-      <rect key={i} x={x} y={y} width="10" height="8" rx="2" fill="#ff6b2b" opacity={i<3?0.7:0.25}/>
-    ))}
-  </svg>
-);
-
-const IlluCourse = () => (
-  <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" width="80" height="60" aria-hidden="true">
-    <rect x="6"  y="10" width="44" height="40" rx="4" fill="#fff3eb" stroke="#ffe0cc" strokeWidth="1"/>
-    <rect x="6"  y="10" width="44" height="8"  rx="4" fill="#ff9a56" opacity=".5"/>
-    <rect x="6"  y="14" width="44" height="4"  fill="#ff9a56" opacity=".5"/>
-    {[22,30,38,46].map((y,i)=>(
-      <rect key={i} x="12" y={y} width={28-i*4} height="3" rx="1.5" fill="#ff6b2b" opacity=".3"/>
-    ))}
-    <rect x="54" y="18" width="20" height="28" rx="4" fill="#fff3eb" stroke="#ffe0cc" strokeWidth="1"/>
-    <rect x="54" y="18" width="20" height="6"  rx="4" fill="#ffb347" opacity=".5"/>
-    <rect x="54" y="20" width="20" height="4"  fill="#ffb347" opacity=".5"/>
-    {[28,34,40].map((y,i)=>(
-      <rect key={i} x="57" y={y} width={12-i*3} height="2.5" rx="1.2" fill="#ff6b2b" opacity=".3"/>
-    ))}
-    {/* Progress arc */}
-    <circle cx="64" cy="50" r="7" fill="none" stroke="#ffe0cc" strokeWidth="2"/>
-    <path d="M64 43 A7 7 0 0 1 71 50" fill="none" stroke="#ff6b2b" strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-
-const IlluPayment = () => (
-  <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" width="80" height="60" aria-hidden="true">
-    <rect x="6" y="12" width="68" height="36" rx="6" fill="#fff3eb" stroke="#ffe0cc" strokeWidth="1"/>
-    <rect x="6" y="12" width="68" height="12" rx="6" fill="#ff9a56" opacity=".5"/>
-    <rect x="6" y="18" width="68" height="6"  fill="#ff9a56" opacity=".5"/>
-    <rect x="12" y="30" width="16" height="10" rx="3" fill="#ff6b2b" opacity=".6"/>
-    {[34,46,58].map((x,i)=>(
-      <rect key={i} x={x} y="32" width={10-i} height="6" rx="2" fill="#ff6b2b" opacity={.3-.05*i}/>
-    ))}
-    {/* Coin */}
-    <circle cx="66" cy="14" r="8" fill="#ffb347" opacity=".9" stroke="#ff9a56" strokeWidth="1"/>
-    <text x="63" y="17.5" fontSize="8" fill="white" fontWeight="800" fontFamily="sans-serif">$</text>
-  </svg>
-);
-
-const IlluNotif = () => (
-  <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" width="80" height="60" aria-hidden="true">
-    {/* Bell */}
-    <path d="M40 8 C32 8 26 14 26 22 C26 34 20 38 20 38 L60 38 C60 38 54 34 54 22 C54 14 48 8 40 8 Z"
-      fill="#fff3eb" stroke="#ff9a56" strokeWidth="1.5"/>
-    <rect x="36" y="38" width="8" height="5" rx="2.5" fill="#ff9a56" opacity=".7"/>
-    {/* Notification dot */}
-    <circle cx="54" cy="14" r="7" fill="#ff6b2b"/>
-    <text x="51.5" y="17.5" fontSize="7" fill="white" fontWeight="800" fontFamily="sans-serif">3</text>
-    {/* Wavy lines */}
-    {[44,49,54].map((y,i)=>(
-      <line key={i} x1="16" y1={y} x2={16+22-i*4} y2={y}
-        stroke="#ff9a56" strokeWidth="1.5" strokeLinecap="round" opacity=".4"/>
-    ))}
-  </svg>
-);
-
-/* ═══════════════════════════════════════════════
-   STAT CARD
-═══════════════════════════════════════════════ */
-
-function StatCard({ label, value, sub, color, icon }: Stat) {
-  return (
-    <div className="db-stat-card">
-      <div className="db-stat-icon" style={{ background: `${color}18`, color }}>
-        {statIcon(icon)}
-      </div>
-      <div className="db-stat-body">
-        <p className="db-stat-label">{label}</p>
-        <p className="db-stat-value">{value}</p>
-        <p className="db-stat-sub">{sub}</p>
-      </div>
-    </div>
-  );
+  label: string
+  value: string
+  sub: string
+  color: string
+  icon: 'formation' | 'calendar' | 'payment' | 'certificate'
 }
 
-/* ═══════════════════════════════════════════════
-   MAIN PAGE
-═══════════════════════════════════════════════ */
+type NextSession = {
+  title: string
+  category: string
+  date: string | null
+  time: string | null
+  room: string | null
+  group: string | null
+} | null
+
+type CourseCard = {
+  title: string
+  category: string
+  progress: number
+  description: string | null
+}
+
+type RecentPayment = {
+  reference: string
+  course: string
+  amount: string
+  status: 'paid' | 'pending'
+  date: string
+}
+
+type NotificationCard = {
+  title: string
+  message: string
+  category: string
+  icon?: string | null
+  isRead: boolean
+  timeLabel: string | null
+}
+
+type PageProps = {
+  auth: { user: { id: number; name: string; email: string } }
+  stats: Stat[]
+  nextSession: NextSession
+  courseCards: CourseCard[]
+  recentPayments: RecentPayment[]
+  notificationCards: NotificationCard[]
+}
+
+const sessionImage = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlY_fflOk8b4YeMn779mLhATYxZZAqpH59rwl7QC-D8KCCULKVVWWcZPKoxe1CmBlq2K3xbEm3CHpj0-mIEUKgACUR2SCDWleM-Fa086xhaHMaY9iytf6F-OXQD9jhMt_un9NSr3R-tlEmThUnYWSLR5E7Jofz7N3LC7ScWwpkE7r8WcHsYmXHEIaC_axmMSLNpRpjMQmQzDgsgJpNeR3YQ__-RXM0Zy4RUh5DWyRzzwS8brf_AdbaCU43gMZCDiJkWeEk16loI5Pq'
+
+function iconFor(stat: Stat['icon']) {
+  if (stat === 'calendar') return 'calendar_month'
+  if (stat === 'payment') return 'payments'
+  if (stat === 'certificate') return 'military_tech'
+  return 'school'
+}
+
+function firstName(name: string) {
+  return name.split(' ').filter(Boolean)[0] ?? name
+}
+
+function todayLabel() {
+  return new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date())
+}
+
+function notificationIcon(notification: NotificationCard) {
+  if (notification.icon) return notification.icon
+  if (notification.category?.toLowerCase().includes('payment')) return 'payments'
+  if (notification.category?.toLowerCase().includes('security')) return 'vpn_key'
+  return 'school'
+}
 
 export default function Dashboard() {
-  const { props } = usePage<PageProps>();
-  const { stats = [], nextSession, courseCards = [], recentPayments = [], notificationCards = [] } = props;
-  const user = props.auth.user;
-  const firstName = user.name.split(' ')[0];
-
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
-
-  const initials = user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const { props } = usePage<PageProps>()
+  const { auth, stats = [], nextSession, courseCards = [], recentPayments = [], notificationCards = [] } = props
+  const greeting = new Date().getHours() < 12 ? 'Bonjour' : new Date().getHours() < 18 ? 'Bon apres-midi' : 'Bonsoir'
+  const unreadCount = notificationCards.filter(item => !item.isRead).length
 
   return (
     <AuthenticatedLayout header={<h2>Tableau de bord</h2>}>
-      <Head title="Dashboard" />
+      <Head title="Dashboard etudiant" />
 
-      <div className="db-root">
-
-        {/* ══════════════════════════════════════
-            HERO — clean, minimal, no background
-        ══════════════════════════════════════ */}
-        <div className="db-hero">
-          <div className="db-hero-left">
-            <h1 className="db-hero-title">
-              {greeting},{' '}
-              <span className="db-hero-name">{firstName}</span>{' '}
-              <span className="db-hero-wave">👋</span>
-            </h1>
-            <p className="db-hero-sub">
-              Bienvenue sur votre espace personnel. Voici un aperçu de votre activité et de vos prochaines priorités.
+      <main className="sdb-root">
+        <section className="sdb-hero">
+          <div>
+            <h1>{greeting}, {firstName(auth.user.name)}</h1>
+            <p>
+              C'est un plaisir de vous revoir. Vous avez {stats[1]?.value ?? '0'} seance(s) a venir
+              {unreadCount > 0 ? ` et ${unreadCount} nouvelle(s) notification(s).` : '.'}
             </p>
           </div>
-
-          {/* Illustration — right side, no card/background */}
-          <div className="db-hero-illus-wrap" aria-hidden="true">
-            <HeroIllustration />
+          <div className="sdb-today">
+            <span>Aujourd'hui</span>
+            <strong>{todayLabel()}</strong>
           </div>
-        </div>
+        </section>
 
-        {/* ══════════════════════════════════════
-            STATS
-        ══════════════════════════════════════ */}
-        {stats.length > 0 && (
-          <div className="db-stats-grid">
-            {stats.map((stat) => <StatCard key={stat.label} {...stat} />)}
+        <section className="sdb-stats">
+          {stats.map(stat => (
+            <article className="sdb-stat" key={stat.label}>
+              <div>
+                <span className="material-symbols-outlined">{iconFor(stat.icon)}</span>
+                <small>{stat.label}</small>
+              </div>
+              <strong>{stat.value}</strong>
+              <p>{stat.sub}</p>
+            </article>
+          ))}
+        </section>
+
+        <div className="sdb-grid">
+          <div className="sdb-left">
+            <section className="sdb-panel sdb-session">
+              <div className="sdb-panel-head">
+                <h2>Prochaine Seance</h2>
+                <Link href={route('student.schedule')}>Voir le calendrier</Link>
+              </div>
+
+              {nextSession ? (
+                <div className="sdb-session-body">
+                  <div className="sdb-session-media">
+                    <img src={sessionImage} alt="" />
+                  </div>
+                  <div className="sdb-session-copy">
+                    <div className="sdb-chips">
+                      <span>{nextSession.category}</span>
+                      <span>{nextSession.room ?? 'Salle a confirmer'}</span>
+                    </div>
+                    <h3>{nextSession.title}</h3>
+                    <div className="sdb-session-meta">
+                      <span><i className="material-symbols-outlined">event</i>{nextSession.date ?? 'Date a confirmer'}</span>
+                      <span><i className="material-symbols-outlined">schedule</i>{nextSession.time ?? 'Horaire a confirmer'}</span>
+                      <span><i className="material-symbols-outlined">groups</i>{nextSession.group ?? 'Groupe standard'}</span>
+                    </div>
+                    <Link className="sdb-primary" href={route('student.schedule')}>Consulter le planning</Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="sdb-empty">Aucune seance programmee pour le moment.</div>
+              )}
+            </section>
+
+            <section className="sdb-panel">
+              <div className="sdb-panel-head">
+                <h2>Paiements Recents</h2>
+                <Link href={route('student.payment')}>Voir l'historique</Link>
+              </div>
+              <div className="sdb-table-wrap">
+                {recentPayments.length > 0 ? (
+                  <table className="sdb-table">
+                    <thead>
+                      <tr>
+                        <th>ID Transaction</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentPayments.map(payment => (
+                        <tr key={payment.reference}>
+                          <td>{payment.reference}</td>
+                          <td>{payment.course}</td>
+                          <td>{payment.date}</td>
+                          <td className="sdb-amount">{payment.amount}</td>
+                          <td>
+                            <span className={`sdb-status ${payment.status === 'paid' ? 'sdb-status--paid' : 'sdb-status--pending'}`}>
+                              {payment.status === 'paid' ? 'Paye' : 'En attente'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="sdb-empty">Aucun paiement enregistre.</div>
+                )}
+              </div>
+            </section>
           </div>
-        )}
 
-        {/* ══════════════════════════════════════
-            MAIN GRID
-        ══════════════════════════════════════ */}
-        <div className="db-main-grid">
-
-          {/* Prochaine séance */}
-          <section className="db-section">
-            <div className="db-section-head">
-              <div className="db-section-head-text">
-                <h3 className="db-section-title">Prochaine séance</h3>
-                <p className="db-section-sub">Votre prochain rendez-vous de formation</p>
+          <aside className="sdb-right">
+            <section className="sdb-panel">
+              <div className="sdb-panel-head sdb-panel-head--plain">
+                <h2>Mes Formations</h2>
               </div>
-              <div className="db-section-illus"><IlluSession /></div>
-            </div>
-
-            <div className="db-section-action">
-              <Link href={route('student.schedule')} className="db-link">
-                See All <IconArrow />
-              </Link>
-            </div>
-
-            {nextSession ? (
-              <div className="db-detail-card">
-                <div className="db-detail-icon"><IconCalendar /></div>
-                <div>
-                  <p className="db-detail-title">{nextSession.title}</p>
-                  <div className="db-detail-metas">
-                    <span><IconClock /> {nextSession.date}</span>
-                    {nextSession.time && <span>· {nextSession.time}</span>}
-                    {nextSession.room && <span><IconMapPin /> {nextSession.room}</span>}
-                  </div>
-                </div>
-                <span className="db-badge db-badge--orange">À venir</span>
+              <div className="sdb-course-list">
+                {courseCards.length > 0 ? courseCards.map(course => (
+                  <article className="sdb-course" key={course.title}>
+                    <div>
+                      <h3>{course.title}</h3>
+                      <strong>{course.progress}%</strong>
+                    </div>
+                    <span>{course.category}</span>
+                    <div className="sdb-track"><i style={{ width: `${course.progress}%` }} /></div>
+                    <Link href={route('student.courses')}>Reprendre le cours</Link>
+                  </article>
+                )) : (
+                  <div className="sdb-empty">Aucune formation inscrite.</div>
+                )}
               </div>
-            ) : (
-              <div className="db-empty">
-                <p>Aucune séance programmée pour le moment.</p>
+              <div className="sdb-panel-foot">
+                <Link href={route('student.courses')}>Parcourir le catalogue</Link>
               </div>
-            )}
-          </section>
+            </section>
 
-          {/* Mes formations */}
-          <section className="db-section">
-            <div className="db-section-head">
-              <div className="db-section-head-text">
-                <h3 className="db-section-title">Mes formations</h3>
-                <p className="db-section-sub">Progression en temps réel</p>
+            <section className="sdb-panel">
+              <div className="sdb-panel-head sdb-panel-head--plain">
+                <h2>Notifications</h2>
+                {unreadCount > 0 && <span className="sdb-dot" />}
               </div>
-              <div className="db-section-illus"><IlluCourse /></div>
-            </div>
-
-            <div className="db-section-action">
-              <Link href={route('student.courses')} className="db-link">
-                Voir tout <IconArrow />
-              </Link>
-            </div>
-
-            <div className="db-list">
-              {courseCards.length > 0 ? courseCards.map((course) => (
-                <div key={course.title} className="db-mini-card">
-                  <div className="db-mini-top">
-                    <span className="db-badge db-badge--orange">{course.category}</span>
-                    <span className="db-mini-pct">{course.progress}%</span>
-                  </div>
-                  <p className="db-mini-title">{course.title}</p>
-                  <p className="db-mini-text">{course.description ?? 'Description à venir.'}</p>
-                  <div className="db-track">
-                    <div className="db-track-fill" style={{ width: `${course.progress}%` }} />
-                  </div>
-                </div>
-              )) : (
-                <div className="db-empty"><p>Aucune formation inscrite.</p></div>
-              )}
-            </div>
-          </section>
-
-          {/* Paiements récents */}
-          <section className="db-section">
-            <div className="db-section-head">
-              <div className="db-section-head-text">
-                <h3 className="db-section-title">Paiements récents</h3>
-                <p className="db-section-sub">Dernières transactions enregistrées</p>
+              <div className="sdb-notif-list">
+                {notificationCards.length > 0 ? notificationCards.map((notification, index) => (
+                  <article className="sdb-notif" key={`${notification.title}-${index}`}>
+                    <div className="sdb-notif-icon">
+                      <span className="material-symbols-outlined">{notificationIcon(notification)}</span>
+                    </div>
+                    <div>
+                      <h3>{notification.title}</h3>
+                      <p>{notification.message}</p>
+                      <small>{notification.timeLabel ?? 'Recemment'}</small>
+                    </div>
+                  </article>
+                )) : (
+                  <div className="sdb-empty">Aucune notification pour le moment.</div>
+                )}
               </div>
-              <div className="db-section-illus"><IlluPayment /></div>
-            </div>
-
-            <div className="db-section-action">
-              <Link href={route('student.payment')} className="db-link">
-                Historique <IconArrow />
-              </Link>
-            </div>
-
-            <div className="db-list">
-              {recentPayments.length > 0 ? recentPayments.map((p) => (
-                <div key={`${p.course}-${p.date}`} className="db-mini-card">
-                  <div className="db-mini-top">
-                    <span className={`db-badge ${p.status === 'paid' ? 'db-badge--green' : 'db-badge--gray'}`}>
-                      {p.status === 'paid' ? 'Payé' : 'En attente'}
-                    </span>
-                    <span className="db-mini-amount">{p.amount}</span>
-                  </div>
-                  <p className="db-mini-title">{p.course}</p>
-                  <p className="db-mini-text">Opération enregistrée le {p.date}</p>
-                </div>
-              )) : (
-                <div className="db-empty"><p>Aucun paiement enregistré.</p></div>
-              )}
-            </div>
-          </section>
-
-          {/* Notifications */}
-          <section className="db-section">
-            <div className="db-section-head">
-              <div className="db-section-head-text">
-                <h3 className="db-section-title">Notifications</h3>
-                <p className="db-section-sub">Messages et alertes récentes</p>
+              <div className="sdb-panel-foot">
+                <Link href={route('student.notifications')}>Toutes les notifications</Link>
               </div>
-              <div className="db-section-illus"><IlluNotif /></div>
-            </div>
-
-            <div className="db-section-action">
-              <Link href={route('student.notifications')} className="db-link">
-                Tout voir <IconArrow />
-              </Link>
-            </div>
-
-            <div className="db-list">
-              {notificationCards.length > 0 ? notificationCards.map((n, i) => (
-                <div key={i} className="db-mini-card">
-                  <div className="db-mini-top">
-                    <span className="db-badge db-badge--blue">{n.category}</span>
-                    <span className="db-mini-time">{n.timeLabel ?? 'Récemment'}</span>
-                  </div>
-                  <p className="db-mini-title">{n.title}</p>
-                  <p className="db-mini-text">{n.message}</p>
-                </div>
-              )) : (
-                <div className="db-empty"><p>Aucune notification pour le moment.</p></div>
-              )}
-            </div>
-          </section>
-
+            </section>
+          </aside>
         </div>
-      </div>
+      </main>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Manrope:wght@400;500;600;700;800&display=swap');
-
-        .db-root {
-          display: flex; flex-direction: column; gap: 20px;
-          font-family: 'Manrope', sans-serif; width: 100%; min-width: 0;
-        }
-        .db-root *, .db-root *::before, .db-root *::after { box-sizing: border-box; }
-
-        /* ══ HERO — no background, no card, clean ══ */
-        .db-hero {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 24px;
-          padding: 8px 4px 4px;
-        }
-        .db-hero-left { flex: 1; min-width: 0; }
-        .db-hero-title {
-          margin: 0 0 10px;
-          font-family: 'EB Garamond', serif;
-          font-size: clamp(2rem, 4vw, 2.8rem);
-          font-weight: 900;
-          color: #0f0f0f;
-          letter-spacing: -.01em;
-          line-height: 1.1;
-        }
-        .db-hero-name {
-          color: #ff6b2b;
-          font-style: italic;
-        }
-        .db-hero-wave { font-style: normal; font-family: 'Manrope', sans-serif; font-size: .65em; vertical-align: middle; }
-        .db-hero-sub {
-          margin: 0;
-          font-size: .875rem;
-          color: #9ca3af;
-          line-height: 1.6;
-          max-width: 480px;
-          font-weight: 450;
-        }
-
-        /* Illustration — floats freely on the right, no container */
-        .db-hero-illus-wrap {
-          flex-shrink: 0;
-          width: 220px;
-          pointer-events: none;
-          opacity: .92;
-        }
-        .db-hero-svg { width: 100%; height: auto; }
-
-        /* ══ STATS ══ */
-        .db-stats-grid {
-          display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
-        }
-        @media (max-width: 1024px) { .db-stats-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 480px)  { .db-stats-grid { grid-template-columns: 1fr; } }
-
-        .db-stat-card {
-          background: #fff; border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.06);
-          padding: 18px; display: flex; align-items: flex-start; gap: 14px;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-          transition: transform .15s, box-shadow .15s;
-        }
-        .db-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-        .db-stat-icon {
-          width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .db-stat-body { min-width: 0; }
-        .db-stat-label { font-size: .68rem; font-weight: 700; color: #999; margin: 0 0 3px; text-transform: uppercase; letter-spacing: .08em; }
-        .db-stat-value { font-size: 1.5rem; font-weight: 800; color: #111; margin: 0 0 2px; letter-spacing: -.03em; line-height: 1; }
-        .db-stat-sub   { font-size: .7rem; color: #bbb; margin: 0; }
-
-        /* ══ MAIN GRID ══ */
-        .db-main-grid {
-          display: grid; grid-template-columns: repeat(2,1fr); gap: 16px;
-        }
-        @media (max-width: 768px) { .db-main-grid { grid-template-columns: 1fr; } }
-
-        /* ══ SECTION ══ */
-        .db-section {
-          background: #fff; border-radius: 18px;
-          border: 1px solid rgba(0,0,0,0.06);
-          padding: 0; overflow: hidden;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-          display: flex; flex-direction: column; gap: 0;
-        }
-
-        /* Section head — gradient mini-banner with illustration */
-        .db-section-head {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 18px 20px 14px;
-          background: linear-gradient(120deg, #fff9f5 0%, #fff4eb 100%);
-          border-bottom: 1px solid rgba(255,107,43,0.10);
-        }
-        .db-section-head-text { flex: 1; }
-        .db-section-title { margin: 0 0 2px; font-size: .92rem; font-weight: 800; color: #111; }
-        .db-section-sub   { margin: 0; font-size: .74rem; color: #aaa; }
-        .db-section-illus { flex-shrink: 0; opacity: .85; }
-
-        .db-section-action {
-          padding: 10px 20px 0;
-          display: flex; justify-content: flex-end;
-        }
-        .db-link {
-          display: inline-flex; align-items: center; gap: 4px;
-          font-size: .76rem; font-weight: 700; color: #ff6b2b;
-          text-decoration: none; transition: gap .15s;
-        }
-        .db-link:hover { gap: 7px; }
-
-        /* ══ CARDS ══ */
-        .db-list { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-        .db-detail-card {
-          margin:  10px 16px 16px;
-          display: flex; align-items: flex-start; gap: 12px;
-          padding: 14px; border-radius: 14px;
-          background: #fafafa; border: 1px solid rgba(0,0,0,0.06);
-        }
-        .db-detail-icon {
-          width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
-          background: rgba(255,107,43,.1); color: #ff6b2b;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .db-detail-title { margin: 0 0 5px; font-size: .9rem; font-weight: 800; color: #111; }
-        .db-detail-metas {
-          display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-          font-size: .76rem; color: #888;
-        }
-        .db-detail-metas span { display: inline-flex; align-items: center; gap: 3px; }
-
-        .db-mini-card {
-          padding: 13px 14px; border-radius: 13px;
-          background: #fafafa; border: 1px solid rgba(0,0,0,0.055);
-        }
-        .db-mini-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
-        .db-mini-title  { margin: 0 0 4px; font-size: .84rem; font-weight: 700; color: #111; }
-        .db-mini-text   { margin: 0; font-size: .74rem; color: #888; line-height: 1.5; }
-        .db-mini-pct    { font-size: .76rem; font-weight: 800; color: #ff6b2b; }
-        .db-mini-amount { font-size: .78rem; font-weight: 800; color: #111; }
-        .db-mini-time   { font-size: .72rem; color: #bbb; font-weight: 600; }
-
-        .db-track {
-          width: 100%; height: 6px; border-radius: 99px;
-          background: #ece8e4; overflow: hidden; margin-top: 10px;
-        }
-        .db-track-fill {
-          height: 100%; border-radius: inherit;
-          background: linear-gradient(90deg, #ff9a56, #ff6b2b);
-          transition: width .4s ease;
-        }
-
-        .db-empty {
-          margin: 0 16px 16px; padding: 22px;
-          text-align: center; color: #bbb; font-size: .82rem;
-          border: 1.5px dashed #e8e3df; border-radius: 12px;
-        }
-
-        /* ══ BADGES ══ */
-        .db-badge {
-          display: inline-flex; align-items: center;
-          padding: 4px 9px; border-radius: 99px;
-          font-size: .63rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
-          white-space: nowrap;
-        }
-        .db-badge--orange { background: rgba(255,107,43,.12); color: #ff6b2b; }
-        .db-badge--green  { background: rgba(16,185,129,.12); color: #059669; }
-        .db-badge--gray   { background: rgba(120,113,108,.12); color: #78716c; }
-        .db-badge--blue   { background: rgba(59,130,246,.12);  color: #2563eb; }
-
-        /* ══ RESPONSIVE HERO ══ */
-        @media (max-width: 900px) {
-          .db-hero-illus-wrap { display: none; }
-        }
-        @media (max-width: 600px) {
-          .db-hero { padding: 4px 0 0; }
-          .db-hero-title { font-size: 1.7rem; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; line-height:1; }
+        .sdb-root { --bg:#faf5ee; --surface:#fff; --surface-low:#f6f0e8; --line:#d8d0c8; --line-soft:rgba(216,208,200,.6); --text:#3a302a; --muted:#605850; --primary:#c2652a; --primary-soft:#fbe8d8; min-height:100%; padding:40px 32px 56px; background:var(--bg); color:var(--text); font-family:'Manrope',sans-serif; }
+        .sdb-root *, .sdb-root *::before, .sdb-root *::after { box-sizing:border-box; }
+        .sdb-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:34px; }
+        .sdb-hero h1 { margin:0 0 8px; font-family:'EB Garamond',serif; font-size:clamp(2.6rem,5vw,4.4rem); font-weight:500; line-height:.98; color:var(--text); }
+        .sdb-hero p { max-width:620px; margin:0; color:#78716c; line-height:1.75; font-weight:500; }
+        .sdb-today { text-align:right; flex-shrink:0; }
+        .sdb-today span { display:block; color:var(--primary); font-size:.7rem; font-weight:900; letter-spacing:.18em; text-transform:uppercase; margin-bottom:5px; }
+        .sdb-today strong { display:block; color:var(--text); font-family:'EB Garamond',serif; font-size:1.55rem; font-weight:500; text-transform:capitalize; }
+        .sdb-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:34px; }
+        .sdb-stat { border:1px solid var(--line-soft); border-radius:12px; background:#fff; padding:22px; box-shadow:0 2px 16px rgba(58,48,42,.04); transition:transform .18s; }
+        .sdb-stat:hover { transform:translateY(-2px); }
+        .sdb-stat div { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+        .sdb-stat .material-symbols-outlined { padding:9px; border-radius:8px; background:var(--primary-soft); color:var(--primary); }
+        .sdb-stat small { color:#9a9088; font-size:.62rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+        .sdb-stat strong { display:block; color:var(--text); font-family:'EB Garamond',serif; font-size:2.35rem; line-height:1; }
+        .sdb-stat p { margin:7px 0 0; color:#78716c; font-size:.78rem; }
+        .sdb-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,1fr); gap:26px; align-items:start; }
+        .sdb-left, .sdb-right { display:flex; flex-direction:column; gap:26px; min-width:0; }
+        .sdb-panel { border:1px solid var(--line-soft); border-radius:12px; background:#fff; overflow:hidden; box-shadow:0 2px 16px rgba(58,48,42,.04); }
+        .sdb-panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:22px 24px; border-bottom:1px solid var(--line-soft); }
+        .sdb-panel-head h2 { margin:0; color:var(--text); font-family:'EB Garamond',serif; font-size:1.8rem; font-weight:600; }
+        .sdb-panel-head a, .sdb-panel-foot a { color:var(--primary); font-size:.72rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; text-decoration:none; }
+        .sdb-panel-head a:hover, .sdb-panel-foot a:hover { text-decoration:underline; }
+        .sdb-panel-head--plain { border-bottom-color:rgba(216,208,200,.45); }
+        .sdb-session-body { display:grid; grid-template-columns:210px minmax(0,1fr); gap:28px; padding:28px; align-items:center; }
+        .sdb-session-media { height:210px; border-radius:10px; overflow:hidden; position:relative; background:var(--primary-soft); }
+        .sdb-session-media img { width:100%; height:100%; object-fit:cover; transition:transform .6s; }
+        .sdb-session:hover .sdb-session-media img { transform:scale(1.04); }
+        .sdb-chips { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+        .sdb-chips span { display:inline-flex; border-radius:5px; padding:5px 8px; background:#fff7ed; color:var(--primary); font-size:.62rem; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+        .sdb-chips span + span { background:#f5f5f4; color:#78716c; }
+        .sdb-session-copy h3 { max-width:560px; margin:0 0 18px; color:var(--text); font-family:'EB Garamond',serif; font-size:2.25rem; line-height:1.05; }
+        .sdb-session-meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 18px; color:#78716c; font-size:.86rem; }
+        .sdb-session-meta span { display:flex; align-items:center; gap:7px; min-width:0; }
+        .sdb-session-meta i { color:var(--primary); font-size:18px; flex-shrink:0; }
+        .sdb-primary { min-height:42px; margin-top:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:var(--primary); color:#fff; padding:0 22px; font-size:.82rem; font-weight:900; text-decoration:none; box-shadow:0 14px 28px rgba(194,101,42,.18); }
+        .sdb-primary:hover { opacity:.9; }
+        .sdb-table-wrap { overflow-x:auto; }
+        .sdb-table { width:100%; min-width:760px; border-collapse:collapse; text-align:left; }
+        .sdb-table th { padding:15px 24px; background:rgba(246,240,232,.55); color:#9a9088; font-size:.62rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+        .sdb-table td { padding:17px 24px; border-top:1px solid var(--line-soft); color:#78716c; font-size:.86rem; }
+        .sdb-table tbody tr:hover { background:rgba(246,240,232,.35); }
+        .sdb-amount { color:var(--text) !important; font-weight:900; text-align:right; }
+        .sdb-status { display:inline-flex; align-items:center; border-radius:999px; padding:4px 9px; font-size:.6rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
+        .sdb-status--paid { background:#f0fdf4; color:#047857; }
+        .sdb-status--pending { background:#fff7ed; color:#c2652a; }
+        .sdb-course-list { padding:22px 24px; display:flex; flex-direction:column; gap:22px; }
+        .sdb-course h3 { margin:0; color:var(--text); font-size:.92rem; font-weight:900; }
+        .sdb-course > div:first-child { display:flex; justify-content:space-between; gap:14px; align-items:center; }
+        .sdb-course strong { color:var(--primary); font-size:.82rem; }
+        .sdb-course span { display:block; margin-top:4px; color:#9a9088; font-size:.72rem; font-weight:800; }
+        .sdb-track { height:7px; border-radius:999px; overflow:hidden; background:#f2ece4; margin:12px 0; }
+        .sdb-track i { display:block; height:100%; background:var(--primary); border-radius:inherit; }
+        .sdb-course a { width:100%; min-height:36px; display:flex; align-items:center; justify-content:center; border:1px solid var(--line-soft); border-radius:6px; color:#78716c; text-decoration:none; font-size:.64rem; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
+        .sdb-course a:hover { background:#faf8f5; color:var(--primary); }
+        .sdb-panel-foot { padding:15px; border-top:1px solid var(--line-soft); background:rgba(246,240,232,.45); text-align:center; }
+        .sdb-dot { width:8px; height:8px; border-radius:999px; background:var(--primary); }
+        .sdb-notif-list { display:flex; flex-direction:column; }
+        .sdb-notif { display:grid; grid-template-columns:42px minmax(0,1fr); gap:13px; padding:18px 20px; border-top:1px solid var(--line-soft); }
+        .sdb-notif:first-child { border-top:0; }
+        .sdb-notif:hover { background:#faf8f5; }
+        .sdb-notif-icon { width:42px; height:42px; border-radius:999px; display:flex; align-items:center; justify-content:center; background:#fff7ed; color:var(--primary); }
+        .sdb-notif h3 { margin:0 0 5px; color:var(--text); font-size:.82rem; font-weight:900; }
+        .sdb-notif p { margin:0; color:#78716c; font-size:.74rem; line-height:1.55; }
+        .sdb-notif small { display:block; margin-top:8px; color:#aaa29a; font-size:.68rem; }
+        .sdb-empty { padding:34px 20px; color:#9a9088; text-align:center; font-size:.86rem; }
+        @media (max-width:1180px) { .sdb-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .sdb-grid { grid-template-columns:1fr; } }
+        @media (max-width:760px) { .sdb-root { padding:24px 14px 40px; } .sdb-hero { align-items:flex-start; flex-direction:column; margin-bottom:24px; } .sdb-today { text-align:left; } .sdb-stats { grid-template-columns:1fr; } .sdb-panel-head { padding:18px; } .sdb-session-body { grid-template-columns:1fr; padding:18px; } .sdb-session-media { height:180px; } .sdb-session-copy h3 { font-size:1.75rem; } .sdb-session-meta { grid-template-columns:1fr; } .sdb-table { min-width:720px; } .sdb-course-list { padding:18px; } }
       `}</style>
     </AuthenticatedLayout>
-  );
+  )
 }
