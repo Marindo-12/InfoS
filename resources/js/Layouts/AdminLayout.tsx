@@ -48,7 +48,7 @@ const NAV_FINANCE: NavItem[] = [
 ]
 
 const NAV_SYSTEM: NavItem[] = [
-  { label: 'Notifications', icon: <I.Bell />, route: route('admin.applications'), routeName: 'admin.notif' },
+  { label: 'Notifications', icon: <I.Bell />, route: route('admin.notifications'), routeName: 'admin.notifications' },
 ]
 
 /* ═══════════════════════════════════════════════
@@ -148,7 +148,7 @@ export default function AdminLayout({
       : item,
   )
   const navSystem = NAV_SYSTEM.map(item =>
-    item.routeName === 'admin.notif'
+    item.routeName === 'admin.notifications'
       ? { ...item, badge: adminHeader.unreadNotifications || undefined }
       : item,
   )
@@ -867,7 +867,7 @@ export default function AdminLayout({
                         adminHeader.recentNotifications.map((notification: any) => (
                           <Link
                             key={notification.id}
-                            href={notification.actionUrl || route('admin.applications')}
+                            href={notification.actionUrl || route('admin.notifications')}
                             className={`al-notif-item ${notification.isRead ? '' : 'al-notif-item--unread'}`}
                             onClick={() => setNotificationsOpen(false)}
                           >
@@ -880,8 +880,8 @@ export default function AdminLayout({
                         <div className="al-notif-empty">Aucune notification pour le moment.</div>
                       )}
                     </div>
-                    <Link href={route('admin.applications')} className="al-notif-foot" onClick={() => setNotificationsOpen(false)}>
-                      Voir les candidatures
+                    <Link href={route('admin.notifications')} className="al-notif-foot" onClick={() => setNotificationsOpen(false)}>
+                      Voir toutes les notifications
                     </Link>
                   </div>
                 )}

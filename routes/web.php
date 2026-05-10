@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/applications', [EnrollmentApplicationController::class, 'index'])->name('applications');
     Route::post('/applications/{application}/approve', [EnrollmentApplicationController::class, 'approve'])->name('applications.approve');
     Route::post('/applications/{application}/resend-access', [EnrollmentApplicationController::class, 'resendAccess'])->name('applications.resend-access');
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications');
     Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/students', [StudentController::class, 'index'])->name('students');
