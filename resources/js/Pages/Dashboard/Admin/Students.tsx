@@ -326,11 +326,10 @@ export default function Students() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginated.map((student, rowIdx) => {
+                  {paginated.map((student) => {
                     const pay    = paymentMeta(student.paymentStatus)
-                    const rowBg  = rowIdx % 2 === 0 ? '#ffffff' : '#f6f4f0'
                     return (
-                      <tr key={student.id} style={{ background: rowBg }}>
+                      <tr key={student.id}>
                         <td data-label="Étudiant">
                           <div className="stu-student-cell">
                             <div className="stu-avatar stu-avatar--sm">{avatarFor(student)}</div>
@@ -750,6 +749,8 @@ export default function Students() {
         .stu-table { width: 100%; min-width: 920px; border-collapse: collapse; text-align: left; }
         .stu-table th { padding: 14px 22px; background: #faf8f5; color: #9a9088; font-size: .65rem; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; border-bottom: 1px solid var(--line-s); }
         .stu-table td { padding: 16px 22px; border-bottom: 1px solid #f0ede8; vertical-align: middle; font-size: .86rem; }
+        .stu-table tbody tr { background: #fff; }
+        .stu-table tbody tr:nth-child(even) { background: #f6f4f0; }
         .stu-table tbody tr:hover td { background: #fffaf6 !important; }
         .stu-table tbody tr:last-child td { border-bottom: none; }
         .stu-student-cell { display: flex; align-items: center; gap: 12px; }
@@ -1013,8 +1014,12 @@ export default function Students() {
         .al-root.al-dark .stu-table th,
         .al-root.al-dark .stu-pagination,
         .al-root.al-dark .stu-table-head { background: #1f1a16; }
+        .al-root.al-dark .stu-table,
+        .al-root.al-dark .stu-table-wrap { background: #241f1a; }
+        .al-root.al-dark .stu-table tbody tr { background: #241f1a; }
+        .al-root.al-dark .stu-table tbody tr:nth-child(even) { background: #1f1a16; }
         .al-root.al-dark .stu-table tbody tr:hover td { background: rgba(240,168,120,.06) !important; }
-        .al-root.al-dark .stu-table td { border-bottom-color: rgba(210,194,181,.08); }
+        .al-root.al-dark .stu-table td { border-bottom-color: rgba(210,194,181,.08); color: #d5c8bc; }
         .al-root.al-dark .stu-count { background: #2a221a; border-color: rgba(210,194,181,.16); color: #f0e8e0; }
         .al-root.al-dark .stu-progress i { background: #3b3028; }
 
