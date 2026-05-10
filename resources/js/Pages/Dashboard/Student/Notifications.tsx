@@ -55,64 +55,90 @@ function categoryLabel(category: NotificationItem['category']) {
   return 'Actualites';
 }
 
-function categoryTone(category: NotificationItem['category']) {
-  if (category === 'academic') {
-    return {
-      card: 'notif-item notif-item--academic',
-      icon: 'notif-icon notif-icon--academic',
-    };
-  }
+function categoryClass(category: NotificationItem['category']) {
+  if (category === 'academic') return 'academic';
+  if (category === 'financial') return 'financial';
+  return 'news';
+}
 
-  if (category === 'financial') {
-    return {
-      card: 'notif-item notif-item--financial',
-      icon: 'notif-icon notif-icon--financial',
-    };
-  }
-
-  return {
-    card: 'notif-item notif-item--news',
-    icon: 'notif-icon notif-icon--news',
-  };
+function materialIcon(name: string, className = '') {
+  return <span className={`material-symbols-outlined ${className}`}>{name}</span>;
 }
 
 export default function Notifications() {
   const { props } = usePage<PageProps>();
-  const { filters, activeFilter, unreadCount, notifications, importantNotice, upcoming } = props;
+  const { filters = [], activeFilter, unreadCount = 0, notifications = [], importantNotice, upcoming = [] } = props;
+  const totalNotifications = filters.find((filter) => filter.key === 'all')?.count ?? notifications.length;
+  const readCount = Math.max(totalNotifications - unreadCount, 0);
 
   return (
     <AuthenticatedLayout header={<h2>Notifications</h2>}>
       <Head title="Notifications" />
 
-      <div className="notif-root">
+      <div className="student-notifications">
         <section className="notif-hero">
           <div>
             <p className="notif-kicker">Centre etudiant</p>
-            <h1 className="notif-title">Activite recente</h1>
-            <p className="notif-subtitle">
+            <h1>Activite recente</h1>
+            <p>
               {unreadCount > 0
-                ? `Vous avez ${unreadCount} notification(s) non lue(s) de Info Saloua.`
+                ? `Vous avez ${unreadCount} notification(s) non lue(s) dans votre espace Info Saloua.`
                 : 'Toutes vos notifications ont ete consultees.'}
             </p>
           </div>
 
           <button
             type="button"
-            className="notif-mark-btn"
+            className="notif-primary"
             onClick={() => router.post(route('student.notifications.read-all'))}
           >
+            {materialIcon('done_all')}
             Tout marquer comme lu
           </button>
         </section>
 
-        <div className="notif-grid">
-          <section className="notif-main">
-            <div className="notif-filters">
+        <section className="notif-stats" aria-label="Resume des notifications">
+          <article>
+            <div>
+              {materialIcon('notifications')}
+              <span>Total</span>
+            </div>
+            <strong>{totalNotifications}</strong>
+            <small>Notification{totalNotifications > 1 ? 's' : ''}</small>
+          </article>
+
+          <article>
+            <div>
+              {materialIcon('mark_email_unread')}
+              <span>Non lues</span>
+            </div>
+            <strong>{unreadCount}</strong>
+            <small>A traiter</small>
+          </article>
+
+          <article>
+            <div>
+              {materialIcon('event_available')}
+              <span>A venir</span>
+            </div>
+            <strong>{upcoming.length}</strong>
+            <small>Seance{upcoming.length > 1 ? 's' : ''}</small>
+          </article>
+        </section>
+
+        <section className="notif-board">
+          <div className="notif-main">
+            <div className="notif-section-head">
+              <h2>Boite de reception</h2>
+              <span>{readCount} lue{readCount > 1 ? 's' : ''}</span>
+            </div>
+
+            <div className="notif-filters" aria-label="Filtres de notifications">
               {filters.map((filter) => (
                 <button
                   type="button"
                   key={filter.key}
-                  className={`notif-filter ${activeFilter === filter.key ? 'notif-filter--active' : ''}`}
+                  className={`notif-filter ${activeFilter === filter.key ? 'is-active' : ''}`}
                   onClick={() => router.get(route('student.notifications'), { filter: filter.key }, { preserveState: true, preserveScroll: true })}
                 >
                   {filter.label}
@@ -122,29 +148,32 @@ export default function Notifications() {
             </div>
 
             <div className="notif-list">
-              {notifications.map((notification) => {
-                const tone = categoryTone(notification.category);
+              {notifications.length > 0 ? notifications.map((notification) => {
+                const tone = categoryClass(notification.category);
 
                 return (
-                  <article key={notification.id} className={tone.card}>
-                    <div className={tone.icon}>
-                      <span className="material-symbols-outlined">{notification.icon}</span>
+                  <article className={`notif-item ${tone} ${notification.isRead ? 'is-read' : 'is-unread'}`} key={notification.id}>
+                    <div className="notif-icon">
+                      {materialIcon(notification.icon)}
                     </div>
 
-                    <div className="notif-item-copy">
+                    <div className="notif-copy">
                       <div className="notif-item-head">
-                        <h3>{notification.title}</h3>
-                        <span>{notification.timeLabel ?? 'Recemment'}</span>
+                        <div>
+                          <span className="notif-category">{categoryLabel(notification.category)}</span>
+                          <h3>{notification.title}</h3>
+                        </div>
+                        <time>{notification.timeLabel ?? 'Recemment'}</time>
                       </div>
+
                       <p>{notification.message}</p>
 
-                      <div className="notif-item-meta">
-                        <span className={`notif-badge ${notification.isRead ? 'notif-badge--read' : 'notif-badge--unread'}`}>
+                      <div className="notif-meta">
+                        <span className={`notif-status ${notification.isRead ? 'read' : 'unread'}`}>
                           {notification.isRead ? 'Lu' : 'Non lu'}
                         </span>
-                        <span className="notif-category">{categoryLabel(notification.category)}</span>
                         {notification.actionLabel && notification.actionUrl && (
-                          <Link href={notification.actionUrl} className="notif-action-link">
+                          <Link href={notification.actionUrl}>
                             {notification.actionLabel}
                           </Link>
                         )}
@@ -152,183 +181,279 @@ export default function Notifications() {
                     </div>
                   </article>
                 );
-              })}
-
-              {notifications.length === 0 && (
+              }) : (
                 <div className="notif-empty">
-                  <span className="material-symbols-outlined">notifications_off</span>
+                  {materialIcon('notifications_off')}
                   <p>Aucune notification pour ce filtre.</p>
                 </div>
               )}
             </div>
-          </section>
+          </div>
 
           <aside className="notif-side">
-            <section className="notif-panel notif-panel--accent">
-              <h3>{importantNotice.title}</h3>
+            <section className="notif-panel notif-important">
+              <p className="notif-kicker">Important</p>
+              <h2>{importantNotice.title}</h2>
               <p>{importantNotice.message}</p>
-              <Link href={importantNotice.actionUrl} className="notif-primary-link">
+              <Link href={importantNotice.actionUrl}>
                 {importantNotice.actionLabel}
               </Link>
             </section>
 
             <section className="notif-panel">
-              <div className="notif-panel-head">
-                <h3>Prochaines seances</h3>
+              <div className="notif-section-head compact">
+                <h2>Prochaines seances</h2>
               </div>
+
               <div className="notif-upcoming-list">
-                {upcoming.map((item) => (
-                  <div key={`${item.day}-${item.title}`} className="notif-upcoming-item">
-                    <div className="notif-date-box">
+                {upcoming.length > 0 ? upcoming.map((item) => (
+                  <article className="notif-upcoming" key={`${item.day}-${item.month}-${item.title}`}>
+                    <div className="notif-date">
                       <span>{item.month}</span>
                       <strong>{item.day}</strong>
                     </div>
                     <div>
-                      <p>{item.title}</p>
-                      <span>{item.meta}</span>
+                      <h3>{item.title}</h3>
+                      <p>{item.meta}</p>
                     </div>
+                  </article>
+                )) : (
+                  <div className="notif-empty small">
+                    <p>Aucune seance a venir.</p>
                   </div>
-                ))}
+                )}
               </div>
             </section>
           </aside>
-        </div>
+        </section>
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-        .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 24;
-          font-family: 'Material Symbols Outlined';
-          line-height: 1;
-        }
-
-        .notif-root {
+        .student-notifications {
+          --surface: #faf5ee;
+          --surface-low: #f6f0e8;
+          --surface-mid: #ece6dc;
+          --surface-high: #ffffff;
+          --text: #3a302a;
+          --muted: #605850;
+          --soft: #9a9088;
+          --line: #d8d0c8;
+          --primary: #c2652a;
+          --primary-soft: #fbe8d8;
+          color: var(--text);
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 38px;
           font-family: 'Manrope', sans-serif;
-          color: #18181b;
-        }
-        .notif-hero,
-        .notif-panel,
-        .notif-item {
-          background: #fff;
-          border: 1px solid rgba(15, 23, 42, 0.07);
-          box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
-        }
-        .notif-hero {
-          position: relative;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 20px;
-          flex-wrap: wrap;
-          padding: 28px;
-          border-radius: 22px;
-          overflow: hidden;
-          background:
-            radial-gradient(circle at top right, rgba(255, 154, 86, 0.16), transparent 28%),
-            linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
-        }
-        .notif-hero::before {
-          content: '';
-          position: absolute;
-          inset: 0 auto auto 0;
-          width: 100%;
-          height: 4px;
-          background: linear-gradient(90deg, #ff6b2b, #ff9a56, #ffbf7a);
-        }
-        .notif-kicker {
-          margin: 0 0 8px;
-          font-size: 0.74rem;
-          font-weight: 800;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #ff6b2b;
-        }
-        .notif-title {
-          margin: 0;
-          font-family: 'EB Garamond', serif;
-          font-size: clamp(2rem, 3vw, 3rem);
-          line-height: 1;
-        }
-        .notif-subtitle {
-          margin: 12px 0 0;
-          color: #717171;
-          font-size: 0.92rem;
-          line-height: 1.7;
-        }
-        .notif-mark-btn,
-        .notif-primary-link,
-        .notif-action-link {
-          transition: all 0.18s ease;
-        }
-        .notif-mark-btn {
-          border: none;
-          border-radius: 12px;
-          padding: 12px 16px;
-          background: linear-gradient(135deg, #ff7a35, #ff5b14);
-          color: #fff;
-          font-family: 'Manrope', sans-serif;
-          font-size: 0.86rem;
-          font-weight: 800;
-          cursor: pointer;
-          box-shadow: 0 12px 24px rgba(255, 107, 43, 0.2);
-        }
-        .notif-mark-btn:hover {
-          transform: translateY(-1px);
+          margin: -28px;
+          min-height: calc(100vh - 64px);
+          padding: 46px clamp(18px, 4vw, 48px) 64px;
+          background-color: var(--surface);
+          background-image: radial-gradient(rgba(216, 208, 200, .85) .6px, transparent .6px);
+          background-size: 24px 24px;
         }
 
-        .notif-grid {
+        .student-notifications * { box-sizing: border-box; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24; }
+
+        .notif-hero {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
+        }
+
+        .notif-kicker {
+          color: var(--primary);
+          font-size: .72rem;
+          font-weight: 800;
+          letter-spacing: .16em;
+          margin: 0 0 10px;
+          text-transform: uppercase;
+        }
+
+        .notif-hero h1 {
+          font-family: 'EB Garamond', serif;
+          font-size: clamp(3.4rem, 8vw, 6.8rem);
+          font-weight: 600;
+          line-height: .9;
+          margin: 0;
+        }
+
+        .notif-hero p:not(.notif-kicker) {
+          color: var(--muted);
+          font-size: .95rem;
+          font-weight: 700;
+          line-height: 1.65;
+          margin: 18px 0 0;
+          max-width: 720px;
+        }
+
+        .notif-primary {
+          align-items: center;
+          background: var(--primary);
+          border: 0;
+          border-radius: 8px;
+          color: white;
+          cursor: pointer;
+          display: inline-flex;
+          flex-shrink: 0;
+          font-family: 'Manrope', sans-serif;
+          font-size: .9rem;
+          font-weight: 800;
+          gap: 9px;
+          min-height: 48px;
+          padding: 0 20px;
+        }
+
+        .notif-stats {
           display: grid;
-          grid-template-columns: 1.55fr 1fr;
           gap: 18px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .notif-stats article,
+        .notif-panel,
+        .notif-item,
+        .notif-filter {
+          background: var(--surface-high);
+          border: 1px solid rgba(216, 208, 200, .75);
+          border-radius: 12px;
+          box-shadow: 0 2px 16px rgba(58, 48, 42, .045);
+        }
+
+        .notif-stats article {
+          min-height: 154px;
+          padding: 26px;
+        }
+
+        .notif-stats article div {
+          align-items: flex-start;
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 18px;
+        }
+
+        .notif-stats .material-symbols-outlined {
+          background: var(--primary-soft);
+          border-radius: 8px;
+          color: var(--primary);
+          padding: 11px;
+        }
+
+        .notif-stats div span:last-child {
+          color: var(--muted);
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .08em;
+          text-align: right;
+          text-transform: uppercase;
+        }
+
+        .notif-stats strong {
+          display: inline-block;
+          font-family: 'EB Garamond', serif;
+          font-size: 2.75rem;
+          font-weight: 600;
+          line-height: 1;
+        }
+
+        .notif-stats small {
+          color: var(--muted);
+          font-size: .85rem;
+          margin-left: 7px;
+        }
+
+        .notif-board {
+          display: grid;
+          gap: 28px;
+          grid-template-columns: minmax(0, 1.45fr) minmax(330px, .75fr);
           align-items: start;
         }
+
         .notif-main,
         .notif-side {
           display: flex;
           flex-direction: column;
           gap: 18px;
+          min-width: 0;
         }
-        .notif-filters {
+
+        .notif-section-head {
+          align-items: center;
           display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 16px;
         }
+
+        .notif-section-head h2,
+        .notif-panel h2 {
+          font-family: 'EB Garamond', serif;
+          font-size: 2rem;
+          font-weight: 600;
+          line-height: 1;
+          margin: 0;
+        }
+
+        .notif-section-head > span {
+          color: var(--soft);
+          font-size: .72rem;
+          font-weight: 900;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+        }
+
+        .notif-section-head.compact { margin-bottom: 18px; }
+
+        .notif-filters {
+          background: var(--surface-low);
+          border-radius: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          padding: 6px;
+          width: fit-content;
+        }
+
         .notif-filter {
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          background: #fff;
-          color: #777;
-          border-radius: 999px;
-          padding: 10px 14px;
-          font-size: 0.82rem;
-          font-weight: 700;
+          align-items: center;
+          border: 0;
+          box-shadow: none;
+          color: var(--muted);
           cursor: pointer;
           display: inline-flex;
-          align-items: center;
+          font-family: 'Manrope', sans-serif;
+          font-size: .78rem;
+          font-weight: 800;
           gap: 8px;
+          min-height: 36px;
+          padding: 0 13px;
         }
+
         .notif-filter span {
-          display: inline-flex;
           align-items: center;
+          background: var(--surface-mid);
+          border-radius: 999px;
+          display: inline-flex;
+          font-size: .68rem;
+          height: 20px;
           justify-content: center;
           min-width: 20px;
-          height: 20px;
-          border-radius: 999px;
-          background: #f5f5f5;
-          font-size: 0.72rem;
+          padding: 0 6px;
         }
-        .notif-filter--active {
-          border-color: rgba(255, 107, 43, 0.18);
-          background: #fff7f1;
-          color: #ff6b2b;
+
+        .notif-filter.is-active {
+          background: white;
+          color: var(--primary);
+          box-shadow: 0 1px 5px rgba(58, 48, 42, .08);
         }
-        .notif-filter--active span {
-          background: rgba(255, 107, 43, 0.12);
+
+        .notif-filter.is-active span {
+          background: var(--primary-soft);
         }
 
         .notif-list {
@@ -336,227 +461,252 @@ export default function Notifications() {
           flex-direction: column;
           gap: 14px;
         }
+
         .notif-item {
-          display: flex;
+          display: grid;
+          grid-template-columns: 54px minmax(0, 1fr);
           gap: 16px;
-          padding: 22px;
-          border-radius: 20px;
+          overflow: hidden;
+          padding: 20px;
+          position: relative;
         }
-        .notif-item--academic { border-left: 4px solid #ff6b2b; }
-        .notif-item--financial { border-left: 4px solid #ef4444; }
-        .notif-item--news { border-left: 4px solid #94a3b8; }
+
+        .notif-item::before {
+          bottom: 0;
+          content: '';
+          left: 0;
+          position: absolute;
+          top: 0;
+          width: 4px;
+        }
+
+        .notif-item.academic::before { background: var(--primary); }
+        .notif-item.financial::before { background: #8c3c3c; }
+        .notif-item.news::before { background: #78706a; }
+        .notif-item.is-read { opacity: .78; }
+
         .notif-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 14px;
-          display: flex;
           align-items: center;
+          background: var(--primary-soft);
+          border-radius: 10px;
+          color: var(--primary);
+          display: flex;
+          height: 54px;
           justify-content: center;
-          flex-shrink: 0;
+          width: 54px;
         }
-        .notif-icon--academic { background: #fff3ec; color: #ff6b2b; }
-        .notif-icon--financial { background: #fff1f2; color: #ef4444; }
-        .notif-icon--news { background: #f3f4f6; color: #64748b; }
-        .notif-item-copy { flex: 1; min-width: 0; }
+
+        .notif-item.financial .notif-icon { background: #fce0e0; color: #8c3c3c; }
+        .notif-item.news .notif-icon { background: var(--surface-low); color: var(--muted); }
+
         .notif-item-head {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
           align-items: flex-start;
-          flex-wrap: wrap;
-        }
-        .notif-item-head h3 {
-          margin: 0;
-          font-family: 'EB Garamond', serif;
-          font-size: 1.35rem;
-          line-height: 1.1;
-        }
-        .notif-item-head span {
-          color: #a3a3a3;
-          font-size: 0.76rem;
-          font-weight: 700;
-        }
-        .notif-item-copy p {
-          margin: 10px 0 0;
-          color: #666;
-          line-height: 1.7;
-          font-size: 0.88rem;
-        }
-        .notif-item-meta {
           display: flex;
+          gap: 14px;
+          justify-content: space-between;
+        }
+
+        .notif-category {
+          color: var(--primary);
+          display: block;
+          font-size: .66rem;
+          font-weight: 900;
+          letter-spacing: .12em;
+          margin-bottom: 5px;
+          text-transform: uppercase;
+        }
+
+        .notif-item-head h3 {
+          font-family: 'EB Garamond', serif;
+          font-size: 1.45rem;
+          font-weight: 600;
+          line-height: 1.08;
+          margin: 0;
+        }
+
+        .notif-item-head time {
+          color: var(--soft);
+          flex-shrink: 0;
+          font-size: .75rem;
+          font-weight: 800;
+        }
+
+        .notif-copy p,
+        .notif-panel p,
+        .notif-upcoming p {
+          color: var(--muted);
+          font-size: .86rem;
+          line-height: 1.7;
+          margin: 10px 0 0;
+        }
+
+        .notif-meta {
           align-items: center;
-          gap: 10px;
+          display: flex;
           flex-wrap: wrap;
+          gap: 10px;
           margin-top: 14px;
         }
-        .notif-badge,
-        .notif-category {
-          display: inline-flex;
-          align-items: center;
-          border-radius: 999px;
-          padding: 6px 10px;
-          font-size: 0.68rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-        .notif-badge--unread { background: rgba(255, 107, 43, 0.12); color: #ff6b2b; }
-        .notif-badge--read { background: #f4f4f5; color: #777; }
-        .notif-category { background: #faf5f0; color: #8b6b56; }
-        .notif-action-link {
-          color: #ff6b2b;
-          font-size: 0.78rem;
-          font-weight: 800;
-          text-decoration: none;
-        }
-        .notif-action-link:hover { color: #e25817; }
 
-        .notif-empty {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          padding: 40px 20px;
-          border-radius: 20px;
-          border: 1px dashed rgba(15, 23, 42, 0.12);
-          background: #fafafa;
-          color: #8b8b8b;
+        .notif-status {
+          border-radius: 999px;
+          display: inline-flex;
+          font-size: .64rem;
+          font-weight: 900;
+          letter-spacing: .1em;
+          padding: 5px 9px;
+          text-transform: uppercase;
+        }
+
+        .notif-status.unread { background: var(--primary-soft); color: var(--primary); }
+        .notif-status.read { background: var(--surface-low); color: var(--soft); }
+
+        .notif-meta a,
+        .notif-important a {
+          color: var(--primary);
+          font-size: .78rem;
+          font-weight: 900;
+          text-decoration: none;
         }
 
         .notif-panel {
-          border-radius: 20px;
-          padding: 22px;
+          padding: 24px;
         }
-        .notif-panel--accent {
-          background: linear-gradient(180deg, #fff7f1 0%, #ffffff 100%);
-          border-color: rgba(255, 107, 43, 0.12);
+
+        .notif-important {
+          background: var(--surface-low);
         }
-        .notif-panel-head h3,
-        .notif-panel--accent h3 {
-          margin: 0;
-          font-family: 'EB Garamond', serif;
-          font-size: 1.4rem;
-        }
-        .notif-panel--accent p {
-          margin: 12px 0 18px;
-          color: #666;
-          line-height: 1.7;
-          font-size: 0.88rem;
-        }
-        .notif-primary-link {
-          display: inline-flex;
+
+        .notif-important a {
           align-items: center;
-          justify-content: center;
-          padding: 12px 16px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #ff7a35, #ff5b14);
-          color: #fff;
-          font-size: 0.84rem;
-          font-weight: 800;
-          text-decoration: none;
-          box-shadow: 0 12px 24px rgba(255, 107, 43, 0.18);
+          background: var(--primary);
+          border-radius: 8px;
+          color: white;
+          display: inline-flex;
+          margin-top: 18px;
+          min-height: 42px;
+          padding: 0 16px;
         }
-        .notif-primary-link:hover { transform: translateY(-1px); }
 
         .notif-upcoming-list {
           display: flex;
           flex-direction: column;
-          gap: 14px;
-          margin-top: 16px;
-        }
-        .notif-upcoming-item {
-          display: flex;
-          gap: 14px;
-          align-items: center;
-          padding: 14px;
-          border-radius: 16px;
-          background: #fafafa;
-          border: 1px solid rgba(15, 23, 42, 0.06);
-        }
-        .notif-date-box {
-          width: 56px;
-          height: 56px;
-          border-radius: 16px;
-          background: #ff6b2b;
-          color: #fff;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .notif-date-box span {
-          font-size: 0.62rem;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-        }
-        .notif-date-box strong {
-          font-size: 1.15rem;
-          line-height: 1;
-        }
-        .notif-upcoming-item p {
-          margin: 0;
-          font-size: 0.88rem;
-          font-weight: 800;
-          color: #18181b;
-        }
-        .notif-upcoming-item span {
-          display: block;
-          margin-top: 4px;
-          color: #7a7a7a;
-          font-size: 0.78rem;
+          gap: 12px;
         }
 
-        .a-root--dark .notif-root { color: #e5e2e1; }
-        .a-root--dark .notif-hero,
+        .notif-upcoming {
+          align-items: center;
+          background: var(--surface-low);
+          border: 1px solid transparent;
+          border-radius: 12px;
+          display: flex;
+          gap: 14px;
+          padding: 14px;
+        }
+
+        .notif-date {
+          align-items: center;
+          background: var(--primary);
+          border-radius: 9px;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          height: 58px;
+          justify-content: center;
+          width: 58px;
+          flex-shrink: 0;
+        }
+
+        .notif-date span {
+          font-size: .62rem;
+          font-weight: 900;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+        }
+
+        .notif-date strong {
+          font-family: 'EB Garamond', serif;
+          font-size: 1.45rem;
+          line-height: 1;
+        }
+
+        .notif-upcoming h3 {
+          font-size: .88rem;
+          margin: 0;
+        }
+
+        .notif-empty {
+          align-items: center;
+          border: 1.5px dashed rgba(154, 144, 136, .45);
+          border-radius: 12px;
+          color: var(--soft);
+          display: flex;
+          flex-direction: column;
+          font-size: .82rem;
+          font-style: italic;
+          gap: 8px;
+          justify-content: center;
+          min-height: 160px;
+          padding: 18px;
+          text-align: center;
+        }
+
+        .notif-empty.small { min-height: 96px; }
+        .notif-empty p { margin: 0; }
+
+        .a-root--dark .student-notifications {
+          --surface: #131313;
+          --surface-low: #1c1b1b;
+          --surface-mid: #353534;
+          --surface-high: #201f1f;
+          --text: #e5e2e1;
+          --muted: #dbc1b5;
+          --soft: #a38c80;
+          --line: #554339;
+          --primary: #ffb68e;
+          --primary-soft: rgba(255, 182, 142, .14);
+          background-color: var(--surface);
+          background-image: radial-gradient(rgba(85, 67, 57, .72) .6px, transparent .6px);
+        }
+
+        .a-root--dark .notif-stats article,
         .a-root--dark .notif-panel,
         .a-root--dark .notif-item,
-        .a-root--dark .notif-filter {
-          background: #201f1f;
+        .a-root--dark .notif-filter.is-active {
+          background: var(--surface-high);
           border-color: rgba(255, 255, 255, .08);
           box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
         }
-        .a-root--dark .notif-hero,
-        .a-root--dark .notif-panel--accent { background: linear-gradient(180deg, #201f1f 0%, #1c1b1b 100%); }
-        .a-root--dark .notif-subtitle,
-        .a-root--dark .notif-item-copy p,
-        .a-root--dark .notif-panel--accent p,
-        .a-root--dark .notif-upcoming-item span { color: #dbc1b5; }
-        .a-root--dark .notif-title,
-        .a-root--dark .notif-item-head h3,
-        .a-root--dark .notif-panel-head h3,
-        .a-root--dark .notif-panel--accent h3,
-        .a-root--dark .notif-upcoming-item p { color: #e5e2e1; }
-        .a-root--dark .notif-filter { color: #dbc1b5; }
-        .a-root--dark .notif-filter span,
-        .a-root--dark .notif-badge--read,
-        .a-root--dark .notif-category,
-        .a-root--dark .notif-empty,
-        .a-root--dark .notif-upcoming-item { background: #1c1b1b; border-color: rgba(255, 255, 255, .08); color: #a38c80; }
-        .a-root--dark .notif-filter--active,
-        .a-root--dark .notif-badge--unread,
-        .a-root--dark .notif-icon--academic { background: rgba(255, 182, 142, .14); color: #ffb68e; }
-        .a-root--dark .notif-icon--financial { background: rgba(255, 180, 171, .14); color: #ffb4ab; }
-        .a-root--dark .notif-icon--news { background: rgba(198, 198, 199, .14); color: #c6c6c7; }
-        .a-root--dark .notif-kicker,
-        .a-root--dark .notif-action-link { color: #ffb68e; }
 
-        @media (max-width: 1100px) {
-          .notif-grid {
-            grid-template-columns: 1fr;
-          }
+        .a-root--dark .notif-filters,
+        .a-root--dark .notif-upcoming,
+        .a-root--dark .notif-status.read,
+        .a-root--dark .notif-item.news .notif-icon {
+          background: var(--surface-low);
         }
-        @media (max-width: 640px) {
-          .notif-hero,
-          .notif-panel,
-          .notif-item {
-            padding: 18px;
-            border-radius: 18px;
-          }
-          .notif-title {
-            font-size: 2rem;
-          }
+
+        .a-root--dark .notif-important { background: var(--surface-low); }
+        .a-root--dark .notif-item.financial .notif-icon { background: rgba(255, 180, 171, .14); color: #ffb4ab; }
+        .a-root--dark .notif-upcoming { border-color: rgba(255, 255, 255, .08); }
+
+        @media (max-width: 1180px) {
+          .notif-board { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+          .student-notifications { margin: -18px -16px -32px; padding: 30px 16px 44px; }
+          .notif-hero { align-items: flex-start; flex-direction: column; }
+          .notif-stats { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 560px) {
+          .notif-hero h1 { font-size: 3rem; }
+          .notif-primary { justify-content: center; width: 100%; }
+          .notif-section-head,
+          .notif-item-head { align-items: flex-start; flex-direction: column; }
+          .notif-item { grid-template-columns: 1fr; }
+          .notif-filters { width: 100%; }
+          .notif-filter { flex: 1 1 auto; justify-content: center; }
         }
       `}</style>
     </AuthenticatedLayout>
