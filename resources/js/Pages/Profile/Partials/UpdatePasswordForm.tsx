@@ -301,6 +301,31 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
         }
         .a-root--dark .pw-bar { background: #353534; }
         .a-root--dark .pw-match { color: #7dd3a2; }
+        .al-root.al-dark .pw-kicker { color: #f0a878; }
+        .al-root.al-dark .pw-title { color: #f8efe5; }
+        .al-root.al-dark .pw-sub,
+        .al-root.al-dark .pw-label { color: #d5c8bc; }
+        .al-root.al-dark .pw-input {
+          background: #1f1a16;
+          border-color: #3b3028;
+          color: #f8efe5;
+        }
+        .al-root.al-dark .pw-input::placeholder { color: #a09080; }
+        .al-root.al-dark .pw-input:focus {
+          background: #241f1a;
+          border-color: #f0a878;
+          box-shadow: 0 0 0 3px rgba(240,168,120,.12);
+        }
+        .al-root.al-dark .pw-input-icon,
+        .al-root.al-dark .pw-eye { color: #a09080; }
+        .al-root.al-dark .pw-eye:hover { color: #f0a878; }
+        .al-root.al-dark .pw-saved-badge {
+          background: rgba(58,143,95,.16);
+          border-color: rgba(125,211,162,.28);
+          color: #7dd3a2;
+        }
+        .al-root.al-dark .pw-bar { background: #3b3028; }
+        .al-root.al-dark .pw-match { color: #7dd3a2; }
         @media (max-width: 900px) { .pw-grid { grid-template-columns: 1fr; } }
         @media (max-width: 500px) { .pw-header, .pw-body { padding-left: 20px; padding-right: 20px; } }
       `}</style>

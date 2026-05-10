@@ -2,6 +2,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    role?: 'admin' | 'student' | string;
+    status?: string | null;
     phone?: string | null;
     avatar?: string | null;
     avatar_url?: string | null;

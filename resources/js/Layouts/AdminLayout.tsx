@@ -1,6 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react'
 import { PropsWithChildren, ReactNode, useState, useEffect, useRef } from 'react'
 import logo from '../../../public/infos-logo.png'
+import { Settings } from 'lucide-react'
 
 /* ═══════════════════════════════════════════════
    ICONS
@@ -49,6 +50,7 @@ const NAV_FINANCE: NavItem[] = [
 
 const NAV_SYSTEM: NavItem[] = [
   { label: 'Notifications', icon: <I.Bell />, route: route('admin.notifications'), routeName: 'admin.notifications' },
+  { label: 'Paramètres', icon: <Settings size={20} />, route: route('profile.edit'), routeName: 'profile.edit' },
 ]
 
 /* ═══════════════════════════════════════════════
@@ -696,6 +698,7 @@ export default function AdminLayout({
           background: #fff; cursor: pointer;
           box-shadow: 0 10px 24px rgba(36,28,20,.08);
           transition: background var(--al-tr), border-color var(--al-tr), box-shadow var(--al-tr), transform var(--al-tr);
+          text-decoration: none;
         }
         .al-root.al-dark .al-tb-user {
           background: #211b16;
@@ -887,7 +890,7 @@ export default function AdminLayout({
                 )}
               </div>
 
-              <div className="al-tb-user">
+              <Link href={route('profile.edit')} className="al-tb-user">
                 <div className="al-av al-av--sm">
                   {avatarUrl ? <img src={avatarUrl} alt={user.name} className="al-av-img" /> : initials}
                 </div>
@@ -895,7 +898,7 @@ export default function AdminLayout({
                   <span className="al-tb-username">{user.name.split(' ')[0]}</span>
                   <p className="al-tb-role">Profil admin</p>
                 </div>
-              </div>
+              </Link>
             </div>
           </header>
 

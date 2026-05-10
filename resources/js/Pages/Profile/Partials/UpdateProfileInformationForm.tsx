@@ -659,6 +659,59 @@ export default function UpdateProfileInformationForm({
         .a-root--dark .pf-status-badge--ok { background: rgba(58,143,95,.16); color: #7dd3a2; }
         .a-root--dark .pf-status-badge--warn { background: rgba(217,119,6,.16); color: #facc15; }
 
+        .al-root.al-dark .pf-header { border-bottom-color: rgba(210,194,181,.12); }
+        .al-root.al-dark .pf-kicker,
+        .al-root.al-dark .pf-info-title,
+        .al-root.al-dark .pf-tip-title { color: #f0a878; }
+        .al-root.al-dark .pf-title,
+        .al-root.al-dark .pf-info-val { color: #f8efe5; }
+        .al-root.al-dark .pf-label,
+        .al-root.al-dark .pf-info-label { color: #d5c8bc; }
+        .al-root.al-dark .pf-divider { background: rgba(210,194,181,.12); }
+        .al-root.al-dark .pf-input {
+          background: #1f1a16;
+          border-color: #3b3028;
+          color: #f8efe5;
+        }
+        .al-root.al-dark .pf-input::placeholder { color: #a09080; }
+        .al-root.al-dark .pf-input:focus {
+          background: #241f1a;
+          border-color: #f0a878;
+          box-shadow: 0 0 0 3px rgba(240,168,120,.12);
+        }
+        .al-root.al-dark .pf-input-icon { color: #a09080; }
+        .al-root.al-dark .pf-avatar { border-color: #241f1a; }
+        .al-root.al-dark .pf-avatar-btn,
+        .al-root.al-dark .pf-avatar-delete { border-color: #241f1a; }
+        .al-root.al-dark .pf-info-card {
+          background: #1f1a16;
+          border-color: rgba(210,194,181,.12);
+        }
+        .al-root.al-dark .pf-tip-card {
+          background: rgba(240,168,120,.08);
+          border-color: rgba(240,168,120,.18);
+        }
+        .al-root.al-dark .pf-tip-icon { background: rgba(240,168,120,.14); color: #f0a878; }
+        .al-root.al-dark .pf-tip-list li { color: #d5c8bc; }
+        .al-root.al-dark .pf-saved-badge {
+          background: rgba(58,143,95,.16);
+          border-color: rgba(125,211,162,.28);
+          color: #7dd3a2;
+        }
+        .al-root.al-dark .pf-verify-notice {
+          background: rgba(217,119,6,.12);
+          border-color: rgba(251,191,36,.24);
+          color: #facc15;
+        }
+        .al-root.al-dark .pf-verify-link { color: #f0a878; }
+        .al-root.al-dark .pf-success-notice {
+          background: rgba(58,143,95,.16);
+          border-color: rgba(125,211,162,.28);
+          color: #7dd3a2;
+        }
+        .al-root.al-dark .pf-status-badge--ok { background: rgba(58,143,95,.16); color: #7dd3a2; }
+        .al-root.al-dark .pf-status-badge--warn { background: rgba(217,119,6,.16); color: #facc15; }
+
         /* Responsive */
         @media (max-width: 900px) {
           .pf-body { grid-template-columns: 1fr; }
