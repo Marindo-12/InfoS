@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 
 type NotificationItem = {
   id: number;
@@ -68,6 +69,13 @@ function materialIcon(name: string, className = '') {
 export default function Notifications() {
   const { props } = usePage<PageProps>();
   const { filters = [], activeFilter, unreadCount = 0, notifications = [], importantNotice, upcoming = [] } = props;
+  const [selectedFilter, setSelectedFilter] = useState(activeFilter || 'all');
+  const visibleNotifications = useMemo(
+    () => selectedFilter === 'all'
+      ? notifications
+      : notifications.filter((notification) => notification.category === selectedFilter),
+    [notifications, selectedFilter],
+  );
   const totalNotifications = filters.find((filter) => filter.key === 'all')?.count ?? notifications.length;
   const readCount = Math.max(totalNotifications - unreadCount, 0);
 
@@ -138,8 +146,8 @@ export default function Notifications() {
                 <button
                   type="button"
                   key={filter.key}
-                  className={`notif-filter ${activeFilter === filter.key ? 'is-active' : ''}`}
-                  onClick={() => router.get(route('student.notifications'), { filter: filter.key }, { preserveState: true, preserveScroll: true })}
+                  className={`notif-filter ${selectedFilter === filter.key ? 'is-active' : ''}`}
+                  onClick={() => setSelectedFilter(filter.key)}
                 >
                   {filter.label}
                   <span>{filter.count}</span>
@@ -148,7 +156,7 @@ export default function Notifications() {
             </div>
 
             <div className="notif-list">
-              {notifications.length > 0 ? notifications.map((notification) => {
+              {visibleNotifications.length > 0 ? visibleNotifications.map((notification) => {
                 const tone = categoryClass(notification.category);
 
                 return (

@@ -23,10 +23,6 @@ class NotificationController extends Controller
             ->orderByDesc('published_at')
             ->orderByDesc('created_at');
 
-        if ($filter !== 'all') {
-            $query->where('category', $filter);
-        }
-
         $notifications = $query->get();
         $allNotifications = PortalNotification::query()
             ->where('user_id', $user->id)
