@@ -737,7 +737,7 @@ export default function Authenticated({
               >
                 {darkMode ? <I.Sun /> : <I.Moon />}
               </button>
-              <div className="a-tb-user">
+              <Link href={route('profile.edit')} className="a-tb-user">
                 <div className="a-avatar a-avatar--sm">
                   {avatarUrl ? <img src={avatarUrl} alt={user.name} className="a-avatar-img" /> : initials}
                 </div>
@@ -745,7 +745,7 @@ export default function Authenticated({
                   <p className="a-tb-username">{user.name.split(' ')[0]}</p>
                   <p className="a-tb-role">Profil étudiant</p>
                 </div>
-              </div>
+              </Link>
             </div>
           </header>
           <main className="a-content">{children}</main>
