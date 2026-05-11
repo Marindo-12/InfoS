@@ -52,7 +52,7 @@ export default function Edit({
             </p>
           </div>
 
-          <div className="prof-identity-card dark:bg-black">
+          <div className="prof-identity-card">
             <div className="prof-avatar">
               {user.avatar_url ? <img src={user.avatar_url} alt={user.name} /> : initials}
             </div>
