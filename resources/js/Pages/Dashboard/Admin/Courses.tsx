@@ -54,6 +54,7 @@ type CourseForm = {
   title:          string
   category:       string
   level:          string
+  instructeur:    string
   description:    string
   duration_hours: string
   duration_weeks: string
@@ -70,7 +71,7 @@ type CourseForm = {
 const PAGE_SIZE = 8
 
 const emptyForm: CourseForm = {
-  title: '', category: 'langues', level: '', description: '',
+  title: '', category: 'langues', level: '',instructeur: '', description: '',
   duration_hours: '', duration_weeks: '', price: '0',
   capacity: '', status: 'active', starts_at: '', ends_at: '',
 }
@@ -98,6 +99,7 @@ function formFromCourse(c: CourseRow): CourseForm {
     title:          c.title,
     category:       c.categoryKey,
     level:          c.level          ?? '',
+    instructeur:    c.instructor     ?? '',
     description:    c.description    ?? '',
     duration_hours: c.durationHours  ? String(c.durationHours) : '',
     duration_weeks: c.durationWeeks  ? String(c.durationWeeks) : '',
@@ -599,6 +601,16 @@ export default function Courses() {
                 <datalist id="course-categories">
                   {categories.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                 </datalist>
+              </Field>
+
+              <Field label="Instructeur" error={errors.instructeur}>
+                <input
+                  value={form.instructeur}
+                  onChange={e => setForm({ ...form, instructeur: e.target.value })}
+                  placeholder="Ex: Omar Hilal"
+                  className="w-full h-11 px-4 border border-[#d8d0c8] rounded-lg text-[#3a302a] text-sm outline-none focus:border-[#c2652a] focus:ring-2 focus:ring-[#c2652a]/10
+                    [.al-dark_&]:bg-[#251e17] [.al-dark_&]:text-[#f0e8e0] [.al-dark_&]:border-white/20"
+                />
               </Field>
 
               <Field label="Niveau" error={errors.level}>
