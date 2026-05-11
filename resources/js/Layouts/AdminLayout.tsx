@@ -50,7 +50,7 @@ const NAV_FINANCE: NavItem[] = [
 
 const NAV_SYSTEM: NavItem[] = [
   { label: 'Notifications', icon: <I.Bell />, route: route('admin.notifications'), routeName: 'admin.notifications' },
-  { label: 'Paramètres', icon: <Settings size={20} />, route: route('profile.edit'), routeName: 'profile.edit' },
+  { label: 'Paramètres', icon: <Settings size={18} />, route: route('profile.edit'), routeName: 'profile.edit' },
 ]
 
 /* ═══════════════════════════════════════════════
