@@ -19,7 +19,7 @@ import powerpointIc from '../../../../public/images/powerpoint.png';
    TYPES
 ═══════════════════════════════════════════════════ */
 
-type ModuleKey = 'word' | 'excel' | 'powerpoint';
+type ModuleKey = 'word' | 'excel' | 'powerpoint' | 'access';
 type PaymentMode = '' | 'online' | 'onsite';
 
 interface FormData {
@@ -86,7 +86,7 @@ const MODULE_CARDS = [
     name: 'module_word',
     title: 'Microsoft Word',
     description: 'Edition, mise en page et documents professionnels',
-    price: 250,
+    price: 600,
     accent: '#185ABD',
     icon: wordIc,
   },
@@ -95,7 +95,7 @@ const MODULE_CARDS = [
     name: 'module_excel',
     title: 'Microsoft Excel',
     description: 'Tableaux, calculs, formules et analyse de donnees',
-    price: 350,
+    price: 500,
     accent: '#107C41',
     icon: excelIc,
   },
@@ -104,9 +104,18 @@ const MODULE_CARDS = [
     name: 'module_powerpoint',
     title: 'Microsoft PowerPoint',
     description: 'Presentations visuelles, slides et animations',
-    price: 250,
+    price: 300,
     accent: '#D24726',
     icon: powerpointIc,
+  },
+  {
+    key: 'access' as ModuleKey,
+    name: 'module_access',
+    title: 'Microsoft Access',
+    description: 'Bases de donnees, formulaires, requetes et etats',
+    price: 400,
+    accent: '#A4373A',
+    icon: excelIc,
   },
 ] as const;
 
@@ -683,7 +692,7 @@ const InscriptionBureautique: React.FC<Props> = ({
   const [form, setForm] = useState<FormData>({
     nom: '', prenom: '', age: '', niveau: 'Baccalaureat',
     email: '', telephone: '',
-    modules: { word: false, excel: false, powerpoint: false },
+    modules: { word: false, excel: false, powerpoint: false, access: false },
     level: 'debutant', payment: '',
     acceptTerms: false, acceptPrivacy: false,
   });
@@ -904,7 +913,7 @@ const InscriptionBureautique: React.FC<Props> = ({
                 <div className="mb-8 flex flex-wrap gap-4">
                   {[
                     { icon: 'schedule', text: 'Duree : 2 mois' },
-                    { icon: 'payments', text: 'A partir de 250 DH' },
+                    { icon: 'payments', text: 'A partir de 300 DH' },
                   ].map(({ icon, text }) => (
                     <div key={text} className="flex items-center gap-3 rounded-xl border border-outline-variant/50 bg-surface-container px-5 py-3">
                       <span className="material-symbols-outlined text-primary">{icon}</span>
@@ -1034,7 +1043,7 @@ const InscriptionBureautique: React.FC<Props> = ({
                     <span className="font-normal text-on-surface-variant/70">(multi-choix possible)</span>
                   </p>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3"
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
                     data-has-error={errors.modules ? 'true' : undefined}>
                     {MODULE_CARDS.map((module) => {
                       const checked = form.modules[module.key];

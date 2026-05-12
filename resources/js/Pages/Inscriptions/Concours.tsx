@@ -17,7 +17,7 @@ import PaymentCertificate, { type PaymentCertificateData } from '@/Components/Pa
 ═══════════════════════════════════════════════════ */
 
 type PaymentMode = '' | 'online' | 'onsite';
-type ConcoursKey = 'medecine' | 'encg' | 'ensa' | 'pack';
+type ConcoursKey = 'medecine' | 'ensa' | 'ensam' | 'encg' | 'iscae' | 'ena';
 
 interface FormData {
   nom: string;
@@ -67,11 +67,13 @@ interface StripeCardSectionProps {
    CONSTANTS
 ═══════════════════════════════════════════════════ */
 
-const CONCOURS_OPTIONS: Array<{ value: ConcoursKey; label: string; price: number }> = [
-  { value: 'medecine', label: 'Preparation Medecine (FMD/FMP)', price: 1000 },
-  { value: 'encg',    label: 'Preparation ENCG (Tafem)',        price: 600  },
-  { value: 'ensa',    label: 'Preparation ENSA/ENSAM',          price: 500  },
-  { value: 'pack',    label: 'Pack Excellence (Multi-concours)', price: 1500 },
+const CONCOURS_OPTIONS: Array<{ value: ConcoursKey; label: string; price: number; hours: number }> = [
+  { value: 'medecine', label: 'Preparation Medecine', price: 1000, hours: 15 },
+  { value: 'ensa',     label: 'Preparation ENSA',     price: 800,  hours: 12 },
+  { value: 'ensam',    label: 'Preparation ENSAM',    price: 1200, hours: 14 },
+  { value: 'encg',     label: 'Preparation ENCG',     price: 500,  hours: 13 },
+  { value: 'iscae',    label: 'Preparation ISCAE',    price: 1200, hours: 15 },
+  { value: 'ena',      label: 'Preparation ENA',      price: 600,  hours: 10 },
 ];
 
 /* ═══════════════════════════════════════════════════
@@ -661,13 +663,14 @@ const InscriptionConcours: React.FC<Props> = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  {CONCOURS_OPTIONS.slice(0, 3).map((item) => (
+                  {CONCOURS_OPTIONS.map((item) => (
                     <div key={item.value}
                       className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-6">
                       <p className="mb-1 font-label text-sm text-outline">
                         {item.label.split(' ')[1] ?? item.label}
                       </p>
                       <p className="font-headline text-2xl font-semibold">{fmtAmount(item.price)}</p>
+                      <p className="mt-1 text-xs font-bold uppercase tracking-widest text-primary">{item.hours}H</p>
                     </div>
                   ))}
                 </div>
@@ -784,7 +787,7 @@ const InscriptionConcours: React.FC<Props> = ({
                     <select name="concours" value={formData.concours} onChange={handleChange}
                       className={`${inputCls(errors.concours)} mt-2 font-headline text-lg`}>
                       {CONCOURS_OPTIONS.map((item) => (
-                        <option key={item.value} value={item.value}>{item.label} <span className='ms-2'>{item.price} Dh</span></option>                      
+                        <option key={item.value} value={item.value}>{item.label} - {item.hours}H - {item.price} Dh</option>
                       ))}
                     </select>
                     <FieldError msg={errors.concours} />

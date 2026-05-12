@@ -17,6 +17,7 @@ import PaymentCertificate, { type PaymentCertificateData } from '@/Components/Pa
 ═══════════════════════════════════════════════════ */
 
 type PaymentMode = '' | 'online' | 'onsite';
+type GraphicKey = 'photoshop' | 'illustrator' | 'indesign';
 
 interface FormData {
   nom: string;
@@ -25,6 +26,7 @@ interface FormData {
   niveau: string;
   email: string;
   telephone: string;
+  graphic: GraphicKey;
   message: string;
   payment: PaymentMode;
   acceptTerms: boolean;
@@ -65,7 +67,11 @@ interface StripeCardSectionProps {
    CONSTANTS
 ═══════════════════════════════════════════════════ */
 
-const TRAINING_PRICE = 1200;
+const INFOGRAPHIE_OPTIONS: Array<{ value: GraphicKey; label: string; price: number; hours: number }> = [
+  { value: 'photoshop', label: 'Adobe Photoshop', price: 1000, hours: 30 },
+  { value: 'illustrator', label: 'Adobe Illustrator', price: 1000, hours: 25 },
+  { value: 'indesign', label: 'Adobe InDesign', price: 900, hours: 20 },
+];
 
 /* ═══════════════════════════════════════════════════
    HELPERS
@@ -449,7 +455,7 @@ const InscriptionInfographie: React.FC<Props> = ({
 
   const [form, setForm] = useState<FormData>({
     nom: '', prenom: '', age: '', niveau: 'Baccalaureat',
-    email: '', telephone: '', message: '',
+    email: '', telephone: '', graphic: 'photoshop', message: '',
     payment: '', acceptTerms: false, acceptPrivacy: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -460,6 +466,11 @@ const InscriptionInfographie: React.FC<Props> = ({
   const [submittedRef, setSubmittedRef] = useState('');
   const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
   const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
+  const selectedGraphic = useMemo(
+    () => INFOGRAPHIE_OPTIONS.find((item) => item.value === form.graphic) ?? INFOGRAPHIE_OPTIONS[0],
+    [form.graphic],
+  );
+  const totalAmount = selectedGraphic.price;
   const defaultPaymentDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
@@ -487,6 +498,11 @@ const InscriptionInfographie: React.FC<Props> = ({
   };
 
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === 'graphic') {
+      setForm((p) => ({ ...p, graphic: e.target.value as GraphicKey }));
+      return;
+    }
+
     setForm((p) => ({ ...p, payment: e.target.value as PaymentMode }));
     clearErr('payment');
     setOnlinePaymentCompleted(false);
@@ -567,9 +583,9 @@ const InscriptionInfographie: React.FC<Props> = ({
       email: form.email,
       phone: form.telephone,
       category: 'Infographie',
-      training_label: 'Maitrise Adobe Creative Suite',
+      training_label: selectedGraphic.label,
       course_slug: 'maitrise-adobe-creative-suite',
-      amount: TRAINING_PRICE,
+      amount: totalAmount,
       payment_method: form.payment,
       payment_reference: paymentReference,
       preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
@@ -583,9 +599,9 @@ const InscriptionInfographie: React.FC<Props> = ({
           studentName: `${form.prenom.trim()} ${form.nom.trim()}`,
           reference: certificateReference,
           barcodeValue: `${certificateReference}-${paymentReference}`,
-          trainingLabel: 'Maitrise Adobe Creative Suite',
+          trainingLabel: selectedGraphic.label,
           category: 'Infographie',
-          amount: fmtAmount(TRAINING_PRICE),
+          amount: fmtAmount(totalAmount),
           paymentMode: form.payment === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
           paymentStatus: form.payment === 'online' ? 'Paye' : 'Paiement a regler au centre',
           issuedAt: new Date().toLocaleString('fr-MA'),
@@ -635,7 +651,7 @@ const InscriptionInfographie: React.FC<Props> = ({
                     {[
                       { icon: 'brush', label: 'Adobe Suite' },
                       { icon: 'schedule', label: '4 Mois' },
-                      { icon: 'payments', label: fmtAmount(TRAINING_PRICE) },
+                      { icon: 'payments', label: fmtAmount(totalAmount) },
                     ].map(({ icon, label }) => (
                       <div key={label}
                         className="flex flex-col items-center rounded-xl border border-outline-variant/40 bg-surface-container-low p-6 text-center">
@@ -744,6 +760,32 @@ const InscriptionInfographie: React.FC<Props> = ({
                         placeholder="Parlez-nous de vos projets ou de ce que vous souhaitez accomplir..." />
                     </div>
 
+                    <div>
+                      <h3 className="sans-body mb-4 px-1 font-bold text-on-surface">
+                        Formation souhaitee
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        {INFOGRAPHIE_OPTIONS.map((item) => (
+                          <label key={item.value} className="cursor-pointer">
+                            <input
+                              type="radio"
+                              name="graphic"
+                              value={item.value}
+                              checked={form.graphic === item.value}
+                              onChange={handleRadioChange}
+                              className="peer sr-only"
+                            />
+                            <div className="rounded-xl border border-outline-variant bg-white p-4 transition-all peer-checked:border-primary peer-checked:bg-primary/5">
+                              <strong className="block text-sm text-on-surface">{item.label}</strong>
+                              <span className="mt-1 block text-xs font-bold uppercase tracking-widest text-primary">
+                                {item.hours}H / {fmtAmount(item.price)}
+                              </span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Payment selection */}
                     <div>
                       <h3 className="sans-body mb-4 px-1 font-bold text-on-surface">
@@ -781,7 +823,7 @@ const InscriptionInfographie: React.FC<Props> = ({
                           <Elements stripe={stripePromise} options={stripeOptions}>
                             <StripeCardSection
                               ref={stripeCardRef}
-                              totalAmount={TRAINING_PRICE}
+                              totalAmount={totalAmount}
                               cardError={errors.card}
                               processing={submitting}
                               paymentDone={onlinePaymentCompleted}

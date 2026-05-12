@@ -1,5 +1,12 @@
 import React from 'react'
 
+const miniCatalog = {
+  langues: ['Francais 30H / 600 DH', 'Anglais 30H / 600 DH', 'Espagnol 30H / 600 DH'],
+  bureautique: ['Word 20H / 600 DH', 'Excel 20H / 500 DH', 'PowerPoint 12H / 300 DH', 'Access 16H / 400 DH'],
+  concours: ['Medecine 15H / 1000 DH', 'ENSA 12H / 800 DH', 'ENSAM 14H / 1200 DH', 'ENCG 13H / 500 DH', 'ISCAE 15H / 1200 DH', 'ENA 10H / 600 DH'],
+  infographie: ['Photoshop 30H / 1000 DH', 'Illustrator 25H / 1000 DH', 'InDesign 20H / 900 DH'],
+}
+
 const Formations = () => {
   return (
     <section className="py-32 px-8 max-w-7xl mx-auto" id="formations">
@@ -35,6 +42,13 @@ const Formations = () => {
                 </li>
               ))}
             </ul>
+            <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {miniCatalog.langues.map(item => (
+                <span key={item} className="rounded-xl bg-surface-container px-4 py-3 text-sm font-bold text-on-surface">
+                  {item}
+                </span>
+              ))}
+            </div>
             <a href="/inscriptions/langues" className="text-primary font-bold text-sm tracking-widest inline-flex items-center gap-2 group">
               EN SAVOIR PLUS
               <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
@@ -67,6 +81,18 @@ const Formations = () => {
               De la bureautique avancée à l'informatique professionnelle. Restez à la pointe avec des ateliers pratiques et des projets du monde réel.
             </p>
             <div className="space-y-4 mb-8">
+              {miniCatalog.bureautique.map(item => (
+                <div key={item} className="p-4 bg-surface-container rounded-xl border-l-4 border-primary">
+                  <h4 className="font-bold mb-1">{item}</h4>
+                  <p className="text-sm text-on-surface-variant">Atelier pratique avec exercices professionnels.</p>
+                </div>
+              ))}
+              {miniCatalog.infographie.map(item => (
+                <div key={item} className="p-4 bg-surface-container rounded-xl border-l-4 border-primary">
+                  <h4 className="font-bold mb-1">{item}</h4>
+                  <p className="text-sm text-on-surface-variant">Parcours creatif avec production de portfolio.</p>
+                </div>
+              ))}
               <div className="p-4 bg-surface-container rounded-xl border-l-4 border-primary">
                 <h4 className="font-bold mb-1">Word, Excel & PowerPoint</h4>
                 <p className="text-sm text-on-surface-variant">Maîtrisez les outils du bureau moderne.</p>
@@ -102,7 +128,13 @@ const Formations = () => {
             <p className="text-on-surface-variant text-lg leading-relaxed mb-8">
               Préparation intensive aux concours nationaux et certifications internationales. Nos simulateurs reproduisent l'environnement réel pour maximiser vos performances.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              {miniCatalog.concours.map(item => (
+                <div key={item} className="bg-surface p-4 rounded-xl text-center shadow-sm">
+                  <div className="text-primary font-bold text-lg mb-1">{item.split(' ')[0]}</div>
+                  <div className="text-[10px] uppercase tracking-tighter opacity-60">{item.replace(item.split(' ')[0], '').trim()}</div>
+                </div>
+              ))}
               {[
                 { code: 'TOEFL', label: 'Compétence linguistique' },
                 { code: 'IELTS', label: 'Standard international' },

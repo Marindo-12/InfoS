@@ -37,6 +37,45 @@ const laureatesByField = [
 
 const COLORS = ['#c2652a', '#e08850', '#f0a878', '#d8d0c8'];
 
+const COURSE_CATALOG = [
+  {
+    category: 'Bureautique',
+    items: [
+      ['Word', '20H', '600 DH'],
+      ['Excel', '20H', '500 DH'],
+      ['PowerPoint', '12H', '300 DH'],
+      ['Access', '16H', '400 DH'],
+    ],
+  },
+  {
+    category: 'Preparation aux concours',
+    items: [
+      ['Medecine', '15H', '1000 DH'],
+      ['ENSA', '12H', '800 DH'],
+      ['ENSAM', '14H', '1200 DH'],
+      ['ENCG', '13H', '500 DH'],
+      ['ISCAE', '15H', '1200 DH'],
+      ['ENA', '10H', '600 DH'],
+    ],
+  },
+  {
+    category: 'Infographie',
+    items: [
+      ['Photoshop', '30H', '1000 DH'],
+      ['Illustrator', '25H', '1000 DH'],
+      ['InDesign', '20H', '900 DH'],
+    ],
+  },
+  {
+    category: 'Langues',
+    items: [
+      ['Francais', '30H', '600 DH'],
+      ['Anglais', '30H', '600 DH'],
+      ['Espagnol', '30H', '600 DH'],
+    ],
+  },
+];
+
 const Formations = () => {
   return (
     <>
@@ -69,6 +108,31 @@ const Formations = () => {
                 expand_more
               </span>
             </div>
+          </div>
+        </section>
+
+        <section className="px-8 pb-24 max-w-7xl mx-auto">
+          <div className="mb-10">
+            <span className="text-primary tracking-[0.2em] font-bold text-xs uppercase">Catalogue officiel</span>
+            <h2 className="text-4xl md:text-5xl font-serif text-on-background mt-3">Formations, heures et tarifs</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {COURSE_CATALOG.map((group) => (
+              <article key={group.category} className="rounded-2xl border border-outline-variant bg-white p-6 shadow-sm">
+                <h3 className="font-serif text-2xl text-on-background mb-5">{group.category}</h3>
+                <div className="space-y-3">
+                  {group.items.map(([name, hours, price]) => (
+                    <div key={name} className="flex items-center justify-between gap-4 border-b border-outline-variant/40 pb-3 last:border-b-0 last:pb-0">
+                      <div>
+                        <strong className="block text-sm text-on-background">{name}</strong>
+                        <span className="text-xs font-bold uppercase tracking-widest text-primary">{hours}</span>
+                      </div>
+                      <span className="font-serif text-lg text-on-background">{price}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 

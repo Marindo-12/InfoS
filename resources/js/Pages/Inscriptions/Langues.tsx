@@ -62,39 +62,41 @@ const LANGUAGE_OPTIONS = [
   {
     value: 'francais',
     title: 'Français',
-    sub: 'Communication & DELF',
+    sub: '30H / Communication & DELF',
     flag: '🇫🇷',
-    price: '1500 DH',
+    price: '600 DH',
   },
   {
     value: 'anglais',
     title: 'Anglais Business',
-    sub: 'TOEFL & Cambridge',
+    sub: '30H / TOEFL & Cambridge',
     flag: '🇬🇧',
-    price: '1500 DH',
+    price: '600 DH',
   },
   {
-    value: 'allemand',
-    title: 'Allemand',
+    value: 'espagnol',
+    title: 'Espagnol',
     sub: 'Niveaux A1 à C1',
     flag: '🇩🇪',
-    price: '1500 DH',
+    price: '600 DH',
   },
 ];
 
 const LANGUAGE_LABELS: Record<string, string> = {
   francais: 'Français (Communication & DELF)',
   anglais: 'Anglais Business (TOEFL & Cambridge)',
+  espagnol: 'Espagnol (Conversation & grammaire)',
   allemand: 'Allemand (Niveaux A1 à C1)',
 };
 
-const TRAINING_PRICE = 1500;
+const TRAINING_PRICE = 600;
 const fmtAmount = (amount: number) => `${amount} DH`;
 
 const FLAG_URLS: Record<string, string> = {
   francais:  'https://flagcdn.com/w160/fr.png',
   allemand:  'https://flagcdn.com/w160/de.png',
   anglais:   'https://flagcdn.com/w160/gb.png',
+  espagnol:  'https://flagcdn.com/w160/es.png',
 };
 
 const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
