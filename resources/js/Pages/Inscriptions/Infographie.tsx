@@ -11,6 +11,7 @@ import {
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
 import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
+import infographielogo from '../../../../public/images/infographie.jpg'
 
 /* ═══════════════════════════════════════════════════
    TYPES
@@ -669,12 +670,12 @@ const InscriptionInfographie: React.FC<Props> = ({
                     <img
                       alt="Digital design process"
                       className="h-full w-full object-cover"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8G-jYVZmeS7NmPiHCEYldkLEhhZuUsjoObCw39FofSQAcqmWYcQJsM_5QKvfqkjd3iyIcI9pkiej_Fi-mftZm-8_nnYl4bSUulAkuhSmmBGrZyIGXTEoyp-Bu1mJIkUeOC04wPHW7Q7LUc6r2Q3F-6n6RO6bEL7uD0IPMdzduX4nS_akg_WgLvy9V4ulWZeBP58eaaUjpL0A3ItoEbn-mfwviEas3YqRedKycgRKuVp0Jg7-fvnfhJowwYeE4nVt9f7zsouBplVKG"
+                      src={infographielogo}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     <div className="absolute bottom-8 left-8">
                       <div className="flex flex-wrap gap-3">
-                        {['Photoshop', 'Illustrator', 'Figma'].map((tool) => (
+                        {['Photoshop', 'Illustrator', 'InDesign'].map((tool) => (
                           <span key={tool}
                             className="sans-body rounded-full bg-surface-bright/90 px-4 py-2 text-sm font-bold uppercase tracking-widest text-primary backdrop-blur-md">
                             {tool}
