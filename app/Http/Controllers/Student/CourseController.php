@@ -3,9 +3,16 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
+use App\Models\EnrollmentApplication;
+use App\Models\PortalNotification;
+use App\Support\EnrollmentAccess;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,6 +28,25 @@ class CourseController extends Controller
             ->orderByDesc('progress')
             ->get();
         $courseIds = $enrollments->pluck('course_id')->filter()->values();
+
+        $pendingApplications = EnrollmentApplication::query()
+            ->with('course')
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->latest()
+            ->get();
+
+        $requestedCourseIds = $pendingApplications->pluck('course_id')->filter()->values();
+        $blockedCourseIds = $courseIds->merge($requestedCourseIds)->unique()->values();
+
+        $availableCourses = Course::query()
+            ->where('status', 'active')
+            ->when($blockedCourseIds->isNotEmpty(), fn ($query) => $query->whereNotIn('id', $blockedCourseIds))
+            ->orderBy('category')
+            ->orderBy('title')
+            ->get()
+            ->map(fn (Course $course) => $this->formatAvailableCourse($course))
+            ->values();
 
         $featuredEnrollment = $enrollments->first();
         $sideEnrollments = $enrollments->slice(1)->values();
@@ -69,7 +95,89 @@ class CourseController extends Controller
             'sideCourses' => $sideEnrollments->map(fn (Enrollment $enrollment) => $this->formatEnrollment($enrollment, false))->values(),
             'weeklyMetrics' => $weeklyMetrics,
             'schedule' => $schedule,
+            'availableCourses' => $availableCourses,
+            'pendingApplications' => $pendingApplications
+                ->map(fn (EnrollmentApplication $application) => $this->formatApplication($application))
+                ->values(),
         ]);
+    }
+
+    public function storeApplication(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'course_id' => ['required', 'integer', 'exists:courses,id'],
+            'payment_method' => ['required', 'in:online,onsite'],
+            'payment_reference' => ['nullable', 'string', 'max:190'],
+            'preferred_payment_date' => ['nullable', 'date', 'after_or_equal:today'],
+        ]);
+
+        $course = Course::query()
+            ->where('status', 'active')
+            ->findOrFail($validated['course_id']);
+
+        $alreadyEnrolled = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->exists();
+
+        $alreadyRequested = EnrollmentApplication::query()
+            ->where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->exists();
+
+        if ($alreadyEnrolled || $alreadyRequested) {
+            return back()->withErrors([
+                'course_id' => 'Vous avez deja une inscription ou une demande en cours pour cette formation.',
+            ])->withInput();
+        }
+
+        $nameParts = preg_split('/\s+/', trim($user->name), 2);
+        $firstName = $nameParts[0] ?: $user->name;
+        $lastName = $nameParts[1] ?? '';
+
+        $application = DB::transaction(function () use ($course, $user, $validated, $firstName, $lastName) {
+            $application = EnrollmentApplication::create([
+                'user_id' => $user->id,
+                'course_id' => $course->id,
+                'reference' => 'INS-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => Str::lower($user->email),
+                'phone' => $user->phone,
+                'category' => $course->category,
+                'training_label' => $course->title,
+                'amount' => $course->price,
+                'payment_method' => $validated['payment_method'],
+                'payment_status' => $validated['payment_method'] === 'online' ? 'paid' : 'pending',
+                'payment_reference' => $validated['payment_reference'] ?? null,
+                'preferred_payment_date' => $validated['preferred_payment_date'] ?? null,
+                'status' => 'pending',
+                'form_data' => [
+                    'source' => 'student_portal',
+                    'existing_student' => true,
+                ],
+            ]);
+
+            foreach (EnrollmentAccess::adminUsers() as $admin) {
+                PortalNotification::create([
+                    'user_id' => $admin->id,
+                    'category' => 'application',
+                    'title' => 'Nouvelle demande d inscription',
+                    'message' => $user->name.' demande a rejoindre '.$course->title.'.',
+                    'icon' => 'how_to_reg',
+                    'action_label' => 'Voir la demande',
+                    'action_url' => route('admin.applications', absolute: false),
+                    'published_at' => now(),
+                ]);
+            }
+
+            return $application;
+        });
+
+        return back()->with('success', 'Votre demande '.$application->reference.' a ete envoyee a l administration.');
     }
 
     private function formatEnrollment(Enrollment $enrollment, bool $featured): array
@@ -103,6 +211,39 @@ class CourseController extends Controller
                 'Langues' => '#3b82f6',
                 default => '#ff6b2b',
             },
+        ];
+    }
+
+    private function formatAvailableCourse(Course $course): array
+    {
+        return [
+            'id' => $course->id,
+            'category' => $course->category,
+            'title' => $course->title,
+            'description' => $course->description,
+            'price' => number_format((float) $course->price, 0, ',', ' ').' DH',
+            'amount' => (float) $course->price,
+            'duration' => $course->duration_weeks
+                ? $course->duration_weeks.' semaines'
+                : (($course->duration_hours ?? 0).'h'),
+            'startsAt' => $course->starts_at?->locale('fr')->translatedFormat('d F Y'),
+            'level' => $course->level,
+            'capacity' => $course->capacity,
+        ];
+    }
+
+    private function formatApplication(EnrollmentApplication $application): array
+    {
+        return [
+            'id' => $application->id,
+            'reference' => $application->reference,
+            'course' => $application->course?->title ?? $application->training_label,
+            'category' => $application->category,
+            'amount' => number_format((float) $application->amount, 0, ',', ' ').' DH',
+            'paymentMethod' => $application->payment_method,
+            'paymentStatus' => $application->payment_status,
+            'status' => $application->status,
+            'createdAt' => optional($application->created_at)->format('d/m/Y'),
         ];
     }
 

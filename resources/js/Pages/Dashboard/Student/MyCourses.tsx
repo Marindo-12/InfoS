@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { FormEvent, useMemo } from 'react';
 import {
   Area,
   AreaChart,
@@ -47,6 +48,31 @@ type Stat = {
   sub: string;
 };
 
+type AvailableCourse = {
+  id: number;
+  category: string;
+  title: string;
+  description: string | null;
+  price: string;
+  amount: number;
+  duration: string;
+  startsAt: string | null;
+  level: string | null;
+  capacity: number | null;
+};
+
+type PendingApplication = {
+  id: number;
+  reference: string;
+  course: string;
+  category: string;
+  amount: string;
+  paymentMethod: 'online' | 'onsite';
+  paymentStatus: 'paid' | 'pending';
+  status: 'pending' | 'approved' | string;
+  createdAt: string;
+};
+
 type PageProps = {
   auth: {
     user: {
@@ -60,6 +86,12 @@ type PageProps = {
   sideCourses: CourseCard[];
   weeklyMetrics: WeeklyMetric[];
   schedule: ScheduleItem[];
+  availableCourses: AvailableCourse[];
+  pendingApplications: PendingApplication[];
+  flash?: {
+    success?: string;
+    warning?: string;
+  };
 };
 
 function formatMetric(value: number | string | undefined) {
@@ -77,10 +109,29 @@ function statNumber(value: string) {
 
 export default function MyCourses() {
   const { props } = usePage<PageProps>();
-  const { stats, featuredCourse, sideCourses, weeklyMetrics, schedule } = props;
+  const { stats, featuredCourse, sideCourses, weeklyMetrics, schedule, availableCourses, pendingApplications } = props;
   const firstName = props.auth.user.name.split(' ')[0];
   const totalHours = weeklyMetrics.reduce((sum, item) => sum + Number(item.hours ?? 0), 0);
   const totalSessions = weeklyMetrics.reduce((sum, item) => sum + Number(item.sessions ?? 0), 0);
+  const { data, setData, post, processing, errors, reset } = useForm({
+    course_id: availableCourses[0]?.id ? String(availableCourses[0].id) : '',
+    payment_method: 'onsite',
+    payment_reference: '',
+    preferred_payment_date: '',
+  });
+  const selectedCourse = useMemo(
+    () => availableCourses.find((course) => String(course.id) === data.course_id) ?? availableCourses[0] ?? null,
+    [availableCourses, data.course_id],
+  );
+
+  const submitApplication = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    post(route('student.courses.applications.store'), {
+      preserveScroll: true,
+      onSuccess: () => reset('payment_reference', 'preferred_payment_date'),
+    });
+  };
 
   return (
     <AuthenticatedLayout header={<h2>Mes formations</h2>}>
@@ -120,6 +171,122 @@ export default function MyCourses() {
               </article>
             );
           })}
+        </section>
+
+        <section className="sc-enrollment-panel" aria-label="Nouvelle demande d'inscription">
+          <div className="sc-enrollment-copy">
+            <span className="sc-kicker">Nouvelle inscription</span>
+            <h2>Rejoindre une autre formation</h2>
+            <p>
+              Choisissez une formation ouverte par le centre, indiquez le mode de paiement, puis envoyez
+              la demande a l'administration pour validation.
+            </p>
+
+            {pendingApplications.length > 0 && (
+              <div className="sc-pending-list">
+                {pendingApplications.map((application) => (
+                  <article key={application.id}>
+                    <div>
+                      <strong>{application.course}</strong>
+                      <span>{application.reference} / {application.createdAt}</span>
+                    </div>
+                    <small>{application.status === 'approved' ? 'Validee' : 'En attente'}</small>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <form className="sc-enrollment-form" onSubmit={submitApplication}>
+            {props.flash?.success && <div className="sc-form-alert sc-form-alert--success">{props.flash.success}</div>}
+            {props.flash?.warning && <div className="sc-form-alert">{props.flash.warning}</div>}
+
+            {availableCourses.length > 0 ? (
+              <>
+                <div className="sc-field">
+                  <label htmlFor="course_id">Formation disponible</label>
+                  <select
+                    id="course_id"
+                    value={data.course_id}
+                    onChange={(event) => setData('course_id', event.target.value)}
+                  >
+                    {availableCourses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.category} - {course.title} - {course.price}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.course_id && <span className="sc-error">{errors.course_id}</span>}
+                </div>
+
+                {selectedCourse && (
+                  <article className="sc-selected-course">
+                    <span>{selectedCourse.category}</span>
+                    <h3>{selectedCourse.title}</h3>
+                    <p>{selectedCourse.description ?? 'Details a confirmer avec l administration.'}</p>
+                    <div>
+                      <strong>{selectedCourse.price}</strong>
+                      <small>{selectedCourse.duration}</small>
+                      <small>{selectedCourse.startsAt ? `Debut ${selectedCourse.startsAt}` : 'Date a confirmer'}</small>
+                    </div>
+                  </article>
+                )}
+
+                <div className="sc-payment-choice" role="group" aria-label="Type de paiement">
+                  <button
+                    type="button"
+                    className={data.payment_method === 'onsite' ? 'is-selected' : ''}
+                    onClick={() => setData('payment_method', 'onsite')}
+                  >
+                    <span>Paiement au centre</span>
+                    <small>Validation apres reglement sur place</small>
+                  </button>
+                  <button
+                    type="button"
+                    className={data.payment_method === 'online' ? 'is-selected' : ''}
+                    onClick={() => setData('payment_method', 'online')}
+                  >
+                    <span>Paiement deja effectue</span>
+                    <small>Reference de paiement facultative</small>
+                  </button>
+                </div>
+                {errors.payment_method && <span className="sc-error">{errors.payment_method}</span>}
+
+                {data.payment_method === 'onsite' ? (
+                  <div className="sc-field">
+                    <label htmlFor="preferred_payment_date">Date souhaitee de paiement</label>
+                    <input
+                      id="preferred_payment_date"
+                      type="date"
+                      value={data.preferred_payment_date}
+                      onChange={(event) => setData('preferred_payment_date', event.target.value)}
+                    />
+                    {errors.preferred_payment_date && <span className="sc-error">{errors.preferred_payment_date}</span>}
+                  </div>
+                ) : (
+                  <div className="sc-field">
+                    <label htmlFor="payment_reference">Reference de paiement</label>
+                    <input
+                      id="payment_reference"
+                      type="text"
+                      value={data.payment_reference}
+                      onChange={(event) => setData('payment_reference', event.target.value)}
+                      placeholder="Ex: PAY-2026-001"
+                    />
+                    {errors.payment_reference && <span className="sc-error">{errors.payment_reference}</span>}
+                  </div>
+                )}
+
+                <button className="sc-submit-button" type="submit" disabled={processing || !data.course_id}>
+                  {processing ? 'Envoi en cours...' : 'Envoyer la demande'}
+                </button>
+              </>
+            ) : (
+              <div className="sc-no-course">
+                Toutes les formations ouvertes sont deja liees a votre dossier ou a une demande en cours.
+              </div>
+            )}
+          </form>
         </section>
 
         {featuredCourse ? (
@@ -528,6 +695,269 @@ export default function MyCourses() {
           margin: 0;
           color: var(--sc-muted);
           font-size: 0.78rem;
+        }
+
+        .sc-enrollment-panel {
+          display: grid;
+          grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+          gap: 28px;
+          border: 1px solid rgba(216, 208, 200, 0.7);
+          border-radius: 24px;
+          background: var(--sc-card);
+          box-shadow: 0 2px 16px rgba(58, 48, 42, 0.04);
+          padding: clamp(22px, 4vw, 34px);
+        }
+
+        .a-root--dark .sc-enrollment-panel {
+          border-color: rgba(255, 255, 255, .08);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+        }
+
+        .sc-enrollment-copy h2,
+        .sc-selected-course h3 {
+          margin: 8px 0 0;
+          color: var(--sc-text);
+          font-family: 'EB Garamond', serif;
+          font-weight: 600;
+          line-height: 1.05;
+        }
+
+        .sc-enrollment-copy h2 {
+          font-size: clamp(2rem, 4vw, 3.1rem);
+        }
+
+        .sc-enrollment-copy p,
+        .sc-selected-course p {
+          margin: 12px 0 0;
+          color: var(--sc-muted);
+          line-height: 1.7;
+        }
+
+        .sc-pending-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 24px;
+        }
+
+        .sc-pending-list article {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          border: 1px solid rgba(216, 208, 200, 0.65);
+          border-radius: 12px;
+          background: var(--sc-low);
+          padding: 14px;
+        }
+
+        .sc-pending-list strong,
+        .sc-pending-list span,
+        .sc-pending-list small {
+          display: block;
+        }
+
+        .sc-pending-list strong {
+          color: var(--sc-text);
+          font-size: .86rem;
+        }
+
+        .sc-pending-list span {
+          margin-top: 3px;
+          color: var(--sc-muted);
+          font-size: .72rem;
+        }
+
+        .sc-pending-list small {
+          border-radius: 999px;
+          background: var(--sc-primary-soft);
+          padding: 6px 10px;
+          color: var(--sc-primary);
+          font-size: .62rem;
+          font-weight: 900;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .sc-enrollment-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          min-width: 0;
+        }
+
+        .sc-field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .sc-field label {
+          color: var(--sc-text);
+          font-size: .68rem;
+          font-weight: 900;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+        }
+
+        .sc-field select,
+        .sc-field input {
+          width: 100%;
+          min-height: 46px;
+          border: 1px solid var(--sc-border);
+          border-radius: 10px;
+          background: var(--sc-low);
+          color: var(--sc-text);
+          font: inherit;
+          font-size: .88rem;
+          outline: none;
+          padding: 0 14px;
+          transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .sc-field select:focus,
+        .sc-field input:focus {
+          border-color: var(--sc-primary);
+          box-shadow: 0 0 0 3px rgba(194, 101, 42, .12);
+        }
+
+        .sc-selected-course {
+          border: 1px solid rgba(216, 208, 200, 0.65);
+          border-radius: 16px;
+          background: var(--sc-low);
+          padding: 18px;
+        }
+
+        .sc-selected-course > span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: var(--sc-primary-soft);
+          padding: 6px 10px;
+          color: var(--sc-primary);
+          font-size: .62rem;
+          font-weight: 900;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+        }
+
+        .sc-selected-course h3 {
+          font-size: 1.65rem;
+        }
+
+        .sc-selected-course div {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 16px;
+        }
+
+        .sc-selected-course strong,
+        .sc-selected-course small {
+          border-radius: 999px;
+          background: var(--sc-card);
+          padding: 8px 11px;
+          color: var(--sc-text);
+          font-size: .78rem;
+          font-weight: 900;
+        }
+
+        .sc-selected-course small {
+          color: var(--sc-muted);
+        }
+
+        .sc-payment-choice {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .sc-payment-choice button {
+          min-height: 86px;
+          border: 1px solid var(--sc-border);
+          border-radius: 14px;
+          background: var(--sc-low);
+          color: var(--sc-text);
+          cursor: pointer;
+          font: inherit;
+          padding: 14px;
+          text-align: left;
+          transition: border-color .2s ease, background .2s ease, transform .2s ease;
+        }
+
+        .sc-payment-choice button:hover,
+        .sc-payment-choice button.is-selected {
+          border-color: var(--sc-primary);
+          background: var(--sc-primary-soft);
+          transform: translateY(-1px);
+        }
+
+        .sc-payment-choice span,
+        .sc-payment-choice small {
+          display: block;
+        }
+
+        .sc-payment-choice span {
+          font-size: .86rem;
+          font-weight: 900;
+        }
+
+        .sc-payment-choice small {
+          margin-top: 6px;
+          color: var(--sc-muted);
+          font-size: .72rem;
+          line-height: 1.45;
+        }
+
+        .sc-submit-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 48px;
+          border: none;
+          border-radius: 10px;
+          background: var(--sc-primary);
+          color: #ffffff;
+          cursor: pointer;
+          font: inherit;
+          font-size: .76rem;
+          font-weight: 900;
+          letter-spacing: .12em;
+          padding: 0 18px;
+          text-transform: uppercase;
+          transition: opacity .2s ease, transform .2s ease;
+        }
+
+        .sc-submit-button:hover:not(:disabled) {
+          transform: translateY(-1px);
+        }
+
+        .sc-submit-button:disabled {
+          cursor: not-allowed;
+          opacity: .58;
+        }
+
+        .sc-form-alert,
+        .sc-no-course {
+          border: 1px solid rgba(194, 101, 42, .28);
+          border-radius: 12px;
+          background: var(--sc-primary-soft);
+          color: var(--sc-text);
+          font-size: .84rem;
+          font-weight: 800;
+          line-height: 1.5;
+          padding: 14px;
+        }
+
+        .sc-form-alert--success {
+          border-color: rgba(15, 157, 112, .32);
+          background: rgba(15, 157, 112, .12);
+        }
+
+        .sc-error {
+          color: #dc2626;
+          font-size: .76rem;
+          font-weight: 800;
         }
 
         .sc-main-grid {
@@ -1019,7 +1449,8 @@ export default function MyCourses() {
 
         @media (max-width: 1180px) {
           .sc-main-grid,
-          .sc-metrics-grid {
+          .sc-metrics-grid,
+          .sc-enrollment-panel {
             grid-template-columns: 1fr;
           }
 
@@ -1070,7 +1501,8 @@ export default function MyCourses() {
           }
 
           .sc-meta-grid,
-          .sc-secondary-grid {
+          .sc-secondary-grid,
+          .sc-payment-choice {
             grid-template-columns: 1fr;
           }
 

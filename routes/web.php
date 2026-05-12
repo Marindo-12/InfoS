@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified', 'login.code'])->prefix('student')->name('
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+    Route::post('/courses/applications', [CourseController::class, 'storeApplication'])->name('courses.applications.store');
 
     Route::get('/progress', function () {
         return Inertia::render('Student/Progress');
