@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEvent, useMemo } from 'react';
+import { useState } from 'react';
+import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
 import {
   Area,
   AreaChart,
@@ -107,18 +109,28 @@ function statNumber(value: string) {
   };
 }
 
+const secureRef = (prefix: string) => {
+  const bytes = new Uint32Array(2);
+  crypto.getRandomValues(bytes);
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${bytes[0]
+    .toString(36).slice(0, 4).toUpperCase()}${bytes[1].toString(36).slice(0, 4).toUpperCase()}`;
+};
+
 export default function MyCourses() {
   const { props } = usePage<PageProps>();
   const { stats, featuredCourse, sideCourses, weeklyMetrics, schedule, availableCourses, pendingApplications } = props;
   const firstName = props.auth.user.name.split(' ')[0];
   const totalHours = weeklyMetrics.reduce((sum, item) => sum + Number(item.hours ?? 0), 0);
   const totalSessions = weeklyMetrics.reduce((sum, item) => sum + Number(item.sessions ?? 0), 0);
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset, transform } = useForm({
     course_id: availableCourses[0]?.id ? String(availableCourses[0].id) : '',
     payment_method: 'onsite',
     payment_reference: '',
     preferred_payment_date: '',
+    certificate_reference: '',
   });
+  const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
+  const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
   const selectedCourse = useMemo(
     () => availableCourses.find((course) => String(course.id) === data.course_id) ?? availableCourses[0] ?? null,
     [availableCourses, data.course_id],
@@ -126,16 +138,42 @@ export default function MyCourses() {
 
   const submitApplication = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!selectedCourse) return;
+
+    const certificateReference = secureRef('PAYCERT');
+    const paymentReference = data.payment_reference || secureRef('PAY');
+    transform((current) => ({
+      ...current,
+      certificate_reference: certificateReference,
+      payment_reference: paymentReference,
+    }));
 
     post(route('student.courses.applications.store'), {
       preserveScroll: true,
-      onSuccess: () => reset('payment_reference', 'preferred_payment_date'),
+      onSuccess: () => {
+        setPaymentCertificate({
+          studentName: props.auth.user.name,
+          reference: certificateReference,
+          barcodeValue: `${certificateReference}-${paymentReference}`,
+          trainingLabel: selectedCourse.title,
+          category: selectedCourse.category,
+          amount: selectedCourse.price,
+          paymentMode: data.payment_method === 'online' ? 'Paiement en ligne' : 'Paiement presentiel',
+          paymentStatus: data.payment_method === 'online' ? 'Paye' : 'Paiement a regler au centre',
+          issuedAt: new Date().toLocaleString('fr-MA'),
+        });
+        setShowPaymentCertificate(true);
+        reset('payment_reference', 'preferred_payment_date', 'certificate_reference');
+      },
     });
   };
 
   return (
     <AuthenticatedLayout header={<h2>Mes formations</h2>}>
       <Head title="Mes formations" />
+      {showPaymentCertificate && paymentCertificate && (
+        <PaymentCertificate certificate={paymentCertificate} onClose={() => setShowPaymentCertificate(false)} />
+      )}
 
       <main className="student-courses-page">
         <header className="student-courses-hero">

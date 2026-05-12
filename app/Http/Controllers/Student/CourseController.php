@@ -111,6 +111,7 @@ class CourseController extends Controller
             'payment_method' => ['required', 'in:online,onsite'],
             'payment_reference' => ['nullable', 'string', 'max:190'],
             'preferred_payment_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'certificate_reference' => ['nullable', 'string', 'max:190'],
         ]);
 
         $course = Course::query()
@@ -154,6 +155,7 @@ class CourseController extends Controller
                 'payment_status' => $validated['payment_method'] === 'online' ? 'paid' : 'pending',
                 'payment_reference' => $validated['payment_reference'] ?? null,
                 'preferred_payment_date' => $validated['preferred_payment_date'] ?? null,
+                'certificate_reference' => $validated['certificate_reference'] ?? null,
                 'status' => 'pending',
                 'form_data' => [
                     'source' => 'student_portal',
