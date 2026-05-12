@@ -30,247 +30,113 @@ export default function Edit({
     <Layout
       header={
         isAdmin ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Manrope,sans-serif' }}>
-            <span style={{ fontSize: '.8rem', color: '#b0a49a' }}>Administration</span>
-            <span style={{ color: '#b0a49a', fontSize: '.8rem' }}>/</span>
-            <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#1a1612' }}>Profil</span>
+          <div className="flex items-center gap-2 font-['Manrope',sans-serif]">
+            <span className="text-[.8rem] text-[#b0a49a]">Administration</span>
+            <span className="text-[#b0a49a] text-[.8rem]">/</span>
+            <span className="text-[.82rem] font-bold text-[#1a1612]">Profil</span>
           </div>
-        ) : <h2>Mon Profil</h2>
+        ) : (
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">Mon Profil</h2>
+        )
       }
     >
       <Head title="Profil" />
 
-      <main className={`prof-page ${isAdmin ? 'prof-page--admin' : ''}`}>
-        <section className="prof-hero">
+      <main
+        className={`
+          flex flex-col gap-5 font-['Manrope',sans-serif] w-full min-w-0 box-border min-h-[calc(100vh-64px)]
+          ${isAdmin
+            ? `
+              gap-[26px] px-[clamp(18px,4vw,48px)] py-[42px_0_58px] 
+              bg-[#faf5ee] bg-[radial-gradient(rgba(216,208,200,.72)_0.6px,transparent_0.6px)] bg-[length:24px_24px] 
+              text-[#3a302a]
+              [.al-dark_&]:bg-[#14110f] [.al-dark_&]:text-[#f8efe5] 
+              [.al-dark_&]:bg-[radial-gradient(rgba(210,194,181,.12)_0.6px,transparent_0.6px)]
+            `
+            : `
+              [.a-root--dark_&]:text-[#e5e2e1]
+            `
+          }
+        `}
+      >
+        {/* Hero Section */}
+        <section className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
           <div>
-            <p className="prof-kicker">{isAdmin ? 'Profil administrateur' : 'Espace personnel'}</p>
-            <h1>{user.name}</h1>
-            <p>
+            <p className="text-[#c2652a] dark:text-[#ff6b2b] text-[.72rem] font-black uppercase tracking-[.16em] mb-2.5
+              [.al-dark_&]:text-[#f0a878]">
+              {isAdmin ? 'Profil administrateur' : 'Espace personnel'}
+            </p>
+            <h1 className="font-['EB_Garamond',serif] text-[clamp(3rem,6vw,5.6rem)] font-semibold leading-[.92] m-0">
+              {user.name}
+            </h1>
+            <p className="text-[#605850] text-[.95rem] font-bold leading-relaxed mt-4 max-w-3xl
+              [.al-dark_&]:text-[#d5c8bc]">
               {isAdmin
-                ? 'Gerez vos informations administrateur, votre securite et vos coordonnees depuis les donnees reelles du compte.'
-                : 'Gardez vos informations personnelles a jour pour vos formations, paiements et notifications.'}
+                ? 'Gérez vos informations administrateur, votre sécurité et vos coordonnées depuis les données réelles du compte.'
+                : 'Gardez vos informations personnelles à jour pour vos formations, paiements et notifications.'}
             </p>
           </div>
 
-          <div className="prof-identity-card">
-            <div className="prof-avatar">
-              {user.avatar_url ? <img src={user.avatar_url} alt={user.name} /> : initials}
+          {/* Identity Card */}
+          <div className="flex items-center gap-3.5 bg-white border border-[rgba(216,208,200,.72)] rounded-2xl shadow-[0_2px_16px_rgba(58,48,42,.045)] p-4 md:p-5 flex-shrink-0 min-w-[min(360px,100%)] w-full md:w-auto
+            [.al-dark_&]:bg-[#241f1a] [.al-dark_&]:border-white/10 [.al-dark_&]:shadow-black/20
+            [.a-root--dark_&]:bg-[#201f1f] [.a-root--dark_&]:border-white/10 [.a-root--dark_&]:shadow-black/20">
+            <div className="w-[58px] h-[58px] rounded-xl bg-gradient-to-br from-[#c2652a] to-[#e8915a] flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden">
+              {user.avatar_url ? <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" /> : initials}
             </div>
             <div>
-              <span>{isAdmin ? 'Administrateur' : 'Etudiant'}</span>
-              <strong>{user.email}</strong>
-              <small>{user.phone || user.city || 'Coordonnees a completer'}</small>
+              <span className="block text-[#c2652a] text-[.68rem] font-black uppercase tracking-[.12em]
+                [.al-dark_&]:text-[#f0a878] [.a-root--dark_&]:text-[#ffb68e]">
+                {isAdmin ? 'Administrateur' : 'Étudiant'}
+              </span>
+              <strong className="block text-[#3a302a] text-[.9rem] mt-1 break-words
+                [.al-dark_&]:text-[#f8efe5] [.a-root--dark_&]:text-[#e5e2e1]">{user.email}</strong>
+              <small className="block text-[#605850] text-[.78rem] mt-1 [.a-root--dark_&]:text-[#dbc1b5]
+                [.al-dark_&]:text-[#d5c8bc]">{user.phone || user.city || 'Coordonnées à compléter'}</small>
             </div>
           </div>
         </section>
 
-        <section className="prof-summary" aria-label="Resume du profil">
+        {/* Summary */}
+        <section className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3.5" aria-label="Résumé du profil">
           {profileSummary.map(item => (
-            <article key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <small>{item.sub}</small>
+            <article
+              key={item.label}
+              className="bg-white border border-[rgba(216,208,200,.72)] rounded-xl shadow-[0_2px_16px_rgba(58,48,42,.045)] p-5
+                [.al-dark_&]:bg-[#241f1a] [.al-dark_&]:border-white/10 [.al-dark_&]:shadow-black/20
+                [.a-root--dark_&]:bg-[#201f1f] [.a-root--dark_&]:border-white/10 [.a-root--dark_&]:shadow-black/20"
+            >
+              <span className="block text-[#605850] text-[.68rem] font-black uppercase tracking-[.1em]
+                [.al-dark_&]:text-[#d5c8bc] [.a-root--dark_&]:text-[#dbc1b5]">{item.label}</span>
+              <strong className="block font-['EB_Garamond',serif] text-4xl font-semibold leading-none mt-3">{item.value}</strong>
+              <small className="block text-[#605850] text-[.78rem] mt-2
+                [.al-dark_&]:text-[#d5c8bc] [.a-root--dark_&]:text-[#dbc1b5]">{item.sub}</small>
             </article>
           ))}
         </section>
 
-        <div className="prof-card">
+        {/* Profile Form Card */}
+        <div className="bg-white rounded-2xl border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden
+          [.al-dark_&]:bg-[#241f1a] [.al-dark_&]:border-white/10 [.al-dark_&]:shadow-black/20
+          [.a-root--dark_&]:bg-[#201f1f] [.a-root--dark_&]:border-white/10 [.a-root--dark_&]:shadow-black/20">
           <UpdateProfileInformationForm 
-                mustVerifyEmail={mustVerifyEmail}
-                status={status}
+            mustVerifyEmail={mustVerifyEmail}
+            status={status}
           />
         </div>
 
-        <div className="prof-card">
+        {/* Password Form Card */}
+        <div className="bg-white rounded-2xl border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden
+          [.al-dark_&]:bg-[#241f1a] [.al-dark_&]:border-white/10 [.al-dark_&]:shadow-black/20
+          [.a-root--dark_&]:bg-[#201f1f] [.a-root--dark_&]:border-white/10 [.a-root--dark_&]:shadow-black/20">
           <UpdatePasswordForm />
         </div>
       </main>
 
+      {/* Minimal CSS for fonts only */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-
-        .prof-page {
-          display: flex; flex-direction: column; gap: 20px;
-          font-family: 'Manrope', sans-serif;
-          width: 100%; min-width: 0;
-          box-sizing: border-box;
-          min-height: calc(100vh - 64px);
-        }
-        .prof-page *, .prof-page *::before, .prof-page *::after { box-sizing: border-box; }
-
-        .prof-page--admin {
-          --prof-bg: #faf5ee;
-          --prof-surface: #ffffff;
-          --prof-soft: #f6f0e8;
-          --prof-line: rgba(216,208,200,.72);
-          --prof-text: #3a302a;
-          --prof-muted: #605850;
-          --prof-primary: #c2652a;
-          gap: 26px;
-          padding: 42px clamp(18px, 4vw, 48px) 58px;
-          background-color: var(--prof-bg);
-          background-image: radial-gradient(rgba(216, 208, 200, .72) .6px, transparent .6px);
-          background-size: 24px 24px;
-          color: var(--prof-text);
-        }
-
-        .prof-card {
-          background: #fff;
-          border-radius: 20px;
-          border: 1px solid rgba(0,0,0,0.07);
-          box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-          overflow: hidden;
-        }
-        .prof-page--admin .prof-card {
-          background: var(--prof-surface);
-          border-color: var(--prof-line);
-          border-radius: 14px;
-          box-shadow: 0 2px 16px rgba(58,48,42,.045);
-        }
-        .prof-card--danger { border-color: rgba(239,68,68,0.15); }
-
-        .prof-hero {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: 24px;
-        }
-        .prof-kicker {
-          color: var(--prof-primary, #ff6b2b);
-          font-size: .72rem;
-          font-weight: 900;
-          letter-spacing: .16em;
-          margin: 0 0 10px;
-          text-transform: uppercase;
-        }
-        .prof-hero h1 {
-          font-family: 'EB Garamond', serif;
-          font-size: clamp(3rem, 6vw, 5.6rem);
-          font-weight: 600;
-          line-height: .92;
-          margin: 0;
-        }
-        .prof-hero p:not(.prof-kicker) {
-          color: var(--prof-muted, #605850);
-          font-size: .95rem;
-          font-weight: 700;
-          line-height: 1.65;
-          margin: 18px 0 0;
-          max-width: 760px;
-        }
-        .prof-identity-card {
-          align-items: center;
-          background: var(--prof-surface, #fff);
-          border: 1px solid var(--prof-line, rgba(216,208,200,.72));
-          border-radius: 14px;
-          box-shadow: 0 2px 16px rgba(58,48,42,.045);
-          display: flex;
-          flex-shrink: 0;
-          gap: 14px;
-          min-width: min(360px, 100%);
-          padding: 18px;
-        }
-        .prof-avatar {
-          align-items: center;
-          background: linear-gradient(135deg, #c2652a, #e8915a);
-          border-radius: 12px;
-          color: #fff;
-          display: flex;
-          flex-shrink: 0;
-          font-weight: 900;
-          height: 58px;
-          justify-content: center;
-          overflow: hidden;
-          width: 58px;
-        }
-        .prof-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .prof-identity-card span {
-          color: var(--prof-primary, #c2652a);
-          display: block;
-          font-size: .68rem;
-          font-weight: 900;
-          letter-spacing: .12em;
-          text-transform: uppercase;
-        }
-        .prof-identity-card strong {
-          color: var(--prof-text, #3a302a);
-          display: block;
-          font-size: .9rem;
-          margin-top: 4px;
-          word-break: break-word;
-        }
-        .prof-identity-card small {
-          color: var(--prof-muted, #605850);
-          display: block;
-          font-size: .78rem;
-          margin-top: 4px;
-        }
-        .prof-summary {
-          display: grid;
-          gap: 14px;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        }
-        .prof-summary article {
-          background: var(--prof-surface, #fff);
-          border: 1px solid var(--prof-line, rgba(216,208,200,.72));
-          border-radius: 12px;
-          box-shadow: 0 2px 16px rgba(58,48,42,.045);
-          padding: 20px;
-        }
-        .prof-summary span {
-          color: var(--prof-muted, #605850);
-          display: block;
-          font-size: .68rem;
-          font-weight: 900;
-          letter-spacing: .1em;
-          text-transform: uppercase;
-        }
-        .prof-summary strong {
-          display: block;
-          font-family: 'EB Garamond', serif;
-          font-size: 2rem;
-          font-weight: 600;
-          line-height: 1;
-          margin-top: 12px;
-        }
-        .prof-summary small {
-          color: var(--prof-muted, #605850);
-          display: block;
-          font-size: .78rem;
-          margin-top: 8px;
-        }
-
-        .a-root--dark .prof-page { color: #e5e2e1; }
-        .a-root--dark .prof-card {
-          background: #201f1f;
-          border-color: rgba(255,255,255,.08);
-          box-shadow: 0 12px 32px rgba(0,0,0,.24);
-        }
-        .a-root--dark .prof-card--danger { border-color: rgba(255,180,171,.22); }
-        .al-root.al-dark .prof-page--admin {
-          --prof-bg: #14110f;
-          --prof-surface: #241f1a;
-          --prof-soft: #1f1a16;
-          --prof-line: rgba(210,194,181,.16);
-          --prof-text: #f8efe5;
-          --prof-muted: #d5c8bc;
-          --prof-primary: #f0a878;
-          background-image: radial-gradient(rgba(210, 194, 181, .12) .6px, transparent .6px);
-        }
-        .al-root.al-dark .prof-card,
-        .al-root.al-dark .prof-identity-card,
-        .al-root.al-dark .prof-summary article {
-          background: var(--prof-surface);
-          border-color: var(--prof-line);
-          box-shadow: 0 12px 32px rgba(0,0,0,.22);
-        }
-
-        @media (max-width: 900px) {
-          .prof-page--admin { padding: 30px 16px 44px; }
-          .prof-hero { align-items: flex-start; flex-direction: column; }
-          .prof-identity-card { width: 100%; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
       `}</style>
     </Layout>
   );
