@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react'
-import { PropsWithChildren, ReactNode, useState, useEffect } from 'react'
+import { PropsWithChildren, ReactNode, useState, useEffect, useRef } from 'react'
 import logo from '../../../public/infos-logo.png'
 import { Settings,Calendar,BookOpen } from 'lucide-react'
 
@@ -109,6 +109,7 @@ export default function Authenticated({
   const [scrolled, setScrolled] = useState(false)
   const [windowWidth, setWindowWidth] = useState(0)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const notificationsRef = useRef<HTMLDivElement | null>(null)
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window === 'undefined') return false
     const saved = window.localStorage.getItem('student-dashboard-theme')
@@ -155,6 +156,22 @@ export default function Authenticated({
     window.localStorage.setItem('student-dashboard-theme', darkMode ? 'dark' : 'light')
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
+
+  useEffect(() => {
+    if (!notificationsOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null
+      if (target && notificationsRef.current?.contains(target)) {
+        return
+      }
+
+      setNotificationsOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [notificationsOpen])
 
   return (
     <>
@@ -681,7 +698,7 @@ export default function Authenticated({
               >
                 <Settings size={18} />
               </Link>
-              <div className="a-notif-wrap">
+              <div className="a-notif-wrap" ref={notificationsRef}>
                 <button
                   className={`a-tb-btn flex ${notificationsOpen ? 'a-tb-btn--active' : ''}`}
                   aria-label="Notifications"
