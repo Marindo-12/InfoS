@@ -11,6 +11,7 @@ import {
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
 import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
+import concoursimg from '../../../../public/images/concours.png'
 
 /* ═══════════════════════════════════════════════════
    TYPES
@@ -682,7 +683,7 @@ const InscriptionConcours: React.FC<Props> = ({
                 <img
                   alt="Etudiants concentres etudiant ensemble dans une bibliotheque moderne"
                   className="relative aspect-[4/5] w-full rounded-2xl border border-white/20 object-cover shadow-2xl"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB3ECRI4li5jd1PtEYTRLeI3RmLizSfZEXYfkS6vVODxHskqKtBKrcXFCfLgIZpAXwuxwakur-i_dg1vhYsaKIla256OxVlS8t8qxWRK02iH3OGSrefrvHRUMzCpdIcBUYBAdngraJFtEsjtBHJnZ4gF5S7nBBuHxarOJyKq4gWt9rWnJq5JhH3ia1Uv-zpdWt1hy-Gd7YJDGVh7s-Rt0S49g9CcDbodJxd8y8nDGnjarm2zcZcFW4ZOH-N1epejrQm-F-uzlEMi16"
+                  src={concoursimg}
                 />
                 {/* Floating quote card — from original v1 */}
                 <div className="absolute bottom-8 -left-8 hidden max-w-[200px] rounded-xl border border-outline-variant/40 bg-surface-bright p-6 shadow-xl md:block">
