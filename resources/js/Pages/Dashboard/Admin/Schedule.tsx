@@ -580,6 +580,16 @@ export default function AdminSchedule() {
         .adp-stats span { color:#78706a; font-size:.78rem; }
         .adp-stats article > div:not(.adp-avatars) { height:7px; margin-top:20px; background:#ece6dc; border-radius:999px; overflow:hidden; }
         .adp-stats i { display:block; height:100%; background:#c2652a; border-radius:999px; }
+        .dark .adp-stats article { background:#1b1613; border-color:rgba(240,232,222,.12); box-shadow:0 8px 24px rgba(0,0,0,.32); }
+        .dark .adp-stats p { color:#d1c2b4; }
+        .dark .adp-stats strong { color:#f8efe5; }
+        .dark .adp-stats span { color:#c9b8a7; }
+        .dark .adp-stats article > div:not(.adp-avatars) { background:#2d241f; }
+        .dark .adp-avatars b,.dark .adp-avatars em { border-color:#211b16; }
+        .dark .adp-avatars b:first-child { background:#d47c45; }
+        .dark .adp-avatars b:nth-child(2) { background:#b65d2a; }
+        .dark .adp-avatars b:nth-child(3) { background:#8a3d2e; }
+        .dark .adp-avatars em { background:#2b241f; }
         .adp-avatars { display:flex; margin-top:18px; }
         .adp-avatars b,.adp-avatars em { width:32px; height:32px; border-radius:999px; border:2px solid #f6f0e8; margin-left:-6px; background:#e08850; }
         .adp-avatars b:first-child { margin-left:0; background:#f0a878; }
