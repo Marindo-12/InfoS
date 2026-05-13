@@ -24,7 +24,6 @@ interface FormData {
   nom: string;
   prenom: string;
   age: string;
-  niveau: string;
   email: string;
   telephone: string;
   graphic: GraphicKey;
@@ -455,7 +454,7 @@ const InscriptionInfographie: React.FC<Props> = ({
   const stripeCardRef = useRef<StripeCardHandle>(null);
 
   const [form, setForm] = useState<FormData>({
-    nom: '', prenom: '', age: '', niveau: 'Baccalaureat',
+    nom: '', prenom: '', age: '',
     email: '', telephone: '', graphic: 'photoshop', message: '',
     payment: '', acceptTerms: false, acceptPrivacy: false,
   });
@@ -726,16 +725,6 @@ const InscriptionInfographie: React.FC<Props> = ({
                         <input type="number" name="age" value={form.age} onChange={handleInputChange}
                           className={fc(errors.age)} placeholder="22" />
                         <FieldError msg={errors.age} />
-                      </div>
-                      <div>
-                        <label className="sans-body mb-2 block px-1 text-sm font-semibold text-on-surface-variant">Niveau Academique</label>
-                        <select name="niveau" value={form.niveau} onChange={handleInputChange}
-                          className={`${fc()} appearance-none`}>
-                          <option>Baccalaureat</option>
-                          <option>Bac +2 / DTS</option>
-                          <option>Licence</option>
-                          <option>Master</option>
-                        </select>
                       </div>
                       <div data-has-error={errors.email ? 'true' : undefined}>
                         <label className="sans-body mb-2 block px-1 text-sm font-semibold text-on-surface-variant">E-mail</label>

@@ -19,14 +19,21 @@ import concoursimg from '../../../../public/images/concours.png'
 
 type PaymentMode = '' | 'online' | 'onsite';
 type ConcoursKey = 'medecine' | 'ensa' | 'ensam' | 'encg' | 'iscae' | 'ena';
+type FiliereKey = '' | 'SM' | 'PC' | 'SVT' | 'ST' | 'SP';
+type TypeLyceeKey = '' | 'public' | 'prive';
 
 interface FormData {
   nom: string;
   prenom: string;
   age: string;
-  niveau: string;
   email: string;
   telephone: string;
+  filiere: FiliereKey;
+  lycee: string;
+  typeLycee: TypeLyceeKey;
+  villeResidence: string;
+  noteRegional: string;
+  noteNational: string;
   concours: ConcoursKey;
   paymentMethod: PaymentMode;
   acceptTerms: boolean;
@@ -39,6 +46,12 @@ interface FormErrors {
   age?: string;
   email?: string;
   telephone?: string;
+  filiere?: string;
+  lycee?: string;
+  typeLycee?: string;
+  villeResidence?: string;
+  noteRegional?: string;
+  noteNational?: string;
   concours?: string;
   paymentMethod?: string;
   card?: string;
@@ -77,6 +90,14 @@ const CONCOURS_OPTIONS: Array<{ value: ConcoursKey; label: string; price: number
   { value: 'ena',      label: 'Preparation ENA',      price: 600,  hours: 10 },
 ];
 
+const FILIERE_OPTIONS: Array<{ value: FiliereKey; label: string }> = [
+  { value: 'SM', label: 'SM - Science math' },
+  { value: 'PC', label: 'PC' },
+  { value: 'SVT', label: 'SVT' },
+  { value: 'ST', label: 'ST' },
+  { value: 'SP', label: 'SP' },
+];
+
 /* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
@@ -84,6 +105,11 @@ const CONCOURS_OPTIONS: Array<{ value: ConcoursKey; label: string; price: number
 const fmtAmount = (n: number) => `${n.toLocaleString('fr-MA')} DH`;
 const okEmail   = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const okPhone   = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
+const okGrade = (v: string) => {
+  const normalized = v.trim().replace(',', '.');
+  const n = Number(normalized);
+  return normalized !== '' && Number.isFinite(n) && n >= 0 && n <= 20;
+};
 
 const secureRef = (prefix: string) => {
   const bytes = new Uint32Array(2);
@@ -393,8 +419,14 @@ const InscriptionConcours: React.FC<Props> = ({
   const stripeCardRef = useRef<StripeCardHandle>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    nom: '', prenom: '', age: '', niveau: '2eme Annee Baccalaureat',
+    nom: '', prenom: '', age: '',
     email: '', telephone: '',
+    filiere: '',
+    lycee: '',
+    typeLycee: '',
+    villeResidence: '',
+    noteRegional: '',
+    noteNational: '',
     concours: 'medecine',
     paymentMethod: '',
     acceptTerms: false, acceptPrivacy: false,
@@ -432,6 +464,12 @@ const InscriptionConcours: React.FC<Props> = ({
                                  e.age     = 'Saisissez un age valide.';
     if (!okEmail(formData.email))     e.email     = 'Adresse email invalide.';
     if (!okPhone(formData.telephone)) e.telephone = 'Numero de telephone invalide.';
+    if (!formData.filiere)            e.filiere   = 'Selectionnez votre filiere.';
+    if (!formData.lycee.trim())       e.lycee     = 'Indiquez le nom de votre lycee.';
+    if (!formData.typeLycee)          e.typeLycee = 'Selectionnez le type de lycee.';
+    if (!formData.villeResidence.trim()) e.villeResidence = 'Indiquez votre ville de residence.';
+    if (!okGrade(formData.noteRegional)) e.noteRegional = 'Saisissez une note regionale entre 0 et 20.';
+    if (!okGrade(formData.noteNational)) e.noteNational = 'Saisissez une note nationale entre 0 et 20.';
     if (!formData.concours)           e.concours  = 'Selectionnez un concours.';
     if (!formData.paymentMethod)      e.paymentMethod = 'Choisissez un mode de reglement.';
     if (formData.paymentMethod === 'online' && !onlinePaymentCompleted)
@@ -465,6 +503,12 @@ const InscriptionConcours: React.FC<Props> = ({
     if (!formData.prenom.trim()) preErrors.prenom  = 'Le prenom est requis avant le paiement.';
     if (!okEmail(formData.email))     preErrors.email     = 'Adresse email invalide.';
     if (!okPhone(formData.telephone)) preErrors.telephone = 'Numero de telephone invalide.';
+    if (!formData.filiere)            preErrors.filiere   = 'Selectionnez votre filiere avant le paiement.';
+    if (!formData.lycee.trim())       preErrors.lycee     = 'Indiquez votre lycee avant le paiement.';
+    if (!formData.typeLycee)          preErrors.typeLycee = 'Selectionnez le type de lycee avant le paiement.';
+    if (!formData.villeResidence.trim()) preErrors.villeResidence = 'Indiquez votre ville de residence.';
+    if (!okGrade(formData.noteRegional)) preErrors.noteRegional = 'Saisissez une note regionale entre 0 et 20.';
+    if (!okGrade(formData.noteNational)) preErrors.noteNational = 'Saisissez une note nationale entre 0 et 20.';
     if (!formData.concours)           preErrors.concours  = 'Selectionnez un concours avant le paiement.';
     if (cardHasError)                 preErrors.card      = 'Completez correctement les informations de carte.';
 
@@ -752,15 +796,6 @@ const InscriptionConcours: React.FC<Props> = ({
                           className={inputCls(errors.age)} placeholder="Ex: 18" />
                         <FieldError msg={errors.age} />
                       </div>
-                      <div>
-                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Niveau Academique</label>
-                        <select name="niveau" value={formData.niveau} onChange={handleChange}
-                          className={inputCls()}>
-                          <option>2eme Annee Baccalaureat</option>
-                          <option>Baccalaureat obtenu</option>
-                          <option>Bac +1 / Classes Prepas</option>
-                        </select>
-                      </div>
                       <div data-has-error={errors.email ? 'true' : undefined}>
                         <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Email</label>
                         <input type="email" name="email" value={formData.email} onChange={handleChange}
@@ -777,6 +812,60 @@ const InscriptionConcours: React.FC<Props> = ({
                   </div>
 
                   {/* Step 2 — Concours */}
+                  <div>
+                    <h2 className="mb-8 flex items-center gap-3 font-headline text-3xl">
+                      <span className="h-[1px] w-8 bg-primary" />
+                      Informations Scolaires
+                    </h2>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <div data-has-error={errors.filiere ? 'true' : undefined}>
+                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Filiere</label>
+                        <select name="filiere" value={formData.filiere} onChange={handleChange}
+                          className={inputCls(errors.filiere)}>
+                          <option value="">Selectionnez votre filiere</option>
+                          {FILIERE_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
+                        <FieldError msg={errors.filiere} />
+                      </div>
+                      <div data-has-error={errors.lycee ? 'true' : undefined}>
+                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Lycee</label>
+                        <input type="text" name="lycee" value={formData.lycee} onChange={handleChange}
+                          className={inputCls(errors.lycee)} placeholder="Entrez le nom de votre ecole" />
+                        <FieldError msg={errors.lycee} />
+                      </div>
+                      <div data-has-error={errors.typeLycee ? 'true' : undefined}>
+                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Type de lycee</label>
+                        <select name="typeLycee" value={formData.typeLycee} onChange={handleChange}
+                          className={inputCls(errors.typeLycee)}>
+                          <option value="">Selectionnez le type</option>
+                          <option value="public">Public</option>
+                          <option value="prive">Prive</option>
+                        </select>
+                        <FieldError msg={errors.typeLycee} />
+                      </div>
+                      <div data-has-error={errors.villeResidence ? 'true' : undefined}>
+                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Ville de residence</label>
+                        <input type="text" name="villeResidence" value={formData.villeResidence} onChange={handleChange}
+                          className={inputCls(errors.villeResidence)} placeholder="Ex: Casablanca" />
+                        <FieldError msg={errors.villeResidence} />
+                      </div>
+                      <div data-has-error={errors.noteRegional ? 'true' : undefined}>
+                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Note de l'examen regional</label>
+                        <input type="number" name="noteRegional" value={formData.noteRegional} onChange={handleChange}
+                          min={0} max={20} step="0.01" className={inputCls(errors.noteRegional)} placeholder="Ex: 15.50" />
+                        <FieldError msg={errors.noteRegional} />
+                      </div>
+                      <div data-has-error={errors.noteNational ? 'true' : undefined}>
+                        <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Note de l'examen national</label>
+                        <input type="number" name="noteNational" value={formData.noteNational} onChange={handleChange}
+                          min={0} max={20} step="0.01" className={inputCls(errors.noteNational)} placeholder="Ex: 16.25" />
+                        <FieldError msg={errors.noteNational} />
+                      </div>
+                    </div>
+                  </div>
+
                   <div data-has-error={errors.concours ? 'true' : undefined}>
                     <h2 className="mb-8 flex items-center gap-3 font-headline text-3xl">
                       <span className="h-[1px] w-8 bg-primary" />

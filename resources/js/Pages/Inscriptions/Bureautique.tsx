@@ -26,7 +26,6 @@ interface FormData {
   nom: string;
   prenom: string;
   age: string;
-  niveau: string;
   email: string;
   telephone: string;
   modules: Record<ModuleKey, boolean>;
@@ -119,7 +118,6 @@ const MODULE_CARDS = [
   },
 ] as const;
 
-const NIVEAU_OPTIONS = ['Baccalaureat', 'Licence', 'Master', 'Autre'];
 const LEVEL_OPTIONS = [
   { value: 'debutant', label: 'Debutant', sub: 'Bases et introduction' },
   { value: 'intermediaire', label: 'Intermediaire', sub: 'Fonctions avancees' },
@@ -690,7 +688,7 @@ const InscriptionBureautique: React.FC<Props> = ({
   const stripeCardRef = useRef<StripeCardHandle>(null);
 
   const [form, setForm] = useState<FormData>({
-    nom: '', prenom: '', age: '', niveau: 'Baccalaureat',
+    nom: '', prenom: '', age: '',
     email: '', telephone: '',
     modules: { word: false, excel: false, powerpoint: false, access: false },
     level: 'debutant', payment: '',
@@ -1005,13 +1003,6 @@ const InscriptionBureautique: React.FC<Props> = ({
                       <input type="number" name="age" value={form.age} onChange={handleInput}
                         placeholder="Ex : 22" min={15} max={80} className={inputCls(errors.age)} />
                       <FieldError msg={errors.age} />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 ml-1 block text-sm font-semibold text-on-surface-variant">Niveau academique</label>
-                      <select name="niveau" value={form.niveau} onChange={handleInput} className={inputCls()}>
-                        {NIVEAU_OPTIONS.map((o) => <option key={o}>{o}</option>)}
-                      </select>
                     </div>
 
                     <div data-has-error={errors.email ? 'true' : undefined}>

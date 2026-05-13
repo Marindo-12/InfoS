@@ -19,7 +19,6 @@ interface FormData {
   nom: string;
   prenom: string;
   age: string;
-  niveau: string;
   email: string;
   telephone: string;
   language: LanguageKey;
@@ -57,7 +56,6 @@ interface StripeCardSectionProps {
   onPayNow: () => void;
 }
 
-const NIVEAU_OPTIONS = ['Baccalaureat', 'Licence', 'Master', 'Doctorat / Autre'];
 const LANGUAGE_OPTIONS = [
   {
     value: 'francais',
@@ -390,7 +388,6 @@ const InscriptionLangues: React.FC<Props> = ({
     nom: '',
     prenom: '',
     age: '',
-    niveau: 'Baccalaureat',
     email: '',
     telephone: '',
     language: 'francais',
@@ -646,14 +643,6 @@ const InscriptionLangues: React.FC<Props> = ({
                         <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Age</label>
                         <input type="number" name="age" value={form.age} onChange={handleInput} placeholder="25" min={15} max={80} className={inputCls(errors.age)} />
                         <FieldError msg={errors.age} />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Niveau Academique</label>
-                        <select name="niveau" value={form.niveau} onChange={handleInput} className={inputCls()}>
-                          {NIVEAU_OPTIONS.map((option) => (
-                            <option key={option}>{option}</option>
-                          ))}
-                        </select>
                       </div>
                       <div data-has-error={errors.email ? 'true' : undefined}>
                         <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Email</label>
