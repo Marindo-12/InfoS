@@ -11,6 +11,7 @@ import {
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
 import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
+import { createStripePaymentIntent } from '@/lib/stripePayments';
 
 type PaymentMode = '' | 'online' | 'onsite';
 type LanguageKey = 'francais' | 'anglais' | 'allemand';
@@ -189,7 +190,32 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
         });
 
         if (error) return { error: error.message ?? 'Erreur carte.' };
-        return { paymentMethodId: paymentMethod.id };
+
+        try {
+          const intent = await createStripePaymentIntent({
+            amount: totalAmount,
+            category: 'Langues',
+            email: billingDetails.email,
+            name: billingDetails.name,
+          });
+
+          const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(intent.client_secret, {
+            payment_method: paymentMethod.id,
+          });
+
+          if (confirmError) return { error: confirmError.message ?? 'Paiement refuse.' };
+          if (!paymentIntent || paymentIntent.status !== 'succeeded') {
+            return { error: 'Paiement non confirme par Stripe.' };
+          }
+
+          return { paymentMethodId: paymentIntent.id };
+        } catch (paymentError) {
+          return {
+            error: paymentError instanceof Error
+              ? paymentError.message
+              : 'Impossible de finaliser le paiement Stripe.',
+          };
+        }
       },
     }));
 
@@ -482,9 +508,9 @@ const InscriptionLangues: React.FC<Props> = ({
         return;
       }
 
-      console.log('[Stripe] PaymentMethod created:', result.paymentMethodId);
+      console.log('[Stripe] PaymentIntent confirmed:', result.paymentMethodId);
       setOnlinePaymentCompleted(true);
-      setOnlinePaymentReference(secureRef('PAY'));
+      setOnlinePaymentReference(result.paymentMethodId);
       clearErr('card');
     } finally {
       setSubmitting(false);

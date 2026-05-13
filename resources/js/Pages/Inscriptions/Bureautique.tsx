@@ -11,6 +11,7 @@ import {
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { PaymentCertificate,PaymentCertificateData } from '@/Components/PaymentCertificate';
+import { createStripePaymentIntent } from '@/lib/stripePayments';
 import wordIc from '../../../../public/images/word.png';
 import excelIc from '../../../../public/images/excel.png';
 import powerpointIc from '../../../../public/images/powerpoint.png';
@@ -279,7 +280,32 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
         });
 
         if (error) return { error: error.message ?? 'Erreur carte.' };
-        return { paymentMethodId: paymentMethod.id };
+
+        try {
+          const intent = await createStripePaymentIntent({
+            amount: totalAmount,
+            category: 'Bureautique',
+            email: billingDetails.email,
+            name: billingDetails.name,
+          });
+
+          const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(intent.client_secret, {
+            payment_method: paymentMethod.id,
+          });
+
+          if (confirmError) return { error: confirmError.message ?? 'Paiement refuse.' };
+          if (!paymentIntent || paymentIntent.status !== 'succeeded') {
+            return { error: 'Paiement non confirme par Stripe.' };
+          }
+
+          return { paymentMethodId: paymentIntent.id };
+        } catch (paymentError) {
+          return {
+            error: paymentError instanceof Error
+              ? paymentError.message
+              : 'Impossible de finaliser le paiement Stripe.',
+          };
+        }
       },
     }));
 
@@ -812,10 +838,10 @@ const InscriptionBureautique: React.FC<Props> = ({
       // POST /api/payment-intent { paymentMethodId, amount: totalAmount * 100 }
       // then confirm via stripe.confirmCardPayment(clientSecret)
       // ──────────────────────────────────────────────────────────────
-      console.log('[Stripe] PaymentMethod created:', result.paymentMethodId);
+      console.log('[Stripe] PaymentIntent confirmed:', result.paymentMethodId);
 
       setOnlinePaymentCompleted(true);
-      setOnlinePaymentReference(secureRef('PAY'));
+      setOnlinePaymentReference(result.paymentMethodId);
       clearErr('card');
     } finally {
       setSubmitting(false);

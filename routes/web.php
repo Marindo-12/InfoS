@@ -16,6 +16,7 @@ use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicContactController;
 use App\Http\Controllers\PublicEnrollmentApplicationController;
+use App\Http\Controllers\StripePaymentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -74,6 +75,14 @@ Route::get('/inscriptions', function () {
 
 Route::post('/inscriptions/demandes', [PublicEnrollmentApplicationController::class, 'store'])
     ->name('applications.store');
+
+Route::post('/stripe/payment-intents', [StripePaymentController::class, 'createPaymentIntent'])
+    ->middleware('throttle:20,1')
+    ->name('stripe.payment-intents.store');
+
+Route::post('/stripe/webhook', [StripePaymentController::class, 'webhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('stripe.webhook');
 
 /*
 |--------------------------------------------------------------------------

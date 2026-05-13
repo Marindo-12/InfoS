@@ -11,6 +11,7 @@ import {
 } from '@stripe/react-stripe-js';
 import PublicLayout from '@/Layouts/PublicLayout';
 import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
+import { createStripePaymentIntent } from '@/lib/stripePayments';
 import infographielogo from '../../../../public/images/infographie.jpg'
 
 /* ═══════════════════════════════════════════════════
@@ -170,7 +171,32 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
           type: 'card', card: cardEl, billing_details: billingDetails,
         });
         if (error) return { error: error.message ?? 'Erreur carte.' };
-        return { paymentMethodId: paymentMethod.id };
+
+        try {
+          const intent = await createStripePaymentIntent({
+            amount: totalAmount,
+            category: 'Infographie',
+            email: billingDetails.email,
+            name: billingDetails.name,
+          });
+
+          const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(intent.client_secret, {
+            payment_method: paymentMethod.id,
+          });
+
+          if (confirmError) return { error: confirmError.message ?? 'Paiement refuse.' };
+          if (!paymentIntent || paymentIntent.status !== 'succeeded') {
+            return { error: 'Paiement non confirme par Stripe.' };
+          }
+
+          return { paymentMethodId: paymentIntent.id };
+        } catch (paymentError) {
+          return {
+            error: paymentError instanceof Error
+              ? paymentError.message
+              : 'Impossible de finaliser le paiement Stripe.',
+          };
+        }
       },
     }));
 
@@ -557,7 +583,7 @@ const InscriptionInfographie: React.FC<Props> = ({
       if ('error' in result) { setErrors((p) => ({ ...p, card: result.error })); return; }
       console.log('[Stripe] PaymentMethod:', result.paymentMethodId);
       setOnlinePaymentCompleted(true);
-      setOnlinePaymentReference(secureRef('PAY'));
+      setOnlinePaymentReference(result.paymentMethodId);
       clearErr('card');
     } finally {
       setSubmitting(false);

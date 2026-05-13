@@ -6,16 +6,18 @@ use App\Models\Course;
 use App\Models\EnrollmentApplication;
 use App\Models\PortalNotification;
 use App\Models\User;
+use App\Services\StripePaymentService;
 use App\Support\EnrollmentAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Throwable;
 
 class PublicEnrollmentApplicationController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, StripePaymentService $stripe): RedirectResponse
     {
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
@@ -32,6 +34,22 @@ class PublicEnrollmentApplicationController extends Controller
             'certificate_reference' => ['nullable', 'string', 'max:190'],
             'form_data' => ['nullable', 'array'],
         ]);
+
+        if ($validated['payment_method'] === 'online') {
+            if (empty($validated['payment_reference'])) {
+                return back()->withErrors([
+                    'payment_reference' => 'Reference Stripe manquante pour le paiement en ligne.',
+                ]);
+            }
+
+            try {
+                $stripe->assertSucceeded($validated['payment_reference'], (float) $validated['amount']);
+            } catch (Throwable $exception) {
+                return back()->withErrors([
+                    'payment_reference' => 'Le paiement en ligne n a pas ete confirme par Stripe.',
+                ]);
+            }
+        }
 
         $application = DB::transaction(function () use ($validated) {
             $course = $this->resolveCourse($validated);
