@@ -75,7 +75,12 @@ const addDays = (date: Date, days: number) => {
   return d;
 };
 
-const isoDate = (date: Date) => date.toISOString().slice(0, 10);
+const isoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 const isoDateTime = (date: Date, time: string) => `${isoDate(date)}T${time}`;
 
 const colorFor = (courseId: number, courses: CourseOption[]) => {
@@ -536,7 +541,7 @@ export default function AdminSchedule() {
             )}
           </aside>
         </div>
-        <section className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section className="adp-panels mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
 <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl">
 <img alt="Modern Educational Environment" className="w-full h-full object-cover" data-alt="A wide, sun-drenched modern library or study lounge with high ceilings and warm wooden paneling. The architecture features clean, minimal lines and floor-to-ceiling windows letting in soft, golden hour light. The furniture consists of elegant mid-century modern chairs and large community tables, perfectly embodying the warm minimalist Sahara aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4xb1tQwr-CBBsBzAzjoyIrc4YFUs6YvDN2bSUgMIDNpwSWAMFljYdAxDTE22snPW5oFVFA6FDE3DO3YvQmv_Hq-33qrjXhWalLRCdzZjc1kru6OLTf5T5TgIvBfc18tx8IyseVy1Fg7L0qJwdJ9_gxgHeP08T00hQkB7ExDPTWRifNHBQ828LGXMJFqg6--ULFO3UyPjZf7MGMQyQRmvJzgEd2JzC9_8lehp2sSSPDq0K1EVxzccJmMyGrieNsY2sJQ-XOFEDbmJX"/>
 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-10">
@@ -585,12 +590,13 @@ export default function AdminSchedule() {
         .adp-stat-danger strong,.adp-stat-danger > span.material-symbols-outlined { color:#8c3c3c; }
         .adp-stat-danger > span.material-symbols-outlined { position:absolute; top:54px; right:24px; }
         .adp-content { display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:24px; align-items:start; }
-        .adp-board { min-width:0; }
+        .adp-board { min-width:0; overflow-x:auto; }
+        .adp-panels { margin-top:4rem; }
         .adp-toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:14px; }
         .adp-toolbar div { display:flex; gap:10px; align-items:center; }
         .adp-toolbar button,.adp-toolbar select { border:1px solid #d8d0c8; background:#fff; color:#3a302a; border-radius:8px; min-height:38px; padding:0 12px; font-weight:800; }
         .adp-toolbar button { width:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-        .adp-grid { background:#fff; border:1px solid #d8d0c8; border-radius:16px; overflow:hidden; box-shadow:0 2px 14px rgba(58,48,42,.06); }
+        .adp-grid { background:#fff; border:1px solid #d8d0c8; border-radius:16px; overflow:hidden; box-shadow:0 2px 14px rgba(58,48,42,.06); min-width:960px; overflow-x:auto; }
         .adp-grid-head { min-height:64px; display:flex; flex-direction:column; justify-content:center; align-items:center; border-right:1px solid #d8d0c8; border-bottom:1px solid #d8d0c8; font-family:"EB Garamond"; font-size:1.35rem; font-weight:800; }
         .adp-grid-head span { font-family:Manrope; font-size:.68rem; color:#9a9088; text-transform:uppercase; letter-spacing:.12em; }
         .adp-time-head { font-family:Manrope; font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; color:#605850; background:#f2ece4; }
@@ -643,6 +649,30 @@ export default function AdminSchedule() {
         .adp-pending strong { display:block; color:#3a302a; font-size:.85rem; }
         .adp-pending small,.adp-pending p { color:#78706a; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
         .adp-conflicts p { display:flex; gap:8px; color:#8c3c3c; font-size:.82rem; font-weight:800; line-height:1.45; }
+        .dark .adp-root { background:#111010; color:#efe8dd; }
+        .dark .adp-root h1, .dark .adp-root h2, .dark .adp-root h3, .dark .adp-root strong, .dark .adp-root span, .dark .adp-root p, .dark .adp-root label, .dark .adp-root option { color:#efe8dd; }
+        .dark .adp-hero p { color:#d1c2b4; }
+        .dark .adp-search input { background:#1c1612; border-color:#3c3230; color:#efe8dd; }
+        .dark .adp-search span { color:#d1c2b4; }
+        .dark .adp-toolbar button, .dark .adp-toolbar select { border-color:#3c3230; background:#1c1612; color:#efe8dd; }
+        .dark .adp-grid { background:#1b1613; border-color:#3c3230; box-shadow:0 2px 14px rgba(0,0,0,.35); }
+        .dark .adp-grid-head { border-color:#3c3230; background:#1c1612; color:#efe8dd; }
+        .dark .adp-time { background:rgba(240,168,120,.08); color:#efe8dd; border-color:#3c3230; }
+        .dark .adp-cell { border-color:#3c3230; }
+        .dark .adp-add-slot { background:transparent; border-color:rgba(240,168,120,.18); color:#f0a878; }
+        .dark .adp-add-slot:hover { background:rgba(240,168,120,.1); }
+        .dark .adp-session { background:#221b16; color:#efe8dd; }
+        .dark .adp-session h4 { color:#f8efe5; }
+        .dark .adp-session span:not(.material-symbols-outlined) { color:#d1c2b4; }
+        .dark .adp-form-card, .dark .adp-pending, .dark .adp-conflicts { background:#1b1613; border-color:rgba(240,232,222,.12); box-shadow:0 10px 28px rgba(0,0,0,.35); }
+        .dark .adp-form input, .dark .adp-form select, .dark .adp-form textarea { background:#1c1612; border-color:#3c3230; color:#efe8dd; }
+        .dark .adp-form textarea { background:#1d1613; }
+        .dark .adp-form-title span, .dark .adp-pending small, .dark .adp-pending p, .dark .adp-conflicts p, .dark .adp-form label span { color:#d1c2b4; }
+        .dark .adp-form-title h2, .dark .adp-pending h3, .dark .adp-conflicts h3 { color:#f8efe5; }
+        .dark .adp-actions button { background:#d47c45; }
+        .dark .adp-actions .adp-secondary { background:#2b241f; color:#efe8dd; }
+        .dark .adp-flash { background:#1f1913; border-color:#3e342e; color:#ede8dd; }
+        .dark .adp-flash--warn { background:#2b1d14; border-color:#7c3c28; color:#f3c5a1; }
         @media (max-width:1200px) { .adp-content { grid-template-columns:1fr; } .adp-form-card { position:static; } }
         @media (max-width:900px) { .adp-root { padding:20px; } .adp-hero,.adp-toolbar { flex-direction:column; align-items:stretch; } .adp-stats { grid-template-columns:1fr 1fr; } .adp-grid { overflow-x:auto; display:block; } .adp-grid-head,.adp-time,.adp-cell { min-width:150px; } }
         @media (max-width:620px) { .adp-stats,.adp-form-two { grid-template-columns:1fr; } }
