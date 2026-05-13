@@ -108,14 +108,26 @@ export const PaymentCertificate: React.FC<PaymentCertificateProps> = ({ certific
       `}</style>
 
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        {/* Bouton Fermer (toujours visible) */}
-        <div className="no-print absolute right-4 top-4 z-10">
+        {/* Actions (toujours visibles) */}
+        <div className="no-print absolute right-4 top-4 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            disabled={isDownloading}
+            aria-label="Telecharger le certificat PDF"
+            title="Telecharger le certificat PDF"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d0c8] bg-white text-[#605850] shadow-sm transition hover:bg-[#f6f0e8] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download size={18} />
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex items-center gap-2 rounded-lg border border-[#d8d0c8] bg-white px-4 py-2 text-sm font-semibold text-[#605850] shadow-sm transition hover:bg-[#f6f0e8]"
+            aria-label="Fermer le certificat"
+            title="Fermer le certificat"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d0c8] bg-white text-[#605850] shadow-sm transition hover:bg-[#f6f0e8]"
           >
-            <X size={16} /> Fermer
+            <X size={18} />
           </button>
         </div>
 
@@ -135,7 +147,7 @@ export const PaymentCertificate: React.FC<PaymentCertificateProps> = ({ certific
                   </p>
                   <div className="mt-4 flex justify-end gap-2">
                     <button
-                      onClick={onClose}
+                      onClick={() => setShowDownloadAlert(false)}
                       className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800"
                     >
                       Ignorer
