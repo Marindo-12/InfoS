@@ -447,7 +447,6 @@ const InscriptionLangues: React.FC<Props> = ({
     if (!okPhone(form.telephone)) e.telephone = 'Numero de telephone invalide.';
     if (!form.language) e.language = 'Selectionnez une langue.';
     if (!form.payment) e.payment = 'Choisissez un mode de paiement.';
-    if (form.payment === 'online' && !onlinePaymentCompleted) e.card = 'Effectuez le paiement en ligne avant la confirmation finale.';
     if (!form.acceptTerms) e.acceptTerms = 'Acceptez les conditions generales.';
     if (!form.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
@@ -527,7 +526,7 @@ const InscriptionLangues: React.FC<Props> = ({
     }
     setSubmitting(true);
     const certificateReference = secureRef('PAYCERT');
-    const paymentReference = onlinePaymentReference || secureRef('PAY');
+    const paymentReference = form.payment === 'online' ? undefined : secureRef('PAY');
     const trainingLabel = LANGUAGE_LABELS[form.language] || 'Langues';
     router.post(route('applications.store'), {
       first_name: form.prenom,
@@ -539,6 +538,7 @@ const InscriptionLangues: React.FC<Props> = ({
       course_slug: form.language === 'anglais' ? 'anglais-des-affaires-b2' : undefined,
       amount: TRAINING_PRICE,
       payment_method: form.payment,
+      payment_provider: form.payment === 'online' ? 'payzone' : undefined,
       payment_reference: paymentReference,
       preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
       certificate_reference: certificateReference,
@@ -765,7 +765,7 @@ const InscriptionLangues: React.FC<Props> = ({
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-has-error={errors.payment ? 'true' : undefined}>
                       {[
-                        { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Carte bancaire securisee — Stripe' },
+                        { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Redirection securisee Payzone' },
                         { value: 'onsite' as PaymentMode, icon: 'storefront', label: 'Paiement presentiel', sub: 'Reglement au centre de formation' },
                       ].map(({ value, icon, label, sub }) => {
                         const active = form.payment === value;
@@ -796,7 +796,7 @@ const InscriptionLangues: React.FC<Props> = ({
                     </div>
                     <FieldError msg={errors.payment} />
 
-                    {form.payment === 'online' &&
+                    {false && form.payment === 'online' &&
                       (stripePromise ? (
                         <Elements stripe={stripePromise} options={stripeOptions}>
                           <StripeCardSection
@@ -818,6 +818,16 @@ const InscriptionLangues: React.FC<Props> = ({
                           Paiement en ligne indisponible — cle Stripe manquante.
                         </div>
                       ))}
+
+                    {form.payment === 'online' && (
+                      <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
+                        <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
+                        <p className="mt-2 text-emerald-800">
+                          Apres validation, vous serez redirige vers Payzone pour payer par carte. La banque peut demander un code 3D Secure avant de confirmer l operation.
+                        </p>
+                      </div>
+                    )}
 
                     {form.payment === 'onsite' && (
                       <div className="mt-6 rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
@@ -897,7 +907,7 @@ const InscriptionLangues: React.FC<Props> = ({
 
                     <button
                       type="submit"
-                      disabled={submitting || (form.payment === 'online' && !onlinePaymentCompleted)}
+                      disabled={submitting}
                       className="glow-hover flex w-full items-center justify-center gap-2.5 rounded-2xl bg-primary py-5 text-base font-bold tracking-wide text-on-primary shadow-lg transition-all duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {submitting ? (
@@ -907,13 +917,13 @@ const InscriptionLangues: React.FC<Props> = ({
                         </>
                       ) : (
                         <>
-                          {form.payment === 'online' ? "Confirmer l'inscription" : 'Valider ma place'}
+                          {form.payment === 'online' ? 'Payer avec Payzone' : 'Valider ma place'}
                           <span className="material-symbols-outlined text-xl leading-none">arrow_forward</span>
                         </>
                       )}
                     </button>
 
-                    {form.payment === 'online' && !onlinePaymentCompleted && (
+                    {false && form.payment === 'online' && !onlinePaymentCompleted && (
                       <p className="text-center text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
                         Le paiement doit etre effectue avant la confirmation finale.
                       </p>

@@ -758,8 +758,6 @@ const InscriptionBureautique: React.FC<Props> = ({
     if (!okPhone(form.telephone)) e.telephone = 'Numero de telephone invalide.';
     if (!selectedModules.length) e.modules = 'Selectionnez au moins un module.';
     if (!form.payment) e.payment = 'Choisissez un mode de paiement.';
-    if (form.payment === 'online' && !onlinePaymentCompleted)
-      e.card = 'Effectuez le paiement en ligne avant la confirmation finale.';
     if (!form.acceptTerms) e.acceptTerms = 'Acceptez les conditions generales.';
     if (!form.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
@@ -863,7 +861,7 @@ const InscriptionBureautique: React.FC<Props> = ({
     try {
       const processingCode = secureRef('TRT');
       const certificateReference = secureRef('PAYCERT');
-      const paymentReference = onlinePaymentReference || secureRef('PAY');
+      const paymentReference = form.payment === 'online' ? undefined : secureRef('PAY');
       router.post(route('applications.store'), {
         first_name: form.prenom,
         last_name: form.nom,
@@ -874,6 +872,7 @@ const InscriptionBureautique: React.FC<Props> = ({
         course_slug: 'expertise-microsoft-office',
         amount: totalAmount,
         payment_method: form.payment,
+        payment_provider: form.payment === 'online' ? 'payzone' : undefined,
         payment_reference: paymentReference,
         preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
         certificate_reference: certificateReference,
@@ -1165,7 +1164,7 @@ const InscriptionBureautique: React.FC<Props> = ({
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2"
                     data-has-error={errors.payment ? 'true' : undefined}>
                     {[
-                      { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Carte bancaire securisee — Stripe' },
+                      { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Redirection securisee Payzone' },
                       { value: 'onsite' as PaymentMode, icon: 'storefront', label: 'Paiement presentiel', sub: 'Reglement au centre de formation' },
                     ].map(({ value, icon, label, sub }) => {
                       const active = form.payment === value;
@@ -1200,7 +1199,17 @@ const InscriptionBureautique: React.FC<Props> = ({
                   <FieldError msg={errors.payment} />
 
                   {/* Stripe card form — inside <Elements> */}
-                  {form.payment === 'online' && (
+                    {form.payment === 'online' && (
+                      <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
+                        <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
+                        <p className="mt-2 text-emerald-800">
+                          Apres validation, vous serez redirige vers Payzone pour payer par carte. La banque peut demander un code 3D Secure avant de confirmer l operation.
+                        </p>
+                      </div>
+                    )}
+
+                    {false && form.payment === 'online' && (
                     stripePromise ? (
                       <Elements stripe={stripePromise} options={stripeOptions}>
                         <StripeCardSection
@@ -1321,7 +1330,7 @@ const InscriptionBureautique: React.FC<Props> = ({
 
                   <button
                     type="submit"
-                    disabled={submitting || (form.payment === 'online' && !onlinePaymentCompleted)}
+                    disabled={submitting}
                     className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-primary py-5 text-base font-bold tracking-wide text-on-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:brightness-110 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {submitting ? (
@@ -1333,14 +1342,14 @@ const InscriptionBureautique: React.FC<Props> = ({
                       </>
                     ) : (
                       <>
-                        {form.payment === 'online' ? "Confirmer l'inscription" : 'Valider ma place'}
+                          {form.payment === 'online' ? 'Payer avec Payzone' : 'Valider ma place'}
                         <span className="material-symbols-outlined text-xl leading-none">arrow_forward</span>
                       </>
                     )}
                   </button>
 
                   {/* Hint when payment not yet done */}
-                  {form.payment === 'online' && !onlinePaymentCompleted && (
+                  {false && form.payment === 'online' && !onlinePaymentCompleted && (
                     <p className="text-center text-xs text-on-surface-variant">
                       Le paiement doit etre effectue dans le bloc securise ci-dessus avant la confirmation finale.
                     </p>

@@ -498,8 +498,6 @@ const InscriptionConcours: React.FC<Props> = ({
     if (!okGrade(formData.noteNational)) e.noteNational = 'Saisissez une note nationale entre 0 et 20.';
     if (!formData.concours)           e.concours  = 'Selectionnez un concours.';
     if (!formData.paymentMethod)      e.paymentMethod = 'Choisissez un mode de reglement.';
-    if (formData.paymentMethod === 'online' && !onlinePaymentCompleted)
-      e.card = 'Effectuez le paiement en ligne avant la confirmation finale.';
     if (!formData.acceptTerms)   e.acceptTerms   = 'Acceptez les conditions generales.';
     if (!formData.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
@@ -581,7 +579,7 @@ const InscriptionConcours: React.FC<Props> = ({
     }
     setSubmitting(true);
     const reference = secureRef('PAYCERT');
-    const paymentReference = onlinePaymentReference || secureRef('PAY');
+    const paymentReference = formData.paymentMethod === 'online' ? undefined : secureRef('PAY');
     router.post(route('applications.store'), {
       first_name: formData.prenom,
       last_name: formData.nom,
@@ -591,6 +589,7 @@ const InscriptionConcours: React.FC<Props> = ({
       training_label: selectedConcours.label,
       amount: totalAmount,
       payment_method: formData.paymentMethod,
+      payment_provider: formData.paymentMethod === 'online' ? 'payzone' : undefined,
       payment_reference: paymentReference,
       preferred_payment_date: formData.paymentMethod === 'onsite' ? defaultPaymentDate : undefined,
       certificate_reference: reference,
@@ -918,7 +917,7 @@ const InscriptionConcours: React.FC<Props> = ({
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2"
                       data-has-error={errors.paymentMethod ? 'true' : undefined}>
                       {[
-                        { value: 'online', icon: 'payments',     label: 'Paiement en ligne',      sub: 'Visa, Mastercard' },
+                        { value: 'online', icon: 'payments',     label: 'Paiement en ligne',      sub: 'Redirection securisee Payzone' },
                         { value: 'onsite', icon: 'meeting_room', label: 'Rendez-vous Presentiel',  sub: "Au campus de l'academie" },
                       ].map(({ value, icon, label, sub }) => (
                         <label key={value}
@@ -944,6 +943,16 @@ const InscriptionConcours: React.FC<Props> = ({
 
                     {/* Stripe card form */}
                     {formData.paymentMethod === 'online' && (
+                      <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
+                        <h4 className="mt-1 font-headline text-2xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
+                        <p className="mt-2 text-emerald-800">
+                          Apres validation, vous serez redirige vers Payzone pour payer par carte. La banque peut demander un code 3D Secure avant de confirmer l operation.
+                        </p>
+                      </div>
+                    )}
+
+                    {false && formData.paymentMethod === 'online' && (
                       stripePromise ? (
                         <Elements stripe={stripePromise} options={stripeOptions}>
                           <StripeCardSection
@@ -1031,7 +1040,7 @@ const InscriptionConcours: React.FC<Props> = ({
                   {/* Submit */}
                   <button
                     type="submit"
-                    disabled={submitting || (formData.paymentMethod === 'online' && !onlinePaymentCompleted)}
+                    disabled={submitting}
                     className="flex w-full items-center justify-center gap-4 rounded-xl bg-primary py-5 font-headline text-2xl font-bold tracking-wide text-on-primary shadow-lg transition-all hover:bg-orange-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {submitting ? (
@@ -1041,13 +1050,13 @@ const InscriptionConcours: React.FC<Props> = ({
                       </>
                     ) : (
                       <>
-                        {formData.paymentMethod === 'online' ? "Confirmer l'inscription" : "S'inscrire au Concours"}
+                        {formData.paymentMethod === 'online' ? 'Payer avec Payzone' : "S'inscrire au Concours"}
                         <span className="material-symbols-outlined">arrow_forward</span>
                       </>
                     )}
                   </button>
 
-                  {formData.paymentMethod === 'online' && !onlinePaymentCompleted && (
+                  {false && formData.paymentMethod === 'online' && !onlinePaymentCompleted && (
                     <p className="text-center text-xs text-on-surface-variant">
                       Le paiement doit etre effectue dans le bloc securise ci-dessus avant la confirmation finale.
                     </p>

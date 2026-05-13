@@ -546,8 +546,6 @@ const InscriptionInfographie: React.FC<Props> = ({
     if (!okEmail(form.email)) e.email = 'Email invalide.';
     if (!okPhone(form.telephone)) e.telephone = 'Telephone invalide.';
     if (!form.payment) e.payment = 'Choisissez un mode de paiement.';
-    if (form.payment === 'online' && !onlinePaymentCompleted)
-      e.card = 'Effectuez le paiement avant de confirmer.';
     if (!form.acceptTerms) e.acceptTerms = 'Acceptez les conditions.';
     if (!form.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
@@ -602,7 +600,7 @@ const InscriptionInfographie: React.FC<Props> = ({
     }
     setSubmitting(true);
     const certificateReference = secureRef('PAYCERT');
-    const paymentReference = onlinePaymentReference || secureRef('PAY');
+    const paymentReference = form.payment === 'online' ? undefined : secureRef('PAY');
     router.post(route('applications.store'), {
       first_name: form.prenom,
       last_name: form.nom,
@@ -613,6 +611,7 @@ const InscriptionInfographie: React.FC<Props> = ({
       course_slug: 'maitrise-adobe-creative-suite',
       amount: totalAmount,
       payment_method: form.payment,
+      payment_provider: form.payment === 'online' ? 'payzone' : undefined,
       payment_reference: paymentReference,
       preferred_payment_date: form.payment === 'onsite' ? defaultPaymentDate : undefined,
       certificate_reference: certificateReference,
@@ -810,7 +809,7 @@ const InscriptionInfographie: React.FC<Props> = ({
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2"
                         data-has-error={errors.payment ? 'true' : undefined}>
                         {[
-                          { value: 'online', icon: 'credit_card', label: 'Paiement en ligne', sub: 'Securise & Instantane' },
+                          { value: 'online', icon: 'credit_card', label: 'Paiement en ligne', sub: 'Redirection securisee Payzone' },
                           { value: 'onsite', icon: 'calendar_month', label: 'Rendez-vous Presentiel', sub: 'Sur campus Elite Academy' },
                         ].map(({ value, icon, label, sub }) => (
                           <label key={value} className="group relative cursor-pointer">
@@ -834,7 +833,17 @@ const InscriptionInfographie: React.FC<Props> = ({
                       <FieldError msg={errors.payment} />
 
                       {/* Stripe section */}
-                      {form.payment === 'online' && (
+                    {form.payment === 'online' && (
+                      <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
+                        <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
+                        <p className="mt-2 text-emerald-800">
+                          Apres validation, vous serez redirige vers Payzone pour payer par carte. La banque peut demander un code 3D Secure avant de confirmer l operation.
+                        </p>
+                      </div>
+                    )}
+
+                    {false && form.payment === 'online' && (
                         stripePromise ? (
                           <Elements stripe={stripePromise} options={stripeOptions}>
                             <StripeCardSection
@@ -968,7 +977,7 @@ const InscriptionInfographie: React.FC<Props> = ({
                     {/* Submit */}
                     <div className="pt-8 text-center">
                       <button type="submit"
-                        disabled={submitting || (form.payment === 'online' && !onlinePaymentCompleted)}
+                        disabled={submitting}
                         className="sans-body inline-flex items-center justify-center rounded-xl bg-primary px-12 py-5 text-lg font-bold text-on-primary shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-orange-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60">
                         {submitting ? (
                           <>
@@ -977,13 +986,13 @@ const InscriptionInfographie: React.FC<Props> = ({
                           </>
                         ) : (
                           <>
-                            {form.payment === 'online' ? "Confirmer l'inscription" : 'Lancer mon Parcours Creatif'}
+                            {form.payment === 'online' ? 'Payer avec Payzone' : 'Lancer mon Parcours Creatif'}
                             <span className="material-symbols-outlined ml-2">arrow_forward</span>
                           </>
                         )}
                       </button>
 
-                      {form.payment === 'online' && !onlinePaymentCompleted && (
+                      {false && form.payment === 'online' && !onlinePaymentCompleted && (
                         <p className="sans-body mt-3 text-xs text-on-surface-variant">
                           Effectuez d'abord le paiement dans le bloc securise ci-dessus.
                         </p>

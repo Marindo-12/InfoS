@@ -6,18 +6,20 @@ use App\Models\Course;
 use App\Models\EnrollmentApplication;
 use App\Models\PortalNotification;
 use App\Models\User;
+use App\Services\PayzonePaymentService;
 use App\Services\StripePaymentService;
 use App\Support\EnrollmentAccess;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class PublicEnrollmentApplicationController extends Controller
 {
-    public function store(Request $request, StripePaymentService $stripe): RedirectResponse
+    public function store(Request $request, StripePaymentService $stripe, PayzonePaymentService $payzone): Response
     {
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
@@ -29,13 +31,19 @@ class PublicEnrollmentApplicationController extends Controller
             'course_slug' => ['nullable', 'string', 'max:190'],
             'amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:online,onsite'],
+            'payment_provider' => ['nullable', 'in:payzone,stripe'],
             'payment_reference' => ['nullable', 'string', 'max:190'],
             'preferred_payment_date' => ['nullable', 'date', 'after_or_equal:today'],
             'certificate_reference' => ['nullable', 'string', 'max:190'],
             'form_data' => ['nullable', 'array'],
         ]);
 
-        if ($validated['payment_method'] === 'online') {
+        $paymentProvider = $validated['payment_provider'] ?? (
+            $validated['payment_method'] === 'online' ? 'payzone' : null
+        );
+        $stripePaymentVerified = false;
+
+        if ($validated['payment_method'] === 'online' && $paymentProvider === 'stripe') {
             if (empty($validated['payment_reference'])) {
                 return back()->withErrors([
                     'payment_reference' => 'Reference Stripe manquante pour le paiement en ligne.',
@@ -49,9 +57,11 @@ class PublicEnrollmentApplicationController extends Controller
                     'payment_reference' => 'Le paiement en ligne n a pas ete confirme par Stripe.',
                 ]);
             }
+
+            $stripePaymentVerified = true;
         }
 
-        $application = DB::transaction(function () use ($validated) {
+        $application = DB::transaction(function () use ($validated, $paymentProvider, $stripePaymentVerified) {
             $course = $this->resolveCourse($validated);
             $user = User::firstOrCreate(
                 ['email' => Str::lower($validated['email'])],
@@ -85,12 +95,14 @@ class PublicEnrollmentApplicationController extends Controller
                 'training_label' => $validated['training_label'],
                 'amount' => $validated['amount'],
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => $validated['payment_method'] === 'online' ? 'paid' : 'pending',
+                'payment_status' => $stripePaymentVerified ? 'paid' : 'pending',
                 'payment_reference' => $validated['payment_reference'] ?? null,
                 'preferred_payment_date' => $validated['preferred_payment_date'] ?? null,
                 'certificate_reference' => $validated['certificate_reference'] ?? null,
                 'status' => 'pending',
-                'form_data' => $validated['form_data'] ?? [],
+                'form_data' => array_merge($validated['form_data'] ?? [], [
+                    'payment_provider' => $paymentProvider,
+                ]),
             ]);
 
             foreach (EnrollmentAccess::adminUsers() as $admin) {
@@ -108,6 +120,26 @@ class PublicEnrollmentApplicationController extends Controller
 
             return $application;
         });
+
+        if ($validated['payment_method'] === 'online' && $paymentProvider === 'payzone') {
+            try {
+                $payment = $payzone->preparePayment($application);
+                $application->forceFill([
+                    'payment_reference' => $payment['merchant_token'],
+                    'form_data' => array_merge($application->form_data ?? [], [
+                        'payzone_customer_token' => $payment['customer_token'],
+                    ]),
+                ])->save();
+
+                return Inertia::location($payment['redirect_url']);
+            } catch (Throwable $exception) {
+                report($exception);
+
+                return back()->withErrors([
+                    'payment_reference' => 'Impossible de preparer le paiement Payzone. Verifiez la configuration marchand.',
+                ]);
+            }
+        }
 
         return back()->with('success', 'Votre demande '.$application->reference.' a ete envoyee a l administration.');
     }

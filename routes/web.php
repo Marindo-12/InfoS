@@ -16,6 +16,7 @@ use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicContactController;
 use App\Http\Controllers\PublicEnrollmentApplicationController;
+use App\Http\Controllers\PayzonePaymentController;
 use App\Http\Controllers\StripePaymentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,14 @@ Route::post('/stripe/payment-intents', [StripePaymentController::class, 'createP
 Route::post('/stripe/webhook', [StripePaymentController::class, 'webhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('stripe.webhook');
+
+Route::post('/payzone/callback/{application}', [PayzonePaymentController::class, 'callback'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('payzone.callback');
+
+Route::match(['get', 'post'], '/payzone/return/{application}', [PayzonePaymentController::class, 'return'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('payzone.return');
 
 /*
 |--------------------------------------------------------------------------

@@ -47,4 +47,12 @@ return [
         'currency' => env('STRIPE_CURRENCY', 'mad'),
     ],
 
+    'payzone' => [
+        'base_url' => env('PAYZONE_BASE_URL', 'https://paiement.payzone.ma'),
+        'originator_id' => env('PAYZONE_ORIGINATOR_ID'),
+        'password' => env('PAYZONE_PASSWORD'),
+        'currency' => env('PAYZONE_CURRENCY', 'MAD'),
+        'api_version' => env('PAYZONE_API_VERSION', '002.70'),
+    ],
+
 ];
