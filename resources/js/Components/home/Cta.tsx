@@ -109,32 +109,37 @@ const Cta = () => {
       )
 
       // ── Boutons — stagger + scale depuis 0.88 ─────────────────────────
-      gsap.fromTo(
-        btnsRef.current?.children,
-        { y: 20, opacity: 0, scale: 0.88 },
-        {
-          y: 0, opacity: 1, scale: 1,
-          duration: 0.55,
-          stagger: 0.14,
-          ease: 'back.out(1.4)',
-          delay: 0.7,
-          scrollTrigger: trigger,
-        }
-      )
+      if (btnsRef.current?.children) {
+        gsap.fromTo(
+          btnsRef.current.children,
+          { y: 20, opacity: 0, scale: 0.88 },
+          {
+            y: 0, opacity: 1, scale: 1,
+            duration: 0.55,
+            stagger: 0.14,
+            ease: 'back.out(1.4)',
+            delay: 0.7,
+            scrollTrigger: trigger,
+          }
+        )
+      }
 
       // ── Numéros décoratifs — fade in flottant ─────────────────────────
-      gsap.fromTo(
-        decorNumsRef.current?.querySelectorAll('.decor-num'),
-        { opacity: 0, y: 10 },
-        {
-          opacity: 1, y: 0,
-          duration: 0.6,
-          stagger: 0.2,
-          ease: 'power2.out',
-          delay: 0.8,
-          scrollTrigger: trigger,
-        }
-      )
+      const decorNums = decorNumsRef.current?.querySelectorAll('.decor-num')
+      if (decorNums) {
+        gsap.fromTo(
+          decorNums,
+          { opacity: 0, y: 10 },
+          {
+            opacity: 1, y: 0,
+            duration: 0.6,
+            stagger: 0.2,
+            ease: 'power2.out',
+            delay: 0.8,
+            scrollTrigger: trigger,
+          }
+        )
+      }
 
       // ── Hover bouton primaire ─────────────────────────────────────────
       const btnPrimary = btnsRef.current?.querySelector('.btn-primary')

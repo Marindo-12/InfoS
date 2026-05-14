@@ -80,46 +80,55 @@ const Formations = () => {
       )
 
       // Titre + para — slide up
-      gsap.fromTo(
-        languesTitleRef.current?.querySelectorAll('.langues-text-anim'),
-        { y: 36, opacity: 0 },
-        {
-          y: 0, opacity: 1,
-          duration: 0.75,
-          stagger: 0.12,
-          ease: 'power3.out',
-          delay: 0.1,
-          scrollTrigger: languesTrigger,
-        }
-      )
+      const languesTextAnims = languesTitleRef.current?.querySelectorAll('.langues-text-anim')
+      if (languesTextAnims) {
+        gsap.fromTo(
+          languesTextAnims,
+          { y: 36, opacity: 0 },
+          {
+            y: 0, opacity: 1,
+            duration: 0.75,
+            stagger: 0.12,
+            ease: 'power3.out',
+            delay: 0.1,
+            scrollTrigger: languesTrigger,
+          }
+        )
+      }
 
       // Checkmarks — stagger depuis la gauche
-      gsap.fromTo(
-        languesListRef.current?.querySelectorAll('li'),
-        { x: -24, opacity: 0 },
-        {
-          x: 0, opacity: 1,
-          duration: 0.5,
-          stagger: 0.09,
-          ease: 'power2.out',
-          delay: 0.25,
-          scrollTrigger: languesTrigger,
-        }
-      )
+      const languesListItems = languesListRef.current?.querySelectorAll('li')
+      if (languesListItems) {
+        gsap.fromTo(
+          languesListItems,
+          { x: -24, opacity: 0 },
+          {
+            x: 0, opacity: 1,
+            duration: 0.5,
+            stagger: 0.09,
+            ease: 'power2.out',
+            delay: 0.25,
+            scrollTrigger: languesTrigger,
+          }
+        )
+      }
 
       // Tags catalogue — cascade depuis le bas
-      gsap.fromTo(
-        languesTagsRef.current?.querySelectorAll('span'),
-        { y: 20, opacity: 0, scale: 0.9 },
-        {
-          y: 0, opacity: 1, scale: 1,
-          duration: 0.45,
-          stagger: 0.1,
-          ease: 'back.out(1.3)',
-          delay: 0.4,
-          scrollTrigger: languesTrigger,
-        }
-      )
+      const languesTags = languesTagsRef.current?.querySelectorAll('span')
+      if (languesTags) {
+        gsap.fromTo(
+          languesTags,
+          { y: 20, opacity: 0, scale: 0.9 },
+          {
+            y: 0, opacity: 1, scale: 1,
+            duration: 0.45,
+            stagger: 0.1,
+            ease: 'back.out(1.3)',
+            delay: 0.4,
+            scrollTrigger: languesTrigger,
+          }
+        )
+      }
 
       // Lien arrow
       gsap.fromTo(
@@ -195,18 +204,21 @@ const Formations = () => {
       )
 
       // Titre + para bureautique
-      gsap.fromTo(
-        bureautiqueTitleRef.current?.querySelectorAll('.bureautique-text-anim'),
-        { y: 36, opacity: 0 },
-        {
-          y: 0, opacity: 1,
-          duration: 0.75,
-          stagger: 0.12,
-          ease: 'power3.out',
-          delay: 0.1,
-          scrollTrigger: bureautiqueTrigger,
-        }
-      )
+      const bureautiqueTextAnims = bureautiqueTitleRef.current?.querySelectorAll('.bureautique-text-anim')
+      if (bureautiqueTextAnims) {
+        gsap.fromTo(
+          bureautiqueTextAnims,
+          { y: 36, opacity: 0 },
+          {
+            y: 0, opacity: 1,
+            duration: 0.75,
+            stagger: 0.12,
+            ease: 'power3.out',
+            delay: 0.1,
+            scrollTrigger: bureautiqueTrigger,
+          }
+        )
+      }
 
       // Cartes bordées — slide depuis la gauche + border-left draw
       const bureautiqueCards = bureautiqueCardsRef.current?.querySelectorAll('.bureautique-card')
@@ -286,46 +298,55 @@ const Formations = () => {
       )
 
       // Titre + para concours
-      gsap.fromTo(
-        concoursBlockRef.current?.querySelectorAll('.concours-text-anim'),
-        { y: 28, opacity: 0 },
-        {
-          y: 0, opacity: 1,
-          duration: 0.7,
-          stagger: 0.12,
-          ease: 'power2.out',
-          delay: 0.2,
-          scrollTrigger: concoursTrigger,
-        }
-      )
+      const concoursTextAnims = concoursBlockRef.current?.querySelectorAll('.concours-text-anim')
+      if (concoursTextAnims) {
+        gsap.fromTo(
+          concoursTextAnims,
+          { y: 28, opacity: 0 },
+          {
+            y: 0, opacity: 1,
+            duration: 0.7,
+            stagger: 0.12,
+            ease: 'power2.out',
+            delay: 0.2,
+            scrollTrigger: concoursTrigger,
+          }
+        )
+      }
 
       // Badges concours — stagger depuis le centre
-      gsap.fromTo(
-        concoursBadgesRef.current?.querySelectorAll('.concours-badge'),
-        { scale: 0, opacity: 0 },
-        {
-          scale: 1, opacity: 1,
-          duration: 0.45,
-          stagger: { amount: 0.65, from: 'center' },
-          ease: 'back.out(1.4)',
-          delay: 0.35,
-          scrollTrigger: concoursTrigger,
-        }
-      )
+      const concoursBadges = concoursBadgesRef.current?.querySelectorAll('.concours-badge')
+      if (concoursBadges) {
+        gsap.fromTo(
+          concoursBadges,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1, opacity: 1,
+            duration: 0.45,
+            stagger: { amount: 0.65, from: 'center' },
+            ease: 'back.out(1.4)',
+            delay: 0.35,
+            scrollTrigger: concoursTrigger,
+          }
+        )
+      }
 
       // Badges certifications — stagger depuis le centre (suite)
-      gsap.fromTo(
-        concoursBadgeCertRef.current?.querySelectorAll('.concours-badge'),
-        { scale: 0, opacity: 0 },
-        {
-          scale: 1, opacity: 1,
-          duration: 0.45,
-          stagger: { amount: 0.4, from: 'center' },
-          ease: 'back.out(1.4)',
-          delay: 0.7,
-          scrollTrigger: concoursTrigger,
-        }
-      )
+      const concoursBadgesCerts = concoursBadgeCertRef.current?.querySelectorAll('.concours-badge')
+      if (concoursBadgesCerts) {
+        gsap.fromTo(
+          concoursBadgesCerts,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1, opacity: 1,
+            duration: 0.45,
+            stagger: { amount: 0.4, from: 'center' },
+            ease: 'back.out(1.4)',
+            delay: 0.7,
+            scrollTrigger: concoursTrigger,
+          }
+        )
+      }
 
       // Cercle "95% réussite" — scale pop + pulse idle
       gsap.fromTo(

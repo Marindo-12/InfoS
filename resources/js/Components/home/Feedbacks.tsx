@@ -63,20 +63,23 @@ const Feedbacks = () => {
     const ctx = gsap.context(() => {
 
       // ── Header — badge + titre + para en stagger ─────────────────────
-      gsap.fromTo(
-        headerRef.current?.querySelectorAll('.header-anim'),
-        { y: 36, opacity: 0 },
-        {
-          y: 0, opacity: 1,
-          duration: 0.8,
-          stagger: 0.14,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: 'top 78%',
-          },
-        }
-      )
+      const headerAnims = headerRef.current?.querySelectorAll('.header-anim')
+      if (headerAnims) {
+        gsap.fromTo(
+          headerAnims,
+          { y: 36, opacity: 0 },
+          {
+            y: 0, opacity: 1,
+            duration: 0.8,
+            stagger: 0.14,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: headerRef.current,
+              start: 'top 78%',
+            },
+          }
+        )
+      }
 
       // ── Cartes masonry — cascade en stagger colonnes ──────────────────
       // Simuler l'ordre colonne par colonne (gauche avant droite)
