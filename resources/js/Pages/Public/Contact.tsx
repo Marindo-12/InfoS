@@ -273,20 +273,47 @@ const Contact: React.FC = () => {
                         0%,100% { transform: translateY(0) rotate(0deg); }
                         50% { transform: translateY(-10px) rotate(-6deg); }
                     }
+                    .contact-subtle-pattern {
+                        background-color: #faf5ee;
+                        background-image: radial-gradient(#d8d0c8 0.5px, transparent 0.5px);
+                        background-size: 32px 32px;
+                    }
+                    .contact-blob {
+                        position: absolute;
+                        filter: blur(60px);
+                        opacity: 0.08;
+                        pointer-events: none;
+                    }
+                    .contact-geometric-line {
+                        position: absolute;
+                        background: #c2652a;
+                        opacity: 0.15;
+                        pointer-events: none;
+                    }
                 `}</style>
 
-                <main className="relative overflow-hidden bg-surface-container-lowest pt-24">
+                <main className="relative isolate overflow-hidden bg-background pt-24">
+                    <div className="contact-subtle-pattern pointer-events-none absolute inset-0 z-[-2]" />
+                    <div className="contact-blob right-[-200px] top-[-100px] z-[-1] h-[600px] w-[600px] rounded-full bg-primary" />
+                    <div className="contact-blob right-[-100px] top-[40%] z-[-1] h-[400px] w-[400px] rounded-full bg-on-surface-variant" />
+                    <div className="contact-geometric-line left-0 top-1/4 h-px w-full z-[-1]" />
+                    <div className="contact-geometric-line left-[60%] top-0 h-full w-px z-[-1]" />
+                    <div className="contact-geometric-line right-0 top-40 h-px w-1/3 z-[-1]" />
+                    <div className="contact-geometric-line right-[10%] top-20 h-64 w-px z-[-1]" />
+                    <div className="contact-geometric-line bottom-[20%] left-0 h-px w-64 z-[-1]" />
+                    <div className="pointer-events-none absolute right-[5%] top-[10%] z-[-1] h-96 w-96 rounded-full border border-primary/10" />
+                    <div className="pointer-events-none absolute right-[2%] top-[15%] z-[-1] h-[500px] w-[500px] rounded-full border border-on-surface/5" />
                     <div
-                        className="pointer-events-none absolute left-12 top-24 h-24 w-24 rounded-full border border-on-surface/5"
+                        className="pointer-events-none absolute left-12 top-24 z-[-1] h-24 w-24 rounded-full border border-on-surface/5"
                         style={{ animation: 'floatA 8s ease-in-out infinite' }}
                     />
                     <div
-                        className="pointer-events-none absolute right-24 top-[60%] h-48 w-48 rounded-full border border-primary/10"
+                        className="pointer-events-none absolute right-24 top-[60%] z-[-1] h-48 w-48 rounded-full border border-primary/10"
                         style={{ animation: 'floatB 11s ease-in-out infinite' }}
                     />
                     <div
-                        className="pointer-events-none absolute left-[3%] top-[10%] select-none font-display leading-none"
-                        style={{ fontSize: '22rem', color: 'rgba(194,101,42,0.04)' }}
+                        className="pointer-events-none absolute left-[5%] top-[15%] z-[-1] select-none font-display leading-none"
+                        style={{ fontSize: '20rem', color: 'rgba(194,101,42,0.04)' }}
                         aria-hidden="true"
                     >
                         C
