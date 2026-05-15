@@ -208,7 +208,7 @@ function LightningLetterCycler() {
     return (
         <div
             ref={containerRef}
-            className="pointer-events-none absolute right-[-2%] top-[-10%] z-0 select-none"
+            className="pointer-events-none absolute right-[2%] top-[-8%] z-0 select-none overflow-hidden"
             style={{
                 // CSS custom property trick for flash overlay
                 ['--flash' as string]: '0',
@@ -219,7 +219,7 @@ function LightningLetterCycler() {
                 ref={letterRef}
                 className="font-display leading-none"
                 style={{
-                    fontSize: 'clamp(14rem, 22vw, 28rem)',
+                    fontSize: 'clamp(10rem, 16vw, 20rem)',
                     color: 'transparent',
                     WebkitTextStroke: '2px rgba(194,101,42,0.18)',
                     display: 'block',
@@ -422,14 +422,50 @@ function FaqItem({
     onToggle: () => void
 }) {
     return (
-        <div className="border-b border-outline/40 pb-4 last:border-0">
+        <div
+            style={{
+                borderTop: '1px solid rgba(194,101,42,0.15)',
+                borderBottom: open ? '1px solid rgba(194,101,42,0.25)' : '1px solid transparent',
+                transition: 'border-color 0.3s ease, background 0.3s ease',
+                borderRadius: open ? '12px' : '0',
+                background: open ? 'rgba(194,101,42,0.03)' : 'transparent',
+                padding: '0 8px',
+                marginBottom: '2px',
+            }}
+        >
             <button
                 onClick={onToggle}
-                className="group flex w-full items-center justify-between py-2 text-left focus:outline-none"
+                className="group flex w-full items-center justify-between py-4 text-left focus:outline-none"
             >
-                <span className="pr-4 font-display text-xl text-on-surface transition-colors group-hover:text-primary">
-                    {question}
-                </span>
+                <div className="flex items-center gap-4 pr-4">
+                    <span
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            border: open ? '1px solid rgba(194,101,42,0.6)' : '1px solid rgba(194,101,42,0.2)',
+                            background: open ? 'rgba(194,101,42,0.08)' : 'transparent',
+                            flexShrink: 0,
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        <span
+                            style={{
+                                width: '7px',
+                                height: '7px',
+                                borderRadius: '50%',
+                                background: open ? '#c2652a' : 'rgba(194,101,42,0.3)',
+                                transition: 'background 0.3s ease',
+                            }}
+                        />
+                    </span>
+                    <span className="font-display text-xl text-on-surface transition-colors group-hover:text-primary">
+                        {question}
+                    </span>
+                </div>
                 <span
                     className="material-symbols-outlined shrink-0 text-primary transition-transform duration-300"
                     style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
@@ -445,7 +481,7 @@ function FaqItem({
                     opacity: open ? 1 : 0,
                 }}
             >
-                <p className="pb-4 pt-1 font-light leading-relaxed text-on-surface-variant">
+                <p className="pb-5 pl-10 pt-0 font-light leading-relaxed text-on-surface-variant">
                     {answer}
                 </p>
             </div>
@@ -928,7 +964,7 @@ const Contact: React.FC = () => {
                             className="rounded-3xl border border-outline-variant/50 p-6 md:p-10"
                             style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)' }}
                         >
-                            <div className="space-y-5">
+                            <div className="space-y-0" style={{ borderBottom: "1px solid rgba(194,101,42,0.15)" }}>
                                 {FAQ_ITEMS.map((item, idx) => (
                                     <div key={item.question} className="faq-item" style={{ opacity: 0 }}>
                                         <FaqItem
