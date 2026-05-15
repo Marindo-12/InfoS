@@ -5,10 +5,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 gsap.registerPlugin(ScrollTrigger)
 
 const miniCatalog = {
-  langues: ['Francais 30H / 600 DH', 'Anglais 30H / 600 DH', 'Espagnol 30H / 600 DH'],
-  bureautique: ['Word 20H / 600 DH', 'Excel 20H / 500 DH', 'PowerPoint 12H / 300 DH', 'Access 16H / 400 DH'],
-  concours: ['Medecine 15H / 1000 DH', 'ENSA 12H / 800 DH', 'ENSAM 14H / 1200 DH', 'ENCG 13H / 500 DH', 'ISCAE 15H / 1200 DH', 'ENA 10H / 600 DH'],
-  infographie: ['Photoshop 30H / 1000 DH', 'Illustrator 25H / 1000 DH', 'InDesign 20H / 900 DH'],
+  langues: ['Francais', 'Anglais', 'Espagnol'],
+  bureautique: ['Word', 'Excel', 'PowerPoint', 'Access'],
+  concours: ['Medecine', 'ENSA', 'ENSAM', 'ENCG', 'ISCAE', 'ENA'],
+  infographie: ['Photoshop', 'Illustrator', 'InDesign'],
 }
 
 const Formations = () => {
@@ -532,15 +532,6 @@ const Formations = () => {
                   </p>
                 </div>
               ))}
-              <div
-                className="bureautique-card p-4 bg-surface-container rounded-xl border-l-4 border-primary"
-                style={{ opacity: 0 }}
-              >
-                <h4 className="font-bold mb-1">Certification MOS</h4>
-                <p className="text-sm text-on-surface-variant">
-                  Certification Microsoft Office Specialist reconnue mondialement.
-                </p>
-              </div>
             </div>
 
             <a
