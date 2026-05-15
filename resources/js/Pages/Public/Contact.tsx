@@ -1,8 +1,12 @@
 import PublicLayout from '@/Layouts/PublicLayout'
 import { Head, router } from '@inertiajs/react'
 import { MapPinned } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import type { SVGProps } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface ContactFormData {
     [key: string]: string
@@ -111,6 +115,254 @@ const SOCIAL_LINKS = [
     },
 ]
 
+// ─── Lightning Letter Cycler ──────────────────────────────────────────────────
+const CYCLER_LETTERS = ['M', 'C', 'D', 'J', 'L', 'K']
+
+function LightningLetterCycler() {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const letterRef = useRef<HTMLSpanElement>(null)
+    const svgRef = useRef<SVGSVGElement>(null)
+    const tlRef = useRef<gsap.core.Timeline | null>(null)
+    const idxRef = useRef(0)
+
+    useEffect(() => {
+        const container = containerRef.current
+        const letterEl = letterRef.current
+        const svgEl = svgRef.current
+        if (!container || !letterEl || !svgEl) return
+
+        // Build repeating lightning timeline
+        const buildCycle = () => {
+            const tl = gsap.timeline({
+                repeat: -1,
+                onRepeat: () => {
+                    idxRef.current = (idxRef.current + 1) % CYCLER_LETTERS.length
+                    letterEl.textContent = CYCLER_LETTERS[idxRef.current]
+                },
+            })
+
+            // 1. Letter rests visible
+            tl.to(letterEl, { duration: 1.6, opacity: 1 }, 0)
+
+            // 2. Pre-flash: rapid flicker of the letter
+            tl.to(letterEl, { opacity: 0.2, duration: 0.06 }, 1.6)
+            tl.to(letterEl, { opacity: 1,   duration: 0.06 }, 1.66)
+            tl.to(letterEl, { opacity: 0.1, duration: 0.04 }, 1.72)
+            tl.to(letterEl, { opacity: 1,   duration: 0.04 }, 1.76)
+
+            // 3. Lightning SVG bolt flash-in
+            tl.fromTo(
+                svgEl,
+                { opacity: 0, scaleY: 0, transformOrigin: 'top center' },
+                { opacity: 1, scaleY: 1, duration: 0.08, ease: 'power4.in' },
+                1.8
+            )
+            // bolt stays briefly then disappears
+            tl.to(svgEl, { opacity: 0, duration: 0.14, ease: 'power2.out' }, 1.92)
+
+            // 4. White flash wipe
+            tl.fromTo(
+                container,
+                { '--flash': '0' } as any,
+                { '--flash': '1', duration: 0.05, ease: 'none' },
+                1.82
+            )
+            tl.to(container, { '--flash': '0', duration: 0.25, ease: 'power2.out' }, 1.9)
+
+            // 5. Letter exit (scale + blur)
+            tl.to(letterEl, {
+                scale: 1.25,
+                opacity: 0,
+                filter: 'blur(18px)',
+                duration: 0.12,
+                ease: 'power3.in',
+            }, 1.82)
+
+            // 6. New letter enters
+            tl.fromTo(
+                letterEl,
+                { scale: 0.6, opacity: 0, filter: 'blur(30px)' },
+                { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 0.55, ease: 'back.out(1.7)' },
+                2.0
+            )
+
+            return tl
+        }
+
+        letterEl.textContent = CYCLER_LETTERS[0]
+        gsap.set(letterEl, { opacity: 0 })
+        gsap.set(svgEl, { opacity: 0 })
+
+        // Delay first cycle start slightly
+        const timeout = setTimeout(() => {
+            gsap.to(letterEl, { opacity: 1, duration: 0.6 })
+            tlRef.current = buildCycle()
+        }, 1200)
+
+        return () => {
+            clearTimeout(timeout)
+            tlRef.current?.kill()
+        }
+    }, [])
+
+    return (
+        <div
+            ref={containerRef}
+            className="pointer-events-none absolute right-[-2%] top-[-10%] z-0 select-none"
+            style={{
+                // CSS custom property trick for flash overlay
+                ['--flash' as string]: '0',
+            }}
+        >
+            {/* The giant letter */}
+            <span
+                ref={letterRef}
+                className="font-display leading-none"
+                style={{
+                    fontSize: 'clamp(14rem, 22vw, 28rem)',
+                    color: 'transparent',
+                    WebkitTextStroke: '2px rgba(194,101,42,0.18)',
+                    display: 'block',
+                    lineHeight: 0.85,
+                    letterSpacing: '-0.05em',
+                    willChange: 'transform, opacity, filter',
+                }}
+                aria-hidden="true"
+            />
+
+            {/* Lightning bolt SVG */}
+            <svg
+                ref={svgRef}
+                viewBox="0 0 80 220"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                    position: 'absolute',
+                    top: '10%',
+                    left: '30%',
+                    width: '80px',
+                    height: '220px',
+                    filter: 'drop-shadow(0 0 18px #c2652a) drop-shadow(0 0 40px #fff8)',
+                    willChange: 'transform, opacity',
+                }}
+                aria-hidden="true"
+            >
+                {/* Main bolt */}
+                <polyline
+                    points="52,4 24,92 48,92 18,216"
+                    stroke="white"
+                    strokeWidth="4"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                />
+                {/* Glow copy */}
+                <polyline
+                    points="52,4 24,92 48,92 18,216"
+                    stroke="#c2652a"
+                    strokeWidth="9"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeOpacity="0.55"
+                />
+                {/* Secondary bolt branch */}
+                <polyline
+                    points="38,80 18,120 36,118"
+                    stroke="white"
+                    strokeWidth="2.5"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeOpacity="0.7"
+                />
+                {/* Flash white fill overlay */}
+                <rect
+                    x="-20" y="-20" width="120" height="260"
+                    fill="white"
+                    opacity="0"
+                    id="flashRect"
+                    style={{ mixBlendMode: 'screen' }}
+                />
+            </svg>
+        </div>
+    )
+}
+
+// ─── Page-load curtain intro ──────────────────────────────────────────────────
+function PageIntro({ onDone }: { onDone: () => void }) {
+    const curtainRef = useRef<HTMLDivElement>(null)
+    const lineRef = useRef<HTMLDivElement>(null)
+    const textRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const tl = gsap.timeline({
+            onComplete: onDone,
+        })
+
+        // Reveal the label text
+        tl.fromTo(
+            textRef.current,
+            { opacity: 0, y: 30, letterSpacing: '2em' },
+            { opacity: 1, y: 0, letterSpacing: '0.3em', duration: 0.9, ease: 'power3.out' },
+            0.3
+        )
+        // Expand horizontal line
+        tl.fromTo(
+            lineRef.current,
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.6, ease: 'power2.inOut' },
+            0.8
+        )
+        // Curtain slides up to reveal page
+        tl.to(
+            curtainRef.current,
+            { yPercent: -100, duration: 0.9, ease: 'expo.inOut' },
+            1.5
+        )
+    }, [onDone])
+
+    return (
+        <div
+            ref={curtainRef}
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9999,
+                background: '#1a1410',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1.5rem',
+                willChange: 'transform',
+            }}
+        >
+            <div
+                ref={textRef}
+                style={{
+                    fontFamily: 'var(--font-display, serif)',
+                    fontSize: '0.7rem',
+                    color: 'rgba(194,101,42,0.9)',
+                    letterSpacing: '0.3em',
+                    textTransform: 'uppercase',
+                    opacity: 0,
+                }}
+            >
+                Info Saloua
+            </div>
+            <div
+                ref={lineRef}
+                style={{
+                    width: '120px',
+                    height: '1px',
+                    background: 'rgba(194,101,42,0.5)',
+                    transformOrigin: 'center',
+                    transform: 'scaleX(0)',
+                }}
+            />
+        </div>
+    )
+}
+
+// ─── Floating Input ───────────────────────────────────────────────────────────
 function FloatingInput({
     id,
     label,
@@ -157,6 +409,7 @@ function FloatingInput({
     )
 }
 
+// ─── FAQ Item ─────────────────────────────────────────────────────────────────
 function FaqItem({
     question,
     answer,
@@ -200,6 +453,7 @@ function FaqItem({
     )
 }
 
+// ─── Main Contact Page ────────────────────────────────────────────────────────
 const Contact: React.FC = () => {
     const [formData, setFormData] = useState<ContactFormData>({
         name: '',
@@ -210,6 +464,156 @@ const Contact: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
     const [openIndex, setOpenIndex] = useState<number | null>(0)
+    const [showIntro, setShowIntro] = useState(true)
+
+    // ── Refs for GSAP targets ──
+    const heroTaglineRef = useRef<HTMLDivElement>(null)
+    const heroH1Ref = useRef<HTMLHeadingElement>(null)
+    const heroParaRef = useRef<HTMLParagraphElement>(null)
+    const contactCardsRef = useRef<HTMLDivElement>(null)
+    const formCardRef = useRef<HTMLDivElement>(null)
+    const hoursRef = useRef<HTMLElement>(null)
+    const faqRef = useRef<HTMLElement>(null)
+    const mapRef = useRef<HTMLElement>(null)
+    const socialRef = useRef<HTMLDivElement>(null)
+
+    // ── Post-intro: fire page animations ──
+    useEffect(() => {
+        if (showIntro) return
+
+        const ctx = gsap.context(() => {
+            // ── Hero section stagger ──
+            const heroTl = gsap.timeline({ delay: 0.1 })
+
+            heroTl.fromTo(
+                heroTaglineRef.current,
+                { opacity: 0, x: -40 },
+                { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' }
+            )
+            heroTl.fromTo(
+                heroH1Ref.current,
+                { opacity: 0, y: 60, skewY: 4 },
+                { opacity: 1, y: 0, skewY: 0, duration: 1, ease: 'expo.out' },
+                '-=0.4'
+            )
+            heroTl.fromTo(
+                heroParaRef.current,
+                { opacity: 0, y: 30 },
+                { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' },
+                '-=0.5'
+            )
+
+            // ── Contact cards: stagger from left ──
+            const cards = contactCardsRef.current?.querySelectorAll('.contact-detail-item')
+            if (cards) {
+                ScrollTrigger.create({
+                    trigger: contactCardsRef.current,
+                    start: 'top 80%',
+                    onEnter: () => {
+                        gsap.fromTo(
+                            cards,
+                            { opacity: 0, x: -50 },
+                            { opacity: 1, x: 0, stagger: 0.18, duration: 0.7, ease: 'power3.out' }
+                        )
+                    },
+                })
+            }
+
+            // ── Social icons: pop in ──
+            const icons = socialRef.current?.querySelectorAll('a')
+            if (icons) {
+                ScrollTrigger.create({
+                    trigger: socialRef.current,
+                    start: 'top 85%',
+                    onEnter: () => {
+                        gsap.fromTo(
+                            icons,
+                            { opacity: 0, scale: 0, rotation: -30 },
+                            { opacity: 1, scale: 1, rotation: 0, stagger: 0.09, duration: 0.5, ease: 'back.out(2)' }
+                        )
+                    },
+                })
+            }
+
+            // ── Form card: slide up with clip-path ──
+            ScrollTrigger.create({
+                trigger: formCardRef.current,
+                start: 'top 75%',
+                onEnter: () => {
+                    gsap.fromTo(
+                        formCardRef.current,
+                        { opacity: 0, y: 80, clipPath: 'inset(100% 0% 0% 0%)' },
+                        { opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'expo.out' }
+                    )
+                },
+            })
+
+            // ── Hours: draw border-left lines ──
+            if (hoursRef.current) {
+                const lines = hoursRef.current.querySelectorAll('.hours-line')
+                ScrollTrigger.create({
+                    trigger: hoursRef.current,
+                    start: 'top 80%',
+                    onEnter: () => {
+                        gsap.fromTo(
+                            hoursRef.current,
+                            { opacity: 0, y: 40 },
+                            { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+                        )
+                        gsap.fromTo(
+                            lines,
+                            { scaleY: 0, transformOrigin: 'top center' },
+                            { scaleY: 1, stagger: 0.12, duration: 0.6, ease: 'power2.out', delay: 0.3 }
+                        )
+                    },
+                })
+            }
+
+            // ── FAQ: cascade in ──
+            if (faqRef.current) {
+                const faqItems = faqRef.current.querySelectorAll('.faq-item')
+                ScrollTrigger.create({
+                    trigger: faqRef.current,
+                    start: 'top 80%',
+                    onEnter: () => {
+                        gsap.fromTo(
+                            faqItems,
+                            { opacity: 0, y: 30, x: 20 },
+                            { opacity: 1, y: 0, x: 0, stagger: 0.1, duration: 0.6, ease: 'power2.out' }
+                        )
+                    },
+                })
+            }
+
+            // ── Map: scale from center ──
+            if (mapRef.current) {
+                ScrollTrigger.create({
+                    trigger: mapRef.current,
+                    start: 'top 80%',
+                    onEnter: () => {
+                        gsap.fromTo(
+                            mapRef.current,
+                            { opacity: 0, scale: 0.88, borderRadius: '4rem' },
+                            { opacity: 1, scale: 1, borderRadius: '2rem', duration: 1.2, ease: 'expo.out' }
+                        )
+                    },
+                })
+            }
+
+            // ── Parallax on decorative blobs ──
+            gsap.utils.toArray<Element>('.contact-blob').forEach((blob, i) => {
+                gsap.to(blob, {
+                    yPercent: i % 2 === 0 ? -20 : 20,
+                    ease: 'none',
+                    scrollTrigger: {
+                        scrub: 1.5,
+                    },
+                })
+            })
+        })
+
+        return () => ctx.revert()
+    }, [showIntro])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value } = e.target
@@ -246,13 +650,9 @@ const Contact: React.FC = () => {
                 setTimeout(() => setSubmitStatus(null), 5000)
             },
             onError: (errors) => {
-                const message = errors.contact
-                    || errors.name
-                    || errors.email
-                    || errors.subject
-                    || errors.message
-                    || 'Une erreur est survenue. Veuillez reessayer.'
-
+                const message =
+                    errors.contact || errors.name || errors.email || errors.subject || errors.message ||
+                    'Une erreur est survenue. Veuillez reessayer.'
                 setSubmitStatus({ type: 'error', message })
                 setTimeout(() => setSubmitStatus(null), 5000)
             },
@@ -283,6 +683,7 @@ const Contact: React.FC = () => {
                         filter: blur(60px);
                         opacity: 0.08;
                         pointer-events: none;
+                        will-change: transform;
                     }
                     .contact-geometric-line {
                         position: absolute;
@@ -291,6 +692,8 @@ const Contact: React.FC = () => {
                         pointer-events: none;
                     }
                 `}</style>
+
+                {showIntro && <PageIntro onDone={() => setShowIntro(false)} />}
 
                 <main className="relative isolate overflow-hidden bg-background pt-24">
                     <div className="contact-subtle-pattern pointer-events-none absolute inset-0 z-[-2]" />
@@ -311,43 +714,50 @@ const Contact: React.FC = () => {
                         className="pointer-events-none absolute right-24 top-[60%] z-[-1] h-48 w-48 rounded-full border border-primary/10"
                         style={{ animation: 'floatB 11s ease-in-out infinite' }}
                     />
-                    <div
-                        className="pointer-events-none absolute left-[5%] top-[15%] z-[-1] select-none font-display leading-none"
-                        style={{ fontSize: '20rem', color: 'rgba(194,101,42,0.04)' }}
-                        aria-hidden="true"
-                    >
-                        C
-                    </div>
 
-                    <section className="relative px-8 pb-24">
+                    {/* ── HERO SECTION ── */}
+                    <section className="relative px-8 pb-24 overflow-hidden">
+                        {/* Lightning letter cycler — right side of hero */}
+                        <LightningLetterCycler />
+
                         <div className="relative z-10 mx-auto max-w-7xl text-center md:text-left">
-                            <div className="mb-6 flex items-center justify-center gap-4 md:justify-start">
+                            <div ref={heroTaglineRef} className="mb-6 flex items-center justify-center gap-4 md:justify-start" style={{ opacity: 0 }}>
                                 <span className="h-px w-12 bg-primary" />
                                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
                                     Prenez contact
                                 </span>
                             </div>
-                            <h1 className="font-display text-7xl leading-[0.9] tracking-tighter text-on-surface md:text-9xl">
+                            <h1
+                                ref={heroH1Ref}
+                                className="font-display text-7xl leading-[0.9] tracking-tighter text-on-surface md:text-9xl"
+                                style={{ opacity: 0 }}
+                            >
                                 Contactez-<span className="font-normal italic text-primary">Nous</span>
                             </h1>
-                            <p className="mt-8 max-w-2xl text-xl font-light leading-relaxed text-on-surface-variant">
+                            <p
+                                ref={heroParaRef}
+                                className="mt-8 max-w-2xl text-xl font-light leading-relaxed text-on-surface-variant"
+                                style={{ opacity: 0 }}
+                            >
                                 Lancez votre parcours d'apprentissage. Notre equipe est la pour vous guider a chaque etape de votre experience au Centre Informatique.
                             </p>
                         </div>
                     </section>
 
+                    {/* ── CONTACT INFO + FORM ── */}
                     <section className="relative mx-auto max-w-7xl px-8 pb-40">
                         <div className="absolute bottom-0 top-0 -left-4 hidden w-px bg-on-surface/5 lg:block" />
 
                         <div className="relative z-10 grid grid-cols-1 items-start gap-16 lg:grid-cols-12">
+                            {/* Left col */}
                             <div className="space-y-16 lg:col-span-5">
                                 <div className="space-y-12">
                                     <h2 className="inline-block border-b border-outline pb-4 font-display text-4xl text-on-surface">
                                         Entrer en contact
                                     </h2>
-                                    <div className="space-y-10">
+                                    <div ref={contactCardsRef} className="space-y-10">
                                         {CONTACT_DETAILS.map((item) => (
-                                            <div key={item.title} className="flex items-start gap-8">
+                                            <div key={item.title} className="contact-detail-item flex items-start gap-8" style={{ opacity: 0 }}>
                                                 <div className="mt-1 shrink-0 text-primary">
                                                     <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>
                                                         {item.icon}
@@ -371,7 +781,7 @@ const Contact: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="border-t border-outline pt-12">
+                                <div ref={socialRef} className="border-t border-outline pt-12">
                                     <h4 className="mb-6 font-label text-xs font-bold uppercase tracking-[0.2em] text-on-surface">
                                         Presence numerique
                                     </h4>
@@ -384,6 +794,7 @@ const Contact: React.FC = () => {
                                                 rel="noreferrer"
                                                 aria-label={name}
                                                 className={`flex h-10 w-10 items-center justify-center rounded-full border border-outline/50 text-on-surface-variant transition-colors duration-300 ${hoverClass}`}
+                                                style={{ opacity: 0 }}
                                             >
                                                 <Icon className="h-[18px] w-[18px]" />
                                             </a>
@@ -392,10 +803,17 @@ const Contact: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Right col — form */}
                             <div className="relative lg:col-span-7">
                                 <div
+                                    ref={formCardRef}
                                     className="relative overflow-hidden rounded-3xl border-2 border-outline-variant/60 p-10 shadow-sm md:p-16"
-                                    style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)' }}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.85)',
+                                        backdropFilter: 'blur(12px)',
+                                        opacity: 0,
+                                        clipPath: 'inset(100% 0% 0% 0%)',
+                                    }}
                                 >
                                     <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-primary/5" />
 
@@ -413,26 +831,12 @@ const Contact: React.FC = () => {
 
                                     <form onSubmit={handleSubmit} className="relative z-10 space-y-12">
                                         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-                                            <FloatingInput
-                                                id="name"
-                                                label="Nom complet"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                            />
-                                            <FloatingInput
-                                                id="email"
-                                                label="Adresse email"
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                            />
+                                            <FloatingInput id="name" label="Nom complet" value={formData.name} onChange={handleChange} />
+                                            <FloatingInput id="email" label="Adresse email" type="email" value={formData.email} onChange={handleChange} />
                                         </div>
 
                                         <div className="relative">
-                                            <label
-                                                htmlFor="subject"
-                                                className="absolute -top-6 left-0 text-[10px] font-bold uppercase tracking-widest text-primary"
-                                            >
+                                            <label htmlFor="subject" className="absolute -top-6 left-0 text-[10px] font-bold uppercase tracking-widest text-primary">
                                                 Sujet de la demande
                                             </label>
                                             <select
@@ -446,16 +850,11 @@ const Contact: React.FC = () => {
                                                 <option value="partnership">Partenariat</option>
                                                 <option value="other">Autre</option>
                                             </select>
-                                            <span className="material-symbols-outlined pointer-events-none absolute right-0 top-2 text-outline">
-                                                expand_more
-                                            </span>
+                                            <span className="material-symbols-outlined pointer-events-none absolute right-0 top-2 text-outline">expand_more</span>
                                         </div>
 
                                         <div className="relative">
-                                            <label
-                                                htmlFor="message"
-                                                className="absolute -top-6 left-0 text-[10px] font-bold uppercase tracking-widest text-primary"
-                                            >
+                                            <label htmlFor="message" className="absolute -top-6 left-0 text-[10px] font-bold uppercase tracking-widest text-primary">
                                                 Message
                                             </label>
                                             <textarea
@@ -484,7 +883,8 @@ const Contact: React.FC = () => {
                         </div>
                     </section>
 
-                    <section className="mx-auto max-w-7xl px-8 pb-20">
+                    {/* ── HOURS ── */}
+                    <section ref={hoursRef} className="mx-auto max-w-7xl px-8 pb-20" style={{ opacity: 0 }}>
                         <div
                             className="rounded-3xl border border-outline-variant/50 p-12"
                             style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
@@ -494,29 +894,24 @@ const Contact: React.FC = () => {
                                 Nos bureaux administratifs sont ouverts aux horaires suivants pour les demandes sur place et le depot de documents.
                             </p>
                             <div className="mt-12 flex flex-col gap-8 sm:flex-row">
-                                <div className="flex-1 border-l-2 border-primary pl-6">
-                                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-                                        Jours ouvres
-                                    </span>
+                                <div className="hours-line flex-1 border-l-2 border-primary pl-6">
+                                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Jours ouvres</span>
                                     <span className="font-display text-2xl text-on-surface">08:00 - 18:00</span>
                                 </div>
-                                <div className="flex-1 border-l-2 border-outline pl-6">
-                                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">
-                                        Samedi
-                                    </span>
+                                <div className="hours-line flex-1 border-l-2 border-outline pl-6">
+                                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">Samedi</span>
                                     <span className="font-display text-2xl text-on-surface-variant/40">09:00 - 13:00</span>
                                 </div>
-                                <div className="flex-1 border-l-2 border-outline pl-6">
-                                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">
-                                        Dimanche
-                                    </span>
+                                <div className="hours-line flex-1 border-l-2 border-outline pl-6">
+                                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">Dimanche</span>
                                     <span className="font-display text-2xl text-on-surface-variant/40">Ferme</span>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    <section className="mx-auto max-w-7xl px-8 pb-40">
+                    {/* ── FAQ ── */}
+                    <section ref={faqRef} className="mx-auto max-w-7xl px-8 pb-40">
                         <div className="mb-8 flex flex-col items-start gap-2">
                             <div className="flex items-center gap-3">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -535,19 +930,21 @@ const Contact: React.FC = () => {
                         >
                             <div className="space-y-5">
                                 {FAQ_ITEMS.map((item, idx) => (
-                                    <FaqItem
-                                        key={item.question}
-                                        question={item.question}
-                                        answer={item.answer}
-                                        open={openIndex === idx}
-                                        onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
-                                    />
+                                    <div key={item.question} className="faq-item" style={{ opacity: 0 }}>
+                                        <FaqItem
+                                            question={item.question}
+                                            answer={item.answer}
+                                            open={openIndex === idx}
+                                            onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
+                                        />
+                                    </div>
                                 ))}
                             </div>
                         </div>
                     </section>
 
-                    <section className="px-8 pb-28">
+                    {/* ── MAP ── */}
+                    <section ref={mapRef} className="px-8 pb-28" style={{ opacity: 0 }}>
                         <div className="relative mx-auto min-h-[650px] max-w-7xl overflow-hidden rounded-[2rem] border border-outline-variant/50 shadow-xl">
                             <iframe
                                 title="Google Maps - Centre Info Saloua"
@@ -565,9 +962,7 @@ const Contact: React.FC = () => {
                             >
                                 <div className="mb-4 flex items-center gap-3 text-primary">
                                     <MapPinned size={22} strokeWidth={1.9} />
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.25em]">
-                                        Localisation
-                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.25em]">Localisation</span>
                                 </div>
                                 <h4 className="mb-4 font-display text-3xl text-on-surface">Centre Info Saloua</h4>
                                 <p className="mb-6 text-sm font-light leading-relaxed text-on-surface-variant">
@@ -583,9 +978,7 @@ const Contact: React.FC = () => {
                                     className="group inline-flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-on-surface"
                                 >
                                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-colors group-hover:bg-on-surface">
-                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
-                                            directions
-                                        </span>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>directions</span>
                                     </span>
                                     Obtenir l'itineraire
                                 </a>
