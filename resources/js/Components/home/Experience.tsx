@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import secondimage from '../../../../public/images/home_second.png'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -275,7 +276,7 @@ const Experience = () => {
                 className="w-full h-96 object-cover rounded-xl shadow-sm"
                 alt="Formateurs expérimentés"
                 style={{ willChange: 'transform' }}
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnm6UaxD6wdhKYXgX-yKWcnsvZemSTWor9mGapQcF6GuKKlTyQcqe07FeXCJrwHtuM4s2zbLBKt_8XoZQhPHZFtP2MvWf17tIMfeMUymAHouMUbqnS6XuJzHwjUg8JVfJw7dXGAQlyG1RSR7zlaXPUvDX6psFdW71Sb6ixfdztC8h08CyHv4zRr_CplctYiDIwB20dAaH1xRIwn8KSlq_PaS4pEqqCU6co-ZiR56bSVNzJt-O6yOQz4yTfBkyufhY4QgnqwJjM1DbP"
+                src={secondimage}
               />
             </div>
           </div>
