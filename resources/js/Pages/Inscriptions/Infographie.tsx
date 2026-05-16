@@ -12,7 +12,7 @@ import {
 import PublicLayout from '@/Layouts/PublicLayout';
 import PaymentCertificate, { type PaymentCertificateData } from '@/Components/PaymentCertificate';
 import { createStripePaymentIntent } from '@/lib/stripePayments';
-import infographielogo from '../../../../public/images/infographie.jpg'
+import infographielogo from '../../../../public/images/infographie.png'
 
 /* ═══════════════════════════════════════════════════
    TYPES
