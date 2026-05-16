@@ -299,7 +299,7 @@ const Formations = () => {
         {/* ══════════════════════════════════════════════════
             SECTION LANGUES (normale, sans fond fixe)
         ══════════════════════════════════════════════════ */}
-        <section ref={languesSectionRef} className="py-24 px-8 bg-background">
+        <section ref={languesSectionRef} className="py-24 px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="langues-header text-center mb-20">
               <h2 className="text-5xl font-serif text-on-background mb-6">L'Art des Langues</h2>
