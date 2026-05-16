@@ -15,6 +15,7 @@ import { createStripePaymentIntent } from '@/lib/stripePayments';
 import wordIc from '../../../../public/images/word.png';
 import excelIc from '../../../../public/images/excel.png';
 import powerpointIc from '../../../../public/images/powerpoint.png';
+import accessIc from '../../../../public/images/acc.png';
 
 /* ═══════════════════════════════════════════════════
    TYPES
@@ -115,7 +116,7 @@ const MODULE_CARDS = [
     description: 'Bases de donnees, formulaires, requetes et etats',
     price: 400,
     accent: '#A4373A',
-    icon: excelIc,
+    icon: accessIc,
   },
 ] as const;
 
