@@ -661,7 +661,7 @@ const InscriptionInfographie: React.FC<Props> = ({
 
                   <h1
                     ref={heroH1Ref}
-                    className="serif-headline mb-8 text-6xl leading-none tracking-tighter text-on-surface md:text-8xl"
+                    className="serif-headline mb-8  text-6xl leading-none tracking-tighter text-on-surface md:text-8xl"
                     aria-label="Inscriptions : Creativite & Infographie"
                   >
                     <span className="h1-line block overflow-hidden" style={{ opacity: 0 }}>Inscriptions :</span>
