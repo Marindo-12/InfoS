@@ -199,6 +199,448 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
 );
 StripeCardSection.displayName = 'StripeCardSection';
 
+
+/* ═══════════════════════════════════════════════════
+   FIRE REVEAL IMAGE
+   Phase 1 : Red-orange fire (canvas particles)
+   Phase 2 : Fire transitions to blue
+   Phase 3 : Blue lightning bolts shoot across screen
+   Phase 4 : Image revealed tile by tile (6 tiles, 2×3)
+   Phase 5 : Blue fire border around the image frame
+═══════════════════════════════════════════════════ */
+const IMG_SRC = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBGeQTJWU5lf74rdGfm5Tnl5u6PdpyjIQt_3eZcKeqARYaDMRVtvOcZdJ3nUxsHVTJwFMeaYnc9-P1utuUeOPBxaA0Ah8FnTwTZxXUEdMUp0yOoDcSrnwLW2MCsHDymv8iWMqzcDPycAT6EpjoRqX6ATJdC33yHze1NeEDwH_UdfsmG30RfIFFRjkfiJOS3wNF3tS5szyG_7IktuBbZw5fDLha6cxRvEq4jifilpiHrm2AWjwDmw5ceF02zMOu_Bjm1CfMHLX0d9Ibc'
+// Tile reveal order: center-out, [row, col]
+const REVEAL_ORDER: [number, number][] = [[0,1],[1,1],[0,0],[1,2],[0,2],[1,0]]
+
+const FireRevealImage: React.FC = () => {
+  const wrapRef      = useRef<HTMLDivElement>(null)
+  const canvasRef    = useRef<HTMLCanvasElement>(null)
+  const lightningRef = useRef<HTMLCanvasElement>(null)
+  const imgRef       = useRef<HTMLDivElement>(null)
+  const borderRef    = useRef<HTMLDivElement>(null)
+  const borderCanvasRef = useRef<HTMLCanvasElement>(null)
+  const rafRef       = useRef<number>(0)
+  const phaseRef     = useRef<'fire' | 'blue' | 'lightning' | 'tiles' | 'border' | 'done'>('fire')
+  const timeRef      = useRef(0)
+
+  useEffect(() => {
+    const canvas    = canvasRef.current!
+    const lCanvas   = lightningRef.current!
+    const bCanvas   = borderCanvasRef.current!
+    const ctx       = canvas.getContext('2d')!
+    const lCtx      = lCanvas.getContext('2d')!
+    const bCtx      = bCanvas.getContext('2d')!
+    const wrap      = wrapRef.current!
+    const img       = imgRef.current!
+    const border    = borderRef.current!
+
+    // Size canvases
+    const W = wrap.offsetWidth  || 600
+    const H = wrap.offsetHeight || 338
+    canvas.width  = W;  canvas.height  = H
+    bCanvas.width = W + 40; bCanvas.height = H + 40
+    lCanvas.width = window.innerWidth
+    lCanvas.height = window.innerHeight
+
+    /* ─────────────────────────────────────────────
+       PARTICLE SYSTEM — Rich fire with embers
+    ───────────────────────────────────────────── */
+    interface Particle {
+      x: number; y: number
+      vx: number; vy: number
+      life: number; maxLife: number
+      size: number
+      blue: number       // 0=red, 1=blue
+      isEmber: boolean   // small fast spark
+    }
+    const particles: Particle[] = []
+
+    const spawnParticle = (blue: number, count = 1) => {
+      for (let k = 0; k < count; k++) {
+        // Spread fire from multiple base points for volume
+        const baseX = W * 0.1 + Math.random() * W * 0.8
+        const isEmber = Math.random() < 0.18
+        particles.push({
+          x: baseX,
+          y: H + (isEmber ? 0 : Math.random() * 20),
+          vx: (Math.random() - 0.5) * (isEmber ? 4 : 2),
+          vy: -(isEmber ? 5 + Math.random() * 6 : 1.8 + Math.random() * 3.5),
+          life: 0,
+          maxLife: isEmber ? 30 + Math.random() * 25 : 55 + Math.random() * 50,
+          size: isEmber ? 1.5 + Math.random() * 3 : 8 + Math.random() * 18,
+          blue,
+          isEmber,
+        })
+      }
+    }
+
+    const drawFire = (t: number, blue: number) => {
+      // Soft trail — don't fully clear so flames blur together
+      ctx.fillStyle = 'rgba(5,4,12,0.35)'
+      ctx.fillRect(0, 0, W, H)
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i]
+        // Turbulent wind
+        p.x  += p.vx + Math.sin(t * 0.07 + p.y * 0.03) * 1.2
+        p.y  += p.vy
+        p.vy *= p.isEmber ? 0.995 : 0.982
+        p.vx *= 0.99
+        p.life++
+        if (p.life > p.maxLife) { particles.splice(i, 1); continue }
+
+        const ratio = p.life / p.maxLife
+        const alpha = p.isEmber
+          ? Math.max(0, (1 - ratio) * 1.0)
+          : Math.max(0, Math.sin(ratio * Math.PI) * 0.9)
+
+        // Color interpolation
+        let r: number, g: number, b2: number
+        if (p.isEmber) {
+          r  = Math.round(255 * (1 - p.blue) + 200 * p.blue)
+          g  = Math.round(180 * (1 - p.blue) + 220 * p.blue)
+          b2 = Math.round(20  * (1 - p.blue) + 255 * p.blue)
+        } else {
+          const heat = 1 - ratio
+          r  = Math.round((255 * (1 - p.blue) + 20  * p.blue) * heat)
+          g  = Math.round((60  + heat * 120) * (1 - p.blue) + (80 + heat * 140) * p.blue)
+          b2 = Math.round(15  * (1 - p.blue) + 255 * p.blue)
+        }
+
+        if (p.isEmber) {
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(${r},${g},${b2},${alpha})`
+          ctx.fill()
+        } else {
+          // Radial gradient for body flames (core + halo)
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * (1 - ratio * 0.5))
+          grad.addColorStop(0, `rgba(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b2+60)},${alpha})`)
+          grad.addColorStop(0.5, `rgba(${r},${g},${b2},${alpha * 0.6})`)
+          grad.addColorStop(1, `rgba(${r},${g},${b2},0)`)
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.size * (1 - ratio * 0.5), 0, Math.PI * 2)
+          ctx.fillStyle = grad
+          ctx.fill()
+        }
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       LIGHTNING — Recursive fractal bolts
+    ───────────────────────────────────────────── */
+    const drawBolt = (
+      ctx2: CanvasRenderingContext2D,
+      x1: number, y1: number, x2: number, y2: number,
+      depth: number, alpha: number, width: number
+    ) => {
+      if (depth <= 0) {
+        ctx2.beginPath()
+        ctx2.moveTo(x1, y1)
+        ctx2.lineTo(x2, y2)
+        ctx2.strokeStyle = `rgba(140,210,255,${alpha})`
+        ctx2.lineWidth   = width
+        ctx2.shadowBlur  = 22
+        ctx2.shadowColor = 'rgba(80,160,255,0.9)'
+        ctx2.stroke()
+        return
+      }
+      const mx = (x1 + x2) / 2 + (Math.random() - 0.5) * 90 / depth
+      const my = (y1 + y2) / 2 + (Math.random() - 0.5) * 90 / depth
+      // Main bolt
+      drawBolt(ctx2, x1, y1, mx, my, depth - 1, alpha, width)
+      drawBolt(ctx2, mx, my, x2, y2, depth - 1, alpha, width)
+      // Random branch (30% chance)
+      if (Math.random() < 0.30) {
+        const bx = mx + (Math.random() - 0.5) * 120
+        const by = my + (Math.random() - 0.5) * 120
+        drawBolt(ctx2, mx, my, bx, by, depth - 2, alpha * 0.5, width * 0.5)
+      }
+    }
+
+    interface Bolt {
+      x1: number; y1: number; x2: number; y2: number
+      age: number; maxAge: number; depth: number
+    }
+    const BOLTS: Bolt[] = []
+    const spawnBolt = () => {
+      // Bolts originate from the image center and shoot outward in all directions
+      const rect  = wrap.getBoundingClientRect()
+      const cx    = rect.left + rect.width  / 2
+      const cy    = rect.top  + rect.height / 2
+      const angle = Math.random() * Math.PI * 2
+      const dist  = 0.85 * Math.max(window.innerWidth, window.innerHeight)
+      BOLTS.push({ x1: cx, y1: cy, x2: cx + Math.cos(angle) * dist, y2: cy + Math.sin(angle) * dist,
+        age: 0, maxAge: 22, depth: 4 })
+    }
+
+    let lightningTimer = 0
+
+    /* ─────────────────────────────────────────────
+       TILE REVEAL
+    ───────────────────────────────────────────── */
+    const COLS = 3; const ROWS = 2
+    // Reveal order: center-out → [1,1], [0,1], [1,0], [0,0], [1,2], [0,2]
+    const REVEAL_ORDER = [[0,1],[1,1],[0,0],[1,2],[0,2],[1,0]]
+    interface Tile { col: number; row: number; alpha: number; started: boolean; dx: number; dy: number }
+    const tiles: Tile[] = REVEAL_ORDER.map(([row, col]) => {
+      // Each tile slides in from its corner
+      const dx = col === 0 ? -1 : col === 2 ? 1 : 0
+      const dy = row === 0 ? -1 : 1
+      return { col, row, alpha: 0, started: false, dx, dy }
+    })
+    let tileIdx = 0
+    let tileTimer = 0
+
+    /* ─────────────────────────────────────────────
+       BLUE FIRE BORDER — Canvas-drawn particles
+    ───────────────────────────────────────────── */
+    interface BorderParticle {
+      t: number   // position along perimeter 0–1
+      life: number; maxLife: number
+      offset: number  // perpendicular offset (outward)
+      size: number; speed: number
+    }
+    const borderParticles: BorderParticle[] = []
+    let borderActive = false
+    const perimeter = 2 * (W + H)
+
+    const spawnBorderParticle = () => {
+      borderParticles.push({
+        t: Math.random(),
+        life: 0,
+        maxLife: 30 + Math.random() * 30,
+        offset: 2 + Math.random() * 18,
+        size: 2 + Math.random() * 8,
+        speed: (0.003 + Math.random() * 0.006) * (Math.random() < 0.5 ? 1 : -1),
+      })
+    }
+
+    const perimeterToXY = (t: number, padding: number): [number, number] => {
+      // t ∈ [0,1] → walks around the rectangle perimeter
+      const p = ((t % 1) + 1) % 1
+      const total = 2 * (W + H)
+      const d = p * total
+      if (d < W)         return [d,          -padding]
+      if (d < W + H)     return [W + padding, d - W]
+      if (d < 2*W + H)   return [W - (d - W - H), H + padding]
+      return [-padding,  H - (d - 2*W - H)]
+    }
+
+    const drawBorderParticles = () => {
+      bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height)
+      bCtx.save()
+      bCtx.translate(20, 20)  // center the border canvas over image
+
+      for (let i = borderParticles.length - 1; i >= 0; i--) {
+        const bp = borderParticles[i]
+        bp.t    += bp.speed
+        bp.life++
+        if (bp.life > bp.maxLife) { borderParticles.splice(i, 1); continue }
+        const ratio = bp.life / bp.maxLife
+        const alpha = Math.sin(ratio * Math.PI) * 0.95
+
+        const [bx, by] = perimeterToXY(bp.t, bp.offset)
+        // Pulsing size
+        const sz = bp.size * (0.8 + 0.2 * Math.sin(ratio * Math.PI * 3))
+
+        const grad = bCtx.createRadialGradient(bx, by, 0, bx, by, sz * 2)
+        grad.addColorStop(0,   `rgba(200,240,255,${alpha})`)
+        grad.addColorStop(0.3, `rgba(80,160,255,${alpha * 0.8})`)
+        grad.addColorStop(0.7, `rgba(20,80,220,${alpha * 0.4})`)
+        grad.addColorStop(1,   `rgba(0,40,180,0)`)
+        bCtx.beginPath()
+        bCtx.arc(bx, by, sz * 2, 0, Math.PI * 2)
+        bCtx.fillStyle = grad
+        bCtx.fill()
+      }
+
+      // Draw the border glow line
+      const BW = 2
+      bCtx.strokeStyle = 'rgba(80,180,255,0.85)'
+      bCtx.lineWidth   = BW
+      bCtx.shadowBlur  = 24
+      bCtx.shadowColor = 'rgba(50,150,255,0.9)'
+      bCtx.strokeRect(0, 0, W, H)
+      // Inner glow
+      bCtx.strokeStyle = 'rgba(180,230,255,0.4)'
+      bCtx.lineWidth   = 1
+      bCtx.shadowBlur  = 10
+      bCtx.strokeRect(4, 4, W-8, H-8)
+
+      bCtx.restore()
+    }
+
+    /* ─────────────────────────────────────────────
+       MAIN LOOP
+    ───────────────────────────────────────────── */
+    let blueRatio = 0
+
+    const tick = () => {
+      rafRef.current = requestAnimationFrame(tick)
+      timeRef.current++
+      const t = timeRef.current
+
+      /* ── PHASE 1: red-orange fire ── */
+      if (phaseRef.current === 'fire') {
+        spawnParticle(0, 12)
+        drawFire(t, 0)
+        if (t > 130) { phaseRef.current = 'blue' }
+      }
+
+      /* ── PHASE 2: color transition orange → blue ── */
+      else if (phaseRef.current === 'blue') {
+        blueRatio = Math.min(1, blueRatio + 0.012)
+        spawnParticle(blueRatio, 14)
+        // Update existing particles' blue value gradually
+        particles.forEach(p => { p.blue = Math.min(p.blue + 0.02, blueRatio) })
+        drawFire(t, blueRatio)
+        if (blueRatio >= 1 && t > 240) {
+          phaseRef.current = 'lightning'
+          particles.length = 0
+        }
+      }
+
+      /* ── PHASE 3: blue lightning across screen ── */
+      else if (phaseRef.current === 'lightning') {
+        // Brief blue fire while lightning starts
+        spawnParticle(1, 6)
+        drawFire(t, 1)
+
+        lightningTimer++
+        // Spawn multiple bolts rapidly
+        if (lightningTimer < 70 && lightningTimer % 5 === 0) spawnBolt()
+        if (lightningTimer % 3 === 0 && BOLTS.length < 30)  spawnBolt()
+
+        lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height)
+        for (let i = BOLTS.length - 1; i >= 0; i--) {
+          const bolt = BOLTS[i]
+          bolt.age++
+          const alpha = Math.max(0, (1 - bolt.age / bolt.maxAge))
+          if (alpha <= 0) { BOLTS.splice(i, 1); continue }
+          lCtx.save()
+          // Bright flash at origin
+          if (bolt.age < 4) {
+            lCtx.beginPath()
+            lCtx.arc(bolt.x1, bolt.y1, 20 * alpha, 0, Math.PI * 2)
+            const grd = lCtx.createRadialGradient(bolt.x1, bolt.y1, 0, bolt.x1, bolt.y1, 20)
+            grd.addColorStop(0, `rgba(220,240,255,${alpha})`)
+            grd.addColorStop(1, `rgba(30,120,255,0)`)
+            lCtx.fillStyle = grd
+            lCtx.fill()
+          }
+          drawBolt(lCtx, bolt.x1, bolt.y1, bolt.x2, bolt.y2, bolt.depth, alpha * 0.95, 1.5)
+          lCtx.restore()
+        }
+
+        if (lightningTimer > 110) {
+          phaseRef.current = 'tiles'
+          lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height)
+          ctx.clearRect(0, 0, W, H)
+          particles.length = 0
+          gsap.to(img, { opacity: 1, duration: 0.3 })
+        }
+      }
+
+      /* ── PHASE 4: tile reveal ── */
+      else if (phaseRef.current === 'tiles') {
+        tileTimer++
+        // Reveal tiles with stagger
+        if (tileTimer % 16 === 0 && tileIdx < tiles.length) {
+          tiles[tileIdx].started = true
+          tileIdx++
+        }
+        tiles.forEach((tile, idx) => {
+          if (!tile.started) return
+          if (tile.alpha >= 1) return
+          tile.alpha = Math.min(1, tile.alpha + 0.055)
+          const el = document.getElementById(`tile-${tile.row}-${tile.col}`)
+          if (el) {
+            el.style.opacity  = String(tile.alpha)
+            // Slide in from corner direction
+            const dist = (1 - tile.alpha) * 32
+            el.style.transform = `translate(${tile.dx * dist}px, ${tile.dy * dist}px)`
+          }
+        })
+
+        if (tileIdx >= tiles.length && tiles.every(tt => tt.alpha >= 1)) {
+          phaseRef.current = 'border'
+          borderActive = true
+          gsap.to(border, { opacity: 1, duration: 0.6 })
+        }
+      }
+
+      /* ── PHASE 5: blue fire border ── */
+      else if (phaseRef.current === 'border') {
+        if (borderActive) {
+          // Spawn border particles generously
+          for (let k = 0; k < 4; k++) spawnBorderParticle()
+          drawBorderParticles()
+        }
+        // Run forever — living border
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => { cancelAnimationFrame(rafRef.current) }
+  }, [])
+
+  return (
+    <div ref={wrapRef} className="relative" style={{ aspectRatio: '16/9' }}>
+
+      {/* ── Full-screen lightning canvas ── */}
+      <canvas ref={lightningRef} style={{
+        position: 'fixed', inset: 0, zIndex: 9998,
+        pointerEvents: 'none', mixBlendMode: 'screen',
+        width: '100vw', height: '100vh',
+      }} />
+
+      {/* ── Dark base ── */}
+      <div className="absolute inset-0 z-[1] rounded-2xl bg-[#050408]" />
+
+      {/* ── Fire canvas ── */}
+      <canvas ref={canvasRef} className="absolute inset-0 z-[5] h-full w-full rounded-2xl"
+        style={{ mixBlendMode: 'screen' }} />
+
+      {/* ── Image (6 tiles) ── */}
+      <div ref={imgRef} className="absolute inset-0 z-[3] overflow-hidden rounded-2xl" style={{ opacity: 0 }}>
+        {REVEAL_ORDER.map(([row, col]) => (
+          <div key={`${row}-${col}`} id={`tile-${row}-${col}`}
+            className="absolute overflow-hidden"
+            style={{ width: '33.333%', height: '50%', left: `${col * 33.333}%`, top: `${row * 50}%`,
+              opacity: 0, willChange: 'transform, opacity' }}>
+            <div style={{
+              position: 'absolute', width: '300%', height: '200%',
+              left: `-${col * 100}%`, top: `-${row * 100}%`,
+              backgroundImage: `url(${IMG_SRC})`,
+              backgroundSize: 'cover', backgroundPosition: 'center',
+            }} />
+          </div>
+        ))}
+      </div>
+
+      {/* ── Blue fire border container ── */}
+      <div ref={borderRef} className="pointer-events-none absolute z-[15] rounded-2xl"
+        style={{ inset: '-20px', opacity: 0 }}>
+        {/* Canvas-drawn border fire particles */}
+        <canvas ref={borderCanvasRef}
+          className="absolute h-full w-full"
+          style={{ top: 0, left: 0, mixBlendMode: 'screen' }} />
+        {/* Corner energy orbs */}
+        {(['top-[18px] left-[18px]','top-[18px] right-[18px]','bottom-[18px] left-[18px]','bottom-[18px] right-[18px]'] as const).map((pos) => (
+          <div key={pos} className={`absolute ${pos} z-[16]`}
+            style={{ width: 16, height: 16,
+              background: 'radial-gradient(circle, rgba(220,240,255,1) 0%, rgba(80,160,255,0.8) 40%, rgba(20,80,220,0.3) 70%, transparent 100%)',
+              borderRadius: '50%',
+              boxShadow: '0 0 12px 4px rgba(80,160,255,0.8), 0 0 24px 8px rgba(20,80,220,0.4)',
+              animation: 'cornerPulse 1.3s ease-in-out infinite',
+            }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ═══════════════════════════════════════════════════
    STEP BADGE
 ═══════════════════════════════════════════════════ */
@@ -354,11 +796,6 @@ const InscriptionBureautique: React.FC<Props> = ({
   /* ── GSAP orchestration ── */
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.to('.bureautique-bg-geo', {
-        yPercent: 10,
-        ease: 'none',
-        scrollTrigger: { scrub: true },
-      });
 
       // ── Hero content (non-title elements) ──
       const heroTl = gsap.timeline({ delay: 0.6 }); // slight delay so title animates first
@@ -385,10 +822,7 @@ const InscriptionBureautique: React.FC<Props> = ({
           { opacity: 1, x: 0, stagger: 0.13, duration: 0.5, ease: 'power2.out' }, 0.6
         );
       }
-      heroTl.fromTo(heroImgRef.current,
-        { opacity: 0, scale: 0.9, rotationY: 6, transformOrigin: 'right center', transformPerspective: 1000 },
-        { opacity: 1, scale: 1, rotationY: 0, duration: 1.1, ease: 'power3.out' }, 0.2
-      );
+      // heroImgRef: animation handled inside FireRevealImage
 
       // ── Divider ──
       if (dividerRef.current) {
@@ -643,31 +1077,13 @@ const InscriptionBureautique: React.FC<Props> = ({
       )}
 
       <PublicLayout>
-        <div className="bureautique-page-bg">
-          <svg className="bureautique-bg-geo" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="80" cy="130" r="170" fill="none" stroke="rgba(194,101,42,0.10)" strokeWidth="1.5" />
-            <circle cx="80" cy="130" r="105" fill="none" stroke="rgba(194,101,42,0.07)" strokeWidth="1" />
-            <circle cx="1130" cy="750" r="210" fill="none" stroke="rgba(194,101,42,0.09)" strokeWidth="1.5" />
-            <circle cx="1130" cy="750" r="125" fill="none" stroke="rgba(194,101,42,0.06)" strokeWidth="1" />
-            <circle cx="610" cy="430" r="290" fill="none" stroke="rgba(194,101,42,0.045)" strokeWidth="1" />
-            <line x1="0" y1="300" x2="220" y2="100" stroke="rgba(194,101,42,0.10)" strokeWidth="1" />
-            <line x1="25" y1="325" x2="245" y2="125" stroke="rgba(194,101,42,0.06)" strokeWidth="0.8" />
-            <line x1="990" y1="610" x2="1200" y2="810" stroke="rgba(194,101,42,0.09)" strokeWidth="1" />
-            <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="1038" y1="88" x2="1110" y2="88" /><polyline points="1095,74 1110,88 1095,102" />
-            </g>
-            <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="940" y1="145" x2="960" y2="165" /><line x1="960" y1="145" x2="940" y2="165" />
-            </g>
-            {[0,1,2,3,4].map((row) => [0,1,2,3,4,5].map((col) => (
-              <circle key={`${row}-${col}`} cx={500 + col * 60} cy={200 + row * 60} r="1.5" fill="rgba(194,101,42,0.12)" />
-            )))}
-            <path d="M 100 610 Q 400 405 700 610" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1" strokeDasharray="6 8" />
-          </svg>
-
-          <main className="relative z-10">
+        <main className="relative">
 
           {/* ── Decorative dot bg ── */}
+          <div className="pointer-events-none absolute inset-0 opacity-30"
+            style={{ backgroundImage: 'radial-gradient(#d8d0c8 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }} />
+          <div className="deco-bg-blob pointer-events-none absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full opacity-20"
+            style={{ background: 'radial-gradient(circle, rgba(194,101,42,0.18) 0%, transparent 70%)' }} />
 
           {/* ══════════════════ HERO ══════════════════ */}
           <section className="relative mx-auto max-w-7xl px-6 pb-16 pt-20 lg:px-8">
@@ -727,19 +1143,9 @@ const InscriptionBureautique: React.FC<Props> = ({
                 </ul>
               </div>
 
-              {/* Right — image */}
-              <div ref={heroImgRef} className="group relative" style={{ opacity: 0 }}>
-                <div className="absolute -inset-4 rounded-[2rem] bg-primary/10 blur-2xl transition-all duration-500 group-hover:bg-primary/20" />
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-                  <img
-                    alt="Espace de travail bureautique"
-                    className="aspect-video w-full object-cover transition-all duration-700 group-hover:scale-105 group-hover:filter-none"
-                    style={{ filter: 'grayscale(100%)', transition: 'filter 0.6s ease, transform 0.7s ease' }}
-                    onMouseEnter={(e) => { (e.target as HTMLImageElement).style.filter = 'grayscale(0%)'; }}
-                    onMouseLeave={(e) => { (e.target as HTMLImageElement).style.filter = 'grayscale(100%)'; }}
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGeQTJWU5lf74rdGfm5Tnl5u6PdpyjIQt_3eZcKeqARYaDMRVtvOcZdJ3nUxsHVTJwFMeaYnc9-P1utuUeOPBxaA0Ah8FnTwTZxXUEdMUp0yOoDcSrnwLW2MCsHDymv8iWMqzcDPycAT6EpjoRqX6ATJdC33yHze1NeEDwH_UdfsmG30RfIFFRjkfiJOS3wNF3tS5szyG_7IktuBbZw5fDLha6cxRvEq4jifilpiHrm2AWjwDmw5ceF02zMOu_Bjm1CfMHLX0d9Ibc"
-                  />
-                </div>
+              {/* Right — fire reveal image sequence */}
+              <div ref={heroImgRef} style={{ opacity: 1 }}>
+                <FireRevealImage />
               </div>
             </div>
           </section>
@@ -988,27 +1394,17 @@ const InscriptionBureautique: React.FC<Props> = ({
               </form>
             </div>
           </section>
-          </main>
-        </div>
+        </main>
       </PublicLayout>
 
       <style>{`
-        .bureautique-page-bg {
-          position: relative;
-          min-height: 100vh;
-          overflow: hidden;
-          background: linear-gradient(160deg, #fffdf9 0%, #fef7ed 28%, #fdf0dc 54%, #fef5e8 76%, #fffbf5 100%);
-        }
-        .bureautique-bg-geo {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 0;
-        }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes cornerPulse {
+          0%,100% { transform: scale(1);   opacity: 0.85; }
+          33%      { transform: scale(1.8); opacity: 1;    }
+          66%      { transform: scale(1.3); opacity: 0.95; }
+        }
         .animate-spin { animation: spin 0.8s linear infinite; display: inline-block; }
         /* Stripe card layout */
         .payment-card-grid { display: grid; gap: 16px; }
