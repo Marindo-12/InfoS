@@ -163,8 +163,9 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
     const bookRef    = useRef<HTMLDivElement>(null)
     const leftRef    = useRef<HTMLDivElement>(null)
     const rightRef   = useRef<HTMLDivElement>(null)
-    const spineRef   = useRef<HTMLDivElement>(null)
-    const badgeRef   = useRef<HTMLDivElement>(null)
+    const spineRef        = useRef<HTMLDivElement>(null)
+    const glassOverlayRef = useRef<HTMLDivElement>(null)
+    const badgeRef        = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         const book  = bookRef.current
@@ -172,6 +173,7 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
         const right = rightRef.current
         const spine = spineRef.current
         const badge = badgeRef.current
+        // glassOverlayRef used inline below
         if (!book || !left || !right || !spine) return
 
         // Initial state: panels closed flat over the image
@@ -215,6 +217,20 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
             ease: 'power2.in',
         }, 1.6)
 
+        // 5b. Glass frost dissolves progressively as the book opens
+        const glassOverlay = glassOverlayRef.current
+        if (glassOverlay) {
+            tl.fromTo(glassOverlay,
+                { opacity: 1, backdropFilter: 'blur(18px) saturate(0.4)' },
+                {
+                    opacity: 0,
+                    duration: 1.0,
+                    ease: 'power2.out',
+                },
+                1.2  // starts mid-open
+            )
+        }
+
         // 6. Badge slides up once image is revealed
         if (badge) {
             tl.to(badge, {
@@ -237,21 +253,24 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
         >
             {/* ── Spinning decorative frame behind the image ── */}
             {/* Outer ring — spins full 360° on hover, slow & smooth */}
+            {/* Outer frame — tilted 12° by default, rotates 360° on hover from that base */}
             <div
                 className="book-frame-outer absolute rounded-3xl"
                 style={{
                     inset: '-14px',
                     background: 'linear-gradient(135deg, #c2652a 0%, #e8a56a 35%, #fdf0dc 50%, #e8a56a 65%, #c2652a 100%)',
+                    transform: 'rotate(12deg)',
                     transition: 'transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: -1,
                 }}
             />
-            {/* Inner frame — counter-spins for a gear-like feel */}
+            {/* Inner frame — tilted -8° (opposite lean), counter-spins on hover */}
             <div
                 className="book-frame-inner absolute rounded-2xl"
                 style={{
                     inset: '-7px',
                     background: 'linear-gradient(315deg, #3a302a 0%, #6b4c30 30%, #c2652a 50%, #6b4c30 70%, #3a302a 100%)',
+                    transform: 'rotate(-8deg)',
                     transition: 'transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: -1,
                 }}
@@ -270,6 +289,18 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
                 />
                 {/* Dark gradient overlay on photo */}
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,20,16,0.38) 0%, transparent 50%)' }} />
+
+                {/* ── Glass frost overlay — covers photo when book is closed, fades as it opens ── */}
+                {/* GSAP animates opacity 1→0 during the open sequence */}
+                <div
+                    ref={glassOverlayRef}
+                    className="absolute inset-0 z-[9]"
+                    style={{
+                        backdropFilter: 'blur(18px) saturate(0.4)',
+                        WebkitBackdropFilter: 'blur(18px) saturate(0.4)',
+                        background: 'rgba(253,240,220,0.22)',
+                    }}
+                />
 
                 {/* ── Left cover panel (hinged on its LEFT edge) ── */}
                 <div
@@ -1280,12 +1311,12 @@ const InscriptionLangues: React.FC<Props> = ({
                     .material-symbols-outlined {
                         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
                     }
-                    /* Book spinning frame */
+                    /* Book spinning frames — hover adds 360° to the default tilt */
                     .group:hover .book-frame-outer {
-                        transform: rotate(360deg);
+                        transform: rotate(372deg);   /* 12° base + 360° spin */
                     }
                     .group:hover .book-frame-inner {
-                        transform: rotate(-360deg);
+                        transform: rotate(-368deg);  /* -8° base - 360° spin */
                     }
 
                     @keyframes spin { to { transform: rotate(360deg); } }
