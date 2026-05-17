@@ -800,6 +800,11 @@ const InscriptionBureautique: React.FC<Props> = ({
   /* ── GSAP orchestration ── */
   useEffect(() => {
     const ctx = gsap.context(() => {
+      gsap.to('.bureautique-bg-geo', {
+        yPercent: 10,
+        ease: 'none',
+        scrollTrigger: { scrub: true },
+      });
 
       // ── Hero content (non-title elements) ──
       const heroTl = gsap.timeline({ delay: 0.6 }); // slight delay so title animates first
@@ -1081,13 +1086,31 @@ const InscriptionBureautique: React.FC<Props> = ({
       )}
 
       <PublicLayout>
-        <main className="relative">
+        <div className="bureautique-page-bg">
+          <svg className="bureautique-bg-geo" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="80" cy="130" r="170" fill="none" stroke="rgba(194,101,42,0.10)" strokeWidth="1.5" />
+            <circle cx="80" cy="130" r="105" fill="none" stroke="rgba(194,101,42,0.07)" strokeWidth="1" />
+            <circle cx="1130" cy="750" r="210" fill="none" stroke="rgba(194,101,42,0.09)" strokeWidth="1.5" />
+            <circle cx="1130" cy="750" r="125" fill="none" stroke="rgba(194,101,42,0.06)" strokeWidth="1" />
+            <circle cx="610" cy="430" r="290" fill="none" stroke="rgba(194,101,42,0.045)" strokeWidth="1" />
+            <line x1="0" y1="300" x2="220" y2="100" stroke="rgba(194,101,42,0.10)" strokeWidth="1" />
+            <line x1="25" y1="325" x2="245" y2="125" stroke="rgba(194,101,42,0.06)" strokeWidth="0.8" />
+            <line x1="990" y1="610" x2="1200" y2="810" stroke="rgba(194,101,42,0.09)" strokeWidth="1" />
+            <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="1038" y1="88" x2="1110" y2="88" /><polyline points="1095,74 1110,88 1095,102" />
+            </g>
+            <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="940" y1="145" x2="960" y2="165" /><line x1="960" y1="145" x2="940" y2="165" />
+            </g>
+            {[0,1,2,3,4].map((row) => [0,1,2,3,4,5].map((col) => (
+              <circle key={`${row}-${col}`} cx={500 + col * 60} cy={200 + row * 60} r="1.5" fill="rgba(194,101,42,0.12)" />
+            )))}
+            <path d="M 100 610 Q 400 405 700 610" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1" strokeDasharray="6 8" />
+          </svg>
+
+          <main className="relative z-10">
 
           {/* ── Decorative dot bg ── */}
-          <div className="pointer-events-none absolute inset-0 opacity-30"
-            style={{ backgroundImage: 'radial-gradient(#d8d0c8 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }} />
-          <div className="deco-bg-blob pointer-events-none absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full opacity-20"
-            style={{ background: 'radial-gradient(circle, rgba(194,101,42,0.18) 0%, transparent 70%)' }} />
 
           {/* ══════════════════ HERO ══════════════════ */}
           <section className="relative mx-auto max-w-7xl px-6 pb-16 pt-20 lg:px-8">
@@ -1398,10 +1421,25 @@ const InscriptionBureautique: React.FC<Props> = ({
               </form>
             </div>
           </section>
-        </main>
+          </main>
+        </div>
       </PublicLayout>
 
       <style>{`
+        .bureautique-page-bg {
+          position: relative;
+          min-height: 100vh;
+          overflow: hidden;
+          background: linear-gradient(160deg, #fffdf9 0%, #fef7ed 28%, #fdf0dc 54%, #fef5e8 76%, #fffbf5 100%);
+        }
+        .bureautique-bg-geo {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 0;
+        }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes cornerPulse {
