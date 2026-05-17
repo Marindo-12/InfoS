@@ -587,7 +587,11 @@ const FireRevealImage: React.FC = () => {
   }, [])
 
   return (
-    <div ref={wrapRef} className="relative" style={{ aspectRatio: '16/9' }}>
+    <div
+      ref={wrapRef}
+      className="relative mx-auto w-full"
+      style={{ maxWidth: '606.4px', aspectRatio: '1 / 1' }}
+    >
 
       {/* ── Full-screen lightning canvas ── */}
       <canvas ref={lightningRef} style={{
