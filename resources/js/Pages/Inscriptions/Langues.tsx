@@ -235,8 +235,27 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
             style={{ opacity: 0 }}
             aria-label={alt}
         >
-            {/* Subtle glow halo */}
-            <div className="absolute -inset-4 rotate-2 rounded-2xl bg-primary/8 transition-transform duration-700 group-hover:rotate-1" />
+            {/* ── Spinning decorative frame behind the image ── */}
+            {/* Outer ring — spins full 360° on hover, slow & smooth */}
+            <div
+                className="book-frame-outer absolute rounded-3xl"
+                style={{
+                    inset: '-14px',
+                    background: 'linear-gradient(135deg, #c2652a 0%, #e8a56a 35%, #fdf0dc 50%, #e8a56a 65%, #c2652a 100%)',
+                    transition: 'transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    zIndex: -1,
+                }}
+            />
+            {/* Inner frame — counter-spins for a gear-like feel */}
+            <div
+                className="book-frame-inner absolute rounded-2xl"
+                style={{
+                    inset: '-7px',
+                    background: 'linear-gradient(315deg, #3a302a 0%, #6b4c30 30%, #c2652a 50%, #6b4c30 70%, #3a302a 100%)',
+                    transition: 'transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    zIndex: -1,
+                }}
+            />
 
             {/* ── Book container — perspective applied here ── */}
             <div
@@ -1261,6 +1280,14 @@ const InscriptionLangues: React.FC<Props> = ({
                     .material-symbols-outlined {
                         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
                     }
+                    /* Book spinning frame */
+                    .group:hover .book-frame-outer {
+                        transform: rotate(360deg);
+                    }
+                    .group:hover .book-frame-inner {
+                        transform: rotate(-360deg);
+                    }
+
                     @keyframes spin { to { transform: rotate(360deg); } }
                     .animate-spin { animation: spin 0.8s linear infinite; display: inline-block; }
 
