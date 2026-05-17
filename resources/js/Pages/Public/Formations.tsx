@@ -68,21 +68,21 @@ const Formations = () => {
       const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } })
 
       heroTl
-        .fromTo(heroBadgeRef.current,
+        .fromTo(heroBadgeRef.current!,
           { scaleX: 0, transformOrigin: 'left center', opacity: 0 },
           { scaleX: 1, opacity: 1, duration: 0.6, ease: 'power2.inOut' }
         )
-        .fromTo(heroTextRef.current?.querySelectorAll('.hero-line'),
+        .fromTo(heroTextRef.current!.querySelectorAll('.hero-line'),
           { y: 70, opacity: 0, skewY: 2 },
           { y: 0, opacity: 1, skewY: 0, duration: 0.9, stagger: 0.12 },
           '-=0.2'
         )
-        .fromTo(heroTextRef.current?.querySelector('.hero-para'),
+        .fromTo(heroTextRef.current!.querySelector('.hero-para') as HTMLElement,
           { y: 24, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.7 },
           '-=0.4'
         )
-        .fromTo(heroTextRef.current?.querySelector('.hero-arrow'),
+        .fromTo(heroTextRef.current!.querySelector('.hero-arrow') as HTMLElement,
           { opacity: 0 },
           { opacity: 1, duration: 0.5 },
           '-=0.3'
@@ -144,13 +144,13 @@ const Formations = () => {
       const packTrigger = { trigger: packsRef.current, start: 'top 78%' }
 
       gsap.fromTo(
-        packsRef.current?.querySelectorAll('.pack-header-anim'),
+        packsRef.current!.querySelectorAll('.pack-header-anim'),
         { y: 36, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: 'power3.out', scrollTrigger: packTrigger }
       )
 
       gsap.fromTo(
-        packsRef.current?.querySelectorAll('.pack-card'),
+        packsRef.current!.querySelectorAll('.pack-card'),
         { y: 60, opacity: 0, scale: 0.94 },
         { y: 0, opacity: 1, scale: 1, duration: 0.85, stagger: 0.15, ease: 'power3.out', delay: 0.2, scrollTrigger: packTrigger }
       )
@@ -161,13 +161,13 @@ const Formations = () => {
       const burTrigger = { trigger: bureautiqueRef.current, start: 'top 78%' }
 
       gsap.fromTo(
-        bureautiqueRef.current?.querySelector('.bur-left'),
+        bureautiqueRef.current!.querySelector('.bur-left') as HTMLElement,
         { x: -50, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: burTrigger }
       )
 
       gsap.fromTo(
-        bureautiqueRef.current?.querySelectorAll('.bur-row'),
+        bureautiqueRef.current!.querySelectorAll('.bur-row'),
         { x: 40, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 0.2, scrollTrigger: burTrigger }
       )
@@ -187,13 +187,13 @@ const Formations = () => {
       const statTrigger = { trigger: statsRef.current, start: 'top 78%' }
 
       gsap.fromTo(
-        statsRef.current?.querySelectorAll('.stat-header-anim'),
+        statsRef.current!.querySelectorAll('.stat-header-anim'),
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: 'power3.out', scrollTrigger: statTrigger }
       )
 
       gsap.fromTo(
-        statsRef.current?.querySelectorAll('.stat-card'),
+        statsRef.current!.querySelectorAll('.stat-card'),
         { y: 40, opacity: 0, scale: 0.96 },
         { y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.12, ease: 'power3.out', delay: 0.2, scrollTrigger: statTrigger }
       )
@@ -219,19 +219,19 @@ const Formations = () => {
       const faqTrigger = { trigger: faqRef.current, start: 'top 78%' }
 
       gsap.fromTo(
-        faqRef.current?.querySelector('.faq-col'),
+        faqRef.current!.querySelector('.faq-col') as HTMLElement,
         { x: -40, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.85, ease: 'power3.out', scrollTrigger: faqTrigger }
       )
 
       gsap.fromTo(
-        faqRef.current?.querySelector('.contact-col'),
+        faqRef.current!.querySelector('.contact-col') as HTMLElement,
         { x: 40, opacity: 0, scale: 0.96 },
         { x: 0, opacity: 1, scale: 1, duration: 0.85, ease: 'power3.out', delay: 0.1, scrollTrigger: faqTrigger }
       )
 
       gsap.fromTo(
-        faqRef.current?.querySelectorAll('details'),
+        faqRef.current!.querySelectorAll('details'),
         { y: 20, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power2.out', delay: 0.3, scrollTrigger: faqTrigger }
       )

@@ -50,14 +50,14 @@ const About = () => {
 
       // Titre — split lines
       gsap.fromTo(
-        histoireMissionRef.current?.querySelector('h2'),
+        histoireMissionRef.current!.querySelector('h2') as HTMLHeadingElement,
         { y: 50, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: histTrigger }
       )
 
       // Paragraphes — stagger
       gsap.fromTo(
-        histoireMissionRef.current?.querySelectorAll('p'),
+        histoireMissionRef.current!.querySelectorAll('p'),
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.75, stagger: 0.15, ease: 'power2.out', delay: 0.2, scrollTrigger: histTrigger }
       )
@@ -110,14 +110,14 @@ const About = () => {
       const valTrigger = { trigger: valeursRef.current, start: 'top 75%' }
 
       gsap.fromTo(
-        valeursRef.current?.querySelectorAll('.valeur-header-anim'),
+        valeursRef.current!.querySelectorAll('.valeur-header-anim'),
         { y: 36, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.14, ease: 'power3.out', scrollTrigger: valTrigger }
       )
 
       // Cartes — cascade depuis le bas avec scale
       gsap.fromTo(
-        valeursRef.current?.querySelectorAll('.valeur-card'),
+        valeursRef.current!.querySelectorAll('.valeur-card'),
         { y: 50, opacity: 0, scale: 0.94 },
         {
           y: 0, opacity: 1, scale: 1,
@@ -147,14 +147,14 @@ const About = () => {
       const eqTrigger = { trigger: equipeRef.current, start: 'top 75%' }
 
       gsap.fromTo(
-        equipeRef.current?.querySelectorAll('.equipe-header-anim'),
+        equipeRef.current!.querySelectorAll('.equipe-header-anim'),
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: 'power3.out', scrollTrigger: eqTrigger }
       )
 
       // Cartes membres — stagger + scale depuis 0.9
       gsap.fromTo(
-        equipeRef.current?.querySelectorAll('.membre-card'),
+        equipeRef.current!.querySelectorAll('.membre-card'),
         { y: 60, opacity: 0, scale: 0.92 },
         {
           y: 0, opacity: 1, scale: 1,
@@ -274,40 +274,40 @@ const About = () => {
 
       // Ligne "Notre conviction"
       gsap.fromTo(
-        narrativeRef.current?.querySelector('.conviction-line'),
+        narrativeRef.current!.querySelector('.conviction-line') as HTMLElement,
         { scaleX: 0, transformOrigin: 'left center' },
         { scaleX: 1, duration: 0.7, ease: 'power2.inOut', scrollTrigger: narrTrigger }
       )
       gsap.fromTo(
-        narrativeRef.current?.querySelector('.conviction-label'),
+        narrativeRef.current!.querySelector('.conviction-label') as HTMLElement,
         { x: 20, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.6, delay: 0.2, ease: 'power2.out', scrollTrigger: narrTrigger }
       )
 
       // Grand titre narrative
       gsap.fromTo(
-        narrativeRef.current?.querySelector('.narr-title'),
+        narrativeRef.current!.querySelector('.narr-title') as HTMLElement,
         { y: 60, opacity: 0 },
         { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 0.15, scrollTrigger: narrTrigger }
       )
 
       // Paragraphe + CTA
       gsap.fromTo(
-        narrativeRef.current?.querySelectorAll('.narr-body-anim'),
+        narrativeRef.current!.querySelectorAll('.narr-body-anim'),
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: 'power2.out', delay: 0.3, scrollTrigger: narrTrigger }
       )
 
       // Grille droite — stagger
       gsap.fromTo(
-        narrativeRef.current?.querySelectorAll('.narr-grid-item'),
+        narrativeRef.current!.querySelectorAll('.narr-grid-item'),
         { y: 40, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.65, stagger: 0.12, ease: 'power2.out', delay: 0.4, scrollTrigger: narrTrigger }
       )
 
       // Citation card — scale pop
       gsap.fromTo(
-        narrativeRef.current?.querySelector('.narr-quote'),
+        narrativeRef.current!.querySelector('.narr-quote') as HTMLElement,
         { scale: 0.92, opacity: 0 },
         { scale: 1, opacity: 1, duration: 0.75, ease: 'back.out(1.3)', delay: 0.55, scrollTrigger: narrTrigger }
       )
@@ -526,7 +526,7 @@ const About = () => {
               <div
                 ref={timelineLineRef}
                 className="absolute left-1/2 -translate-x-1/2 top-0 w-px bg-primary/40 hidden md:block"
-                style={{ height: '100%', transformOrigin: 'top center', scaleY: 0 }}
+                style={{ height: '100%', transformOrigin: 'top center', transform: 'scaleY(0)' }}
               />
 
 
@@ -613,7 +613,7 @@ const About = () => {
               height: '180px',         // longueur du "pont" entre les deux sections
               background: 'linear-gradient(to bottom, rgba(194,101,42,0.5), rgba(194,101,42,0))',
               transformOrigin: 'top center',
-              scaleY: 0,
+              transform: 'scaleY(0)',
               opacity: 0,
               zIndex: 10,
             }}
