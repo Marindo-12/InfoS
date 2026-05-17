@@ -577,8 +577,7 @@ const StepBadge: React.FC<{ n: number; label: string }> = ({ n, label }) => (
     <div className="step-header mb-8 flex items-center gap-4">
         <div className="hidden h-px w-14 shrink-0 bg-primary/60 sm:block" />
         <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-white"
-            style={{ background: 'var(--color-primary)' }}
+            className="step-number-3d flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-white"
         >
             {n}
         </span>
@@ -1355,6 +1354,16 @@ const InscriptionLangues: React.FC<Props> = ({
                         height: 100%;
                         pointer-events: none;
                         z-index: 0;
+                    }
+                    .step-number-3d {
+                        background: linear-gradient(145deg, #f0a878 0%, #c2652a 48%, #8a4518 100%);
+                        border: 1px solid rgba(255, 255, 255, 0.55);
+                        box-shadow:
+                            inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                            inset 0 -3px 0 rgba(90, 38, 10, 0.28),
+                            0 9px 16px rgba(194, 101, 42, 0.32),
+                            0 3px 0 #8a4518;
+                        text-shadow: 0 1px 0 rgba(90, 38, 10, 0.5);
                     }
                     .material-symbols-outlined {
                         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
