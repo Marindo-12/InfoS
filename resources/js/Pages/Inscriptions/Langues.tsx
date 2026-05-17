@@ -575,6 +575,7 @@ StripeCardSection.displayName = 'StripeCardSection'
 // ─── Step Badge ───────────────────────────────────────────────────────────────
 const StepBadge: React.FC<{ n: number; label: string }> = ({ n, label }) => (
     <div className="step-header mb-8 flex items-center gap-4">
+        <div className="hidden h-px w-14 shrink-0 bg-primary/60 sm:block" />
         <span
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-white"
             style={{ background: 'var(--color-primary)' }}
