@@ -18,6 +18,7 @@ import wordIc from '../../../../public/images/word.png';
 import excelIc from '../../../../public/images/excel.png';
 import powerpointIc from '../../../../public/images/powerpoint.png';
 import accessIc from '../../../../public/images/acc.png';
+import bureautiqueimg from '../../../../public/images/bureautique.png'
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -208,7 +209,7 @@ StripeCardSection.displayName = 'StripeCardSection';
    Phase 4 : Image revealed tile by tile (6 tiles, 2×3)
    Phase 5 : Blue fire border around the image frame
 ═══════════════════════════════════════════════════ */
-const IMG_SRC = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBGeQTJWU5lf74rdGfm5Tnl5u6PdpyjIQt_3eZcKeqARYaDMRVtvOcZdJ3nUxsHVTJwFMeaYnc9-P1utuUeOPBxaA0Ah8FnTwTZxXUEdMUp0yOoDcSrnwLW2MCsHDymv8iWMqzcDPycAT6EpjoRqX6ATJdC33yHze1NeEDwH_UdfsmG30RfIFFRjkfiJOS3wNF3tS5szyG_7IktuBbZw5fDLha6cxRvEq4jifilpiHrm2AWjwDmw5ceF02zMOu_Bjm1CfMHLX0d9Ibc'
+const IMG_SRC = bureautiqueimg
 // Tile reveal order: center-out, [row, col]
 const REVEAL_ORDER: [number, number][] = [[0,1],[1,1],[0,0],[1,2],[0,2],[1,0]]
 
