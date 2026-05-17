@@ -144,6 +144,229 @@ const CvcIcon: React.FC = () => (
     </svg>
 )
 
+
+// ─── Book Open Image ──────────────────────────────────────────────────────────
+// The image is hidden behind two "cover panels" (left & right halves).
+// On mount they fold open like a book: left panel rotates to -180° (hinged left),
+// right panel rotates to +180° (hinged right), revealing the photo underneath.
+// A spine line and paper-texture overlay sell the depth.
+
+interface BookOpenImageProps {
+    src: string
+    alt: string
+    delay?: number   // seconds before the book starts opening
+}
+
+const BOOK_IMG_SRC = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpb1pZr6F79ywjJsuRb1GMNTp6vIOmXQ-o6lPwVPuhbOEExLYEv5mkNGMjBue6r7kjBAEoI64JwwlBj4xhlqXHYdnpuC2ofFWNZuWvkpx9mte141KaQ3OIVnkFn44bjp-vLpFy-m4pc94bqzo48QRJLe7-OzpYhAeK81v2c0wZ60vFyNk4TpHZDz8pCtT-Wc_LkTo6BoOyXmpe10Q1TsxJ8_K2itPhL_87k9LZJ-JXNVXUNcQZy20qG_fXDMuP7jWhtMZCYBhuW0OH'
+
+const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) => {
+    const bookRef    = useRef<HTMLDivElement>(null)
+    const leftRef    = useRef<HTMLDivElement>(null)
+    const rightRef   = useRef<HTMLDivElement>(null)
+    const spineRef   = useRef<HTMLDivElement>(null)
+    const badgeRef   = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const book  = bookRef.current
+        const left  = leftRef.current
+        const right = rightRef.current
+        const spine = spineRef.current
+        const badge = badgeRef.current
+        if (!book || !left || !right || !spine) return
+
+        // Initial state: panels closed flat over the image
+        gsap.set(left,  { rotationY: 0,   transformOrigin: 'left center',  transformPerspective: 1200 })
+        gsap.set(right, { rotationY: 0,   transformOrigin: 'right center', transformPerspective: 1200 })
+        gsap.set(spine, { opacity: 1, scaleX: 1 })
+        gsap.set(book,  { opacity: 1 })
+        if (badge) gsap.set(badge, { opacity: 0, y: 16 })
+
+        const tl = gsap.timeline({ delay })
+
+        // 1. Book slides in from right (whole unit enters viewport)
+        tl.fromTo(book,
+            { opacity: 0, x: 60, scale: 0.94 },
+            { opacity: 1, x: 0,  scale: 1, duration: 0.7, ease: 'power3.out' },
+            0
+        )
+
+        // 2. Brief pause — let viewer notice the closed cover
+        tl.to({}, { duration: 0.3 }, 0.7)
+
+        // 3. Left panel opens (rotates away to the left)
+        tl.to(left, {
+            rotationY: -180,
+            duration: 1.4,
+            ease: 'power2.inOut',
+        }, 1.0)
+
+        // 4. Right panel opens simultaneously (rotates away to the right)
+        tl.to(right, {
+            rotationY: 180,
+            duration: 1.4,
+            ease: 'power2.inOut',
+        }, 1.0)
+
+        // 5. Spine fades out as panels fully open
+        tl.to(spine, {
+            opacity: 0,
+            scaleX: 0,
+            duration: 0.4,
+            ease: 'power2.in',
+        }, 1.6)
+
+        // 6. Badge slides up once image is revealed
+        if (badge) {
+            tl.to(badge, {
+                opacity: 1,
+                y: 0,
+                duration: 0.5,
+                ease: 'back.out(1.7)',
+            }, 2.0)
+        }
+
+        return () => { tl.kill() }
+    }, [delay])
+
+    return (
+        <div
+            ref={bookRef}
+            className="group relative"
+            style={{ opacity: 0 }}
+            aria-label={alt}
+        >
+            {/* Subtle glow halo */}
+            <div className="absolute -inset-4 rotate-2 rounded-2xl bg-primary/8 transition-transform duration-700 group-hover:rotate-1" />
+
+            {/* ── Book container — perspective applied here ── */}
+            <div
+                className="relative h-[580px] overflow-hidden rounded-2xl shadow-2xl"
+                style={{ perspective: '1200px', perspectiveOrigin: 'center center' }}
+            >
+                {/* ── The actual photo underneath ── */}
+                <img
+                    src={src}
+                    alt={alt}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                {/* Dark gradient overlay on photo */}
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,20,16,0.38) 0%, transparent 50%)' }} />
+
+                {/* ── Left cover panel (hinged on its LEFT edge) ── */}
+                <div
+                    ref={leftRef}
+                    className="absolute inset-y-0 left-0 w-1/2"
+                    style={{
+                        transformOrigin: 'left center',
+                        transformStyle: 'preserve-3d',
+                        zIndex: 10,
+                    }}
+                >
+                    {/* Front face — cover with image left-half + warm overlay */}
+                    <div
+                        className="absolute inset-0 overflow-hidden"
+                        style={{ backfaceVisibility: 'hidden' }}
+                    >
+                        {/* Mirror the image on the cover (left half) */}
+                        <div
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundImage: `url(${src})`,
+                                backgroundSize: '200% 100%',
+                                backgroundPosition: 'left center',
+                            }}
+                        />
+                        {/* Warm parchment tint */}
+                        <div className="absolute inset-0" style={{ background: 'rgba(194,101,42,0.18)' }} />
+                        {/* Subtle linen texture lines */}
+                        <div className="absolute inset-0" style={{
+                            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px)',
+                        }} />
+                        {/* Edge shadow (right side of left panel = spine area) */}
+                        <div className="absolute right-0 top-0 h-full w-8"
+                            style={{ background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.18))' }} />
+                    </div>
+
+                    {/* Back face — shows when panel is past 90° (inside of cover) */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            backfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)',
+                            background: 'linear-gradient(135deg, #f5ede0 0%, #ede0cc 100%)',
+                        }}
+                    />
+                </div>
+
+                {/* ── Right cover panel (hinged on its RIGHT edge) ── */}
+                <div
+                    ref={rightRef}
+                    className="absolute inset-y-0 right-0 w-1/2"
+                    style={{
+                        transformOrigin: 'right center',
+                        transformStyle: 'preserve-3d',
+                        zIndex: 10,
+                    }}
+                >
+                    {/* Front face */}
+                    <div
+                        className="absolute inset-0 overflow-hidden"
+                        style={{ backfaceVisibility: 'hidden' }}
+                    >
+                        <div
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundImage: `url(${src})`,
+                                backgroundSize: '200% 100%',
+                                backgroundPosition: 'right center',
+                            }}
+                        />
+                        <div className="absolute inset-0" style={{ background: 'rgba(194,101,42,0.18)' }} />
+                        <div className="absolute inset-0" style={{
+                            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px)',
+                        }} />
+                        {/* Edge shadow (left side of right panel = spine area) */}
+                        <div className="absolute left-0 top-0 h-full w-8"
+                            style={{ background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.18))' }} />
+                    </div>
+
+                    {/* Back face */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            backfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)',
+                            background: 'linear-gradient(135deg, #ede0cc 0%, #f5ede0 100%)',
+                        }}
+                    />
+                </div>
+
+                {/* ── Spine / binding line at the center ── */}
+                <div
+                    ref={spineRef}
+                    className="absolute inset-y-0 left-1/2 z-20 w-[3px] -translate-x-1/2"
+                    style={{
+                        background: 'linear-gradient(to bottom, rgba(194,101,42,0.6), rgba(26,20,16,0.8), rgba(194,101,42,0.6))',
+                        boxShadow: '0 0 8px rgba(0,0,0,0.3)',
+                    }}
+                />
+
+                {/* ── Badge revealed after opening ── */}
+                <div
+                    ref={badgeRef}
+                    className="absolute bottom-6 left-6 right-6 z-30 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur-md"
+                    style={{ opacity: 0 }}
+                >
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">Prochaine session</p>
+                    <p className="mt-1 font-display text-xl font-bold text-white">Septembre 2026</p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 // ─── Stripe Card Section ───────────────────────────────────────────────────────
 const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
     ({ totalAmount, cardError, processing, paymentDone, paymentReference, onCardChange, onPayNow }, ref) => {
@@ -407,12 +630,7 @@ const InscriptionLangues: React.FC<Props> = ({
                     1.3
                 )
             }
-            // Hero image — scale from small + rotate slight
-            heroTl.fromTo(heroImgRef.current,
-                { opacity: 0, scale: 0.88, rotationY: 8, transformOrigin: 'right center' },
-                { opacity: 1, scale: 1, rotationY: 0, duration: 1.2, ease: 'power3.out' },
-                0.4
-            )
+            // Hero image: animation handled inside BookOpenImage component
 
             // ── Count-up price animation ──
             if (priceDisplayRef.current) {
@@ -748,24 +966,12 @@ const InscriptionLangues: React.FC<Props> = ({
                                 </div>
                             </div>
 
-                            {/* Right — image */}
-                            <div ref={heroImgRef} className="group relative" style={{ opacity: 0 }}>
-                                <div className="absolute -inset-4 rotate-2 rounded-2xl bg-primary/8 transition-transform duration-700 group-hover:rotate-1" />
-                                <div className="relative h-[580px] overflow-hidden rounded-2xl shadow-2xl">
-                                    <img
-                                        alt="Etudiants en formation linguistique"
-                                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpb1pZr6F79ywjJsuRb1GMNTp6vIOmXQ-o6lPwVPuhbOEExLYEv5mkNGMjBue6r7kjBAEoI64JwwlBj4xhlqXHYdnpuC2ofFWNZuWvkpx9mte141KaQ3OIVnkFn44bjp-vLpFy-m4pc94bqzo48QRJLe7-OzpYhAeK81v2c0wZ60vFyNk4TpHZDz8pCtT-Wc_LkTo6BoOyXmpe10Q1TsxJ8_K2itPhL_87k9LZJ-JXNVXUNcQZy20qG_fXDMuP7jWhtMZCYBhuW0OH"
-                                    />
-                                    {/* Gradient overlay */}
-                                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,20,16,0.35) 0%, transparent 50%)' }} />
-                                    {/* Badge on image */}
-                                    <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur-md">
-                                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">Prochaine session</p>
-                                        <p className="mt-1 font-display text-xl font-bold text-white">Septembre 2026</p>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Right — book-opening image */}
+                            <BookOpenImage
+                                src={BOOK_IMG_SRC}
+                                alt="Etudiants en formation linguistique"
+                                delay={0.6}
+                            />
                         </div>
                     </section>
 
@@ -1057,6 +1263,12 @@ const InscriptionLangues: React.FC<Props> = ({
                     }
                     @keyframes spin { to { transform: rotate(360deg); } }
                     .animate-spin { animation: spin 0.8s linear infinite; display: inline-block; }
+
+                    /* Book panels — hardware accelerate the 3D transforms */
+                    [style*="transformStyle: preserve-3d"],
+                    [style*="transform-style: preserve-3d"] {
+                        will-change: transform;
+                    }
 
                     /* Stripe card layout */
                     .payment-card-grid { display: grid; gap: 16px; }
