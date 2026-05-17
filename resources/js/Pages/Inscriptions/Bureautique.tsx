@@ -574,8 +574,7 @@ const FireRevealImage: React.FC = () => {
       /* ── PHASE 5: blue fire border ── */
       else if (phaseRef.current === 'border') {
         if (borderActive) {
-          // Spawn border particles generously
-          for (let k = 0; k < 4; k++) spawnBorderParticle()
+          // Corner orbs are rendered in JSX; no moving border particles.
           drawBorderParticles()
         }
         // Run forever — living border
