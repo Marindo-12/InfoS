@@ -641,6 +641,12 @@ const InscriptionLangues: React.FC<Props> = ({
     // ── GSAP orchestration ──
     useEffect(() => {
         const ctx = gsap.context(() => {
+            gsap.to('.langues-bg-geo', {
+                yPercent: 10,
+                ease: 'none',
+                scrollTrigger: { scrub: true },
+            })
+
             // ── Hero master timeline ──
             const heroTl = gsap.timeline({ defaults: { ease: 'expo.out' } })
 
@@ -946,7 +952,29 @@ const InscriptionLangues: React.FC<Props> = ({
             )}
 
             <PublicLayout>
-                <main className="flex-grow">
+                <div className="langues-page-bg">
+                    <svg className="langues-bg-geo" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="80" cy="150" r="180" fill="none" stroke="rgba(194,101,42,0.09)" strokeWidth="1.5" />
+                        <circle cx="80" cy="150" r="100" fill="none" stroke="rgba(194,101,42,0.06)" strokeWidth="1" />
+                        <circle cx="1140" cy="750" r="220" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1.5" />
+                        <circle cx="1140" cy="750" r="130" fill="none" stroke="rgba(194,101,42,0.05)" strokeWidth="1" />
+                        <circle cx="620" cy="450" r="280" fill="none" stroke="rgba(194,101,42,0.045)" strokeWidth="1" />
+                        <line x1="0" y1="315" x2="215" y2="105" stroke="rgba(194,101,42,0.10)" strokeWidth="1" />
+                        <line x1="25" y1="340" x2="240" y2="130" stroke="rgba(194,101,42,0.06)" strokeWidth="0.8" />
+                        <line x1="980" y1="590" x2="1200" y2="805" stroke="rgba(194,101,42,0.09)" strokeWidth="1" />
+                        <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="1045" y1="88" x2="1115" y2="88" /><polyline points="1100,74 1115,88 1100,102" />
+                        </g>
+                        <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.5" strokeLinecap="round">
+                            <line x1="935" y1="145" x2="955" y2="165" /><line x1="955" y1="145" x2="935" y2="165" />
+                        </g>
+                        {[0,1,2,3,4].map((row) => [0,1,2,3,4,5].map((col) => (
+                            <circle key={`${row}-${col}`} cx={500 + col * 60} cy={210 + row * 60} r="1.5" fill="rgba(194,101,42,0.12)" />
+                        )))}
+                        <path d="M 100 610 Q 410 390 720 610" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1" strokeDasharray="6 8" />
+                    </svg>
+
+                    <main className="relative z-10 flex-grow">
 
                     {/* ══════════════════ HERO ══════════════════ */}
                     <section ref={heroRef} className="relative overflow-hidden pt-20 pb-28">
@@ -1042,7 +1070,7 @@ const InscriptionLangues: React.FC<Props> = ({
                     </section>
 
                     {/* ══════════════════ FORM SECTION ══════════════════ */}
-                    <section ref={formSectionRef} className="relative overflow-hidden bg-[#faf7f4] py-24">
+                    <section ref={formSectionRef} className="relative overflow-hidden py-24">
                         {/* Decorative background */}
                         <div className="pointer-events-none absolute inset-0"
                             style={{ backgroundImage: 'radial-gradient(rgba(194,101,42,0.04) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
@@ -1054,10 +1082,14 @@ const InscriptionLangues: React.FC<Props> = ({
                         <div className="relative z-10 mx-auto max-w-4xl px-8">
                             <div
                                 ref={formCardRef}
-                                className="rounded-3xl border border-outline-variant/40 bg-white p-10 shadow-xl lg:p-16"
+                                className="relative rounded-3xl border border-outline-variant/40 bg-white p-10 shadow-xl lg:p-16"
                                 style={{ opacity: 0, boxShadow: '0 4px 48px rgba(58,48,42,0.09)' }}
                             >
-                                <form onSubmit={handleSubmit} noValidate className="space-y-14">
+                                <div className="pointer-events-none absolute left-8 right-8 top-0 h-1 rounded-b-full bg-gradient-to-r from-primary via-orange-400 to-amber-200" />
+                                <div className="pointer-events-none absolute bottom-10 left-0 top-10 w-px bg-gradient-to-b from-transparent via-primary/35 to-transparent" />
+                                <div className="pointer-events-none absolute right-10 top-10 h-20 w-20 rounded-full border border-primary/10" />
+
+                                <form onSubmit={handleSubmit} noValidate className="relative z-10 space-y-14">
 
                                     {/* ── Step 1: Personal info ── */}
                                     <section ref={step1Ref} className="space-y-8">
@@ -1305,9 +1337,24 @@ const InscriptionLangues: React.FC<Props> = ({
                             </div>
                         </div>
                     </section>
-                </main>
+                    </main>
+                </div>
 
                 <style>{`
+                    .langues-page-bg {
+                        position: relative;
+                        min-height: 100vh;
+                        overflow: hidden;
+                        background: linear-gradient(180deg, #ffffff 0%, #fff8f0 40%, #fff3e6 100%);
+                    }
+                    .langues-bg-geo {
+                        position: absolute;
+                        inset: 0;
+                        width: 100%;
+                        height: 100%;
+                        pointer-events: none;
+                        z-index: 0;
+                    }
                     .material-symbols-outlined {
                         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
                     }
