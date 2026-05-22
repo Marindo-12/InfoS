@@ -15,27 +15,30 @@ interface WordLineProps {
   text: string
   italic?: boolean
   className?: string
-  spanRef?: React.RefObject<HTMLSpanElement>
 }
 
-const WordLine: React.FC<WordLineProps> = ({ text, italic, className = '', spanRef }) => (
-  <span
-    ref={spanRef}
-    className={`block ${italic ? 'font-normal italic' : ''} ${className}`}
-    style={{ opacity: 0 }}
-    aria-label={text}
-  >
-    {text.split(' ').map((word, i) => (
-      <span
-        key={i}
-        className="word-token mr-[0.22em] inline-block text-primary last:mr-0"
-        aria-hidden="true"
-      >
-        {word}
-      </span>
-    ))}
-  </span>
+const WordLine = React.forwardRef<HTMLSpanElement, WordLineProps>(
+  ({ text, italic, className = '' }, ref) => (
+    <span
+      ref={ref}
+      className={`block ${italic ? 'font-normal italic' : ''} ${className}`}
+      style={{ opacity: 0 }}
+      aria-label={text}
+    >
+      {text.split(' ').map((word, i) => (
+        <span
+          key={i}
+          className="word-token mr-[0.22em] inline-block text-primary last:mr-0"
+          aria-hidden="true"
+        >
+          {word}
+        </span>
+      ))}
+    </span>
+  )
 )
+
+WordLine.displayName = 'WordLine'
 
 /* ─────────────────────────────────────────────────────────────
    HERO
