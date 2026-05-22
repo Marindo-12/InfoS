@@ -298,7 +298,7 @@ const Hero: React.FC = () => {
             {/* H1 — every word in orange */}
             <h1 className="font-display text-6xl leading-[0.92] md:text-8xl lg:text-9xl">
               <span className="block overflow-hidden">
-                <WordLine ref={line1Ref} text="La précision" />
+                La précision
               </span>
               <span className="block overflow-hidden">
                 <WordLine ref={line2Ref} text="dans chaque" italic />
