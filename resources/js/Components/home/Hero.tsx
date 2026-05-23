@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import firstimage from '../../../../public/images/home_first.png'
-import secondimage from '../../../../public/images/home_second.png'
+import secondimage from '../../../../public/images/homes.png'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -390,7 +390,7 @@ const Hero: React.FC = () => {
               {/* ── Image 1 — top-right, tilted slightly left ── */}
               <div
                 ref={img1WrapRef}
-                className="absolute right-4 top-0 z-20 aspect-[4/5] w-[66%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl transition-transform duration-700 hover:rotate-0"
+                className="absolute -right-10 -top-52 z-20 aspect-[4/5] w-[76%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl transition-transform duration-700 hover:rotate-0"
                 style={{ rotate: '-2deg', opacity: 0 }}
               >
                 <img
@@ -403,7 +403,7 @@ const Hero: React.FC = () => {
               {/* ── Image 2 — bottom-left, overlapping img1, tilted right ── */}
               <div
                 ref={img2WrapRef}
-                className="absolute bottom-4 left-4 z-30 aspect-square w-[62%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl transition-transform duration-700 hover:rotate-0"
+                className="absolute bottom-4 left-4 z-30 aspect-square w-[72%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl transition-transform duration-700 hover:rotate-0"
                 style={{ rotate: '3deg', opacity: 0 }}
               >
                 <img
