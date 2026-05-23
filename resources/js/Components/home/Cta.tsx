@@ -219,7 +219,7 @@ const Cta = () => {
         {/* ── Titre massif avec overflow masqué ── */}
         <h2
           ref={titleRef}
-          className="font-display text-6xl md:text-7xl lg:text-8xl leading-[0.92] mb-10"
+          className="font-display text-6xl md:text-7xl lg:text-8xl leading-[1.15] mb-10"
         >
           <span className="block overflow-hidden">
             <span className="cta-line block" style={{ opacity: 0 }}>Prêt à rejoindre</span>

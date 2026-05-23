@@ -281,7 +281,7 @@ const Hero: React.FC = () => {
 
       {/* ── Main grid ── */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-8">
-        <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-center gap-20 lg:grid-cols-2">
 
           {/* ══ LEFT COLUMN ══ */}
           <div className="max-w-2xl">
@@ -296,7 +296,7 @@ const Hero: React.FC = () => {
             </span>
 
             {/* H1 — every word in orange */}
-            <h1 className="font-display text-6xl leading-[0.92] md:text-8xl lg:text-9xl">
+            <h1 className="font-display text-6xl leading-[1.25] md:text-8xl md:leading-[1.3] lg:text-8xl lg:leading-[1.35]">
               <span className="block overflow-hidden">
                 La précision
               </span>
@@ -390,7 +390,7 @@ const Hero: React.FC = () => {
               {/* ── Image 1 — top-right, tilted slightly left ── */}
               <div
                 ref={img1WrapRef}
-                className="absolute -right-10 -top-52 z-20 aspect-[4/5] w-[76%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl transition-transform duration-700 hover:rotate-0"
+                className="absolute -right-10 -top-40 z-20 aspect-[4/5] w-[76%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl transition-transform duration-700 hover:rotate-0"
                 style={{ rotate: '-2deg', opacity: 0 }}
               >
                 <img
