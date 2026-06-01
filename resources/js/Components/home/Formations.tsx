@@ -517,19 +517,14 @@ const Formations = () => {
               des ateliers pratiques et des projets du monde réel.
             </p>
 
-            <div ref={bureautiqueCardsRef} className="space-y-4 mb-8">
+            <div ref={bureautiqueCardsRef} className="flex flex-wrap gap-3 mb-8">
               {[...miniCatalog.bureautique, ...miniCatalog.infographie].map(item => (
                 <div
                   key={item}
-                  className="bureautique-card p-4 bg-surface-container rounded-xl border-l-4 border-primary"
+                  className="bureautique-card flex items-center min-h-14 px-4 py-3 bg-surface-container rounded-xl border-l-4 border-primary"
                   style={{ opacity: 0 }}
                 >
-                  <h4 className="font-bold mb-1">{item}</h4>
-                  <p className="text-sm text-on-surface-variant">
-                    {miniCatalog.infographie.includes(item)
-                      ? 'Parcours créatif avec production de portfolio.'
-                      : 'Atelier pratique avec exercices professionnels.'}
-                  </p>
+                  <h4 className="font-bold">{item}</h4>
                 </div>
               ))}
             </div>
