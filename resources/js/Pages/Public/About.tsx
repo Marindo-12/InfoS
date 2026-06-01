@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/react'
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { User } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -48,21 +49,18 @@ const About = () => {
       // ════════════════════════════════════════════════════════════════════
       const histTrigger = { trigger: histoireMissionRef.current, start: 'top 75%' }
 
-      // Titre — split lines
       gsap.fromTo(
         histoireMissionRef.current!.querySelector('h2') as HTMLHeadingElement,
         { y: 50, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: histTrigger }
       )
 
-      // Paragraphes — stagger
       gsap.fromTo(
         histoireMissionRef.current!.querySelectorAll('p'),
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.75, stagger: 0.15, ease: 'power2.out', delay: 0.2, scrollTrigger: histTrigger }
       )
 
-      // Chiffres stats — count-up + pop
       const statEls = histoireMissionRef.current?.querySelectorAll('.stat-number')
       statEls?.forEach((el, i) => {
         const raw   = parseInt(el.getAttribute('data-value') || '0')
@@ -76,7 +74,6 @@ const About = () => {
           onUpdate: () => { el.textContent = Math.round(obj.val) + suf },
           scrollTrigger: { ...histTrigger, once: true },
         })
-        // Pulsation finale
         gsap.fromTo(el, { scale: 1 }, {
           scale: 1.1, yoyo: true, repeat: 1, duration: 0.2,
           ease: 'power1.out', delay: 0.4 + i * 0.15 + 2,
@@ -84,7 +81,6 @@ const About = () => {
         })
       })
 
-      // Image — slide + tilt hover
       const imgEl = histoireMissionRef.current?.querySelector('.about-img') as HTMLElement
       if (imgEl) {
         gsap.fromTo(
@@ -115,7 +111,6 @@ const About = () => {
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.14, ease: 'power3.out', scrollTrigger: valTrigger }
       )
 
-      // Cartes — cascade depuis le bas avec scale
       gsap.fromTo(
         valeursRef.current!.querySelectorAll('.valeur-card'),
         { y: 50, opacity: 0, scale: 0.94 },
@@ -127,7 +122,6 @@ const About = () => {
         }
       )
 
-      // Icônes — pop après les cartes
       valeursRef.current?.querySelectorAll('.valeur-icon').forEach((icon, i) => {
         gsap.fromTo(
           icon,
@@ -152,7 +146,6 @@ const About = () => {
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: 'power3.out', scrollTrigger: eqTrigger }
       )
 
-      // Cartes membres — stagger + scale depuis 0.9
       gsap.fromTo(
         equipeRef.current!.querySelectorAll('.membre-card'),
         { y: 60, opacity: 0, scale: 0.92 },
@@ -165,10 +158,8 @@ const About = () => {
       )
 
       // ════════════════════════════════════════════════════════════════════
-      // TIMELINE — animations simples par item au scroll
+      // TIMELINE
       // ════════════════════════════════════════════════════════════════════
-
-      // Ligne principale — draw-in scrub
       if (timelineLineRef.current) {
         gsap.fromTo(
           timelineLineRef.current,
@@ -186,7 +177,6 @@ const About = () => {
         )
       }
 
-      // Chaque item — reveal indépendant déclenché par sa propre position
       itemRefs.current.forEach((item, i) => {
         if (!item) return
 
@@ -196,14 +186,12 @@ const About = () => {
 
         const t = { trigger: item, start: 'top 78%' }
 
-        // Contenu — slide depuis le bon côté
         gsap.fromTo(
           item,
           { x: isLeft ? -40 : 40, opacity: 0 },
           { x: 0, opacity: 1, duration: 0.75, ease: 'power3.out', scrollTrigger: t }
         )
 
-        // Dot — pop
         if (dot) {
           gsap.fromTo(
             dot,
@@ -212,7 +200,6 @@ const About = () => {
           )
         }
 
-        // Année — slide up
         if (yr) {
           gsap.fromTo(
             yr,
@@ -221,7 +208,6 @@ const About = () => {
           )
         }
 
-        // Image — grayscale → couleur au scroll (scrub bidirectionnel)
         const img = item.querySelector('img') as HTMLElement
         if (img) {
           gsap.fromTo(
@@ -242,15 +228,7 @@ const About = () => {
         }
       })
 
-      // ════════════════════════════════════════════════════════════════════
-      // ★ LIGNE VOYAGEUSE ENTRE SECTIONS ★
-      //
-      // La ligne verticale de la timeline "sort" de sa section au bas de la page,
-      // traverse la section narrative, et crée un fil conducteur visuel.
-      // Bidirectionnel grâce à scrub.
-      // ════════════════════════════════════════════════════════════════════
       if (travelingLineRef.current) {
-        // La ligne part de 0 hauteur et grandit jusqu'à connecter la section narrative
         gsap.fromTo(
           travelingLineRef.current,
           { scaleY: 0, transformOrigin: 'top center', opacity: 0 },
@@ -261,18 +239,17 @@ const About = () => {
               trigger: timelineRef.current,
               start: 'bottom 80%',
               end: 'bottom top',
-              scrub: 1.5,             // ← scrub bidirectionnel
+              scrub: 1.5,
             },
           }
         )
       }
 
       // ════════════════════════════════════════════════════════════════════
-      // SECTION : NARRATIVE (sombre)
+      // SECTION : NARRATIVE
       // ════════════════════════════════════════════════════════════════════
       const narrTrigger = { trigger: narrativeRef.current, start: 'top 75%' }
 
-      // Ligne "Notre conviction"
       gsap.fromTo(
         narrativeRef.current!.querySelector('.conviction-line') as HTMLElement,
         { scaleX: 0, transformOrigin: 'left center' },
@@ -284,28 +261,24 @@ const About = () => {
         { x: 0, opacity: 1, duration: 0.6, delay: 0.2, ease: 'power2.out', scrollTrigger: narrTrigger }
       )
 
-      // Grand titre narrative
       gsap.fromTo(
         narrativeRef.current!.querySelector('.narr-title') as HTMLElement,
         { y: 60, opacity: 0 },
         { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 0.15, scrollTrigger: narrTrigger }
       )
 
-      // Paragraphe + CTA
       gsap.fromTo(
         narrativeRef.current!.querySelectorAll('.narr-body-anim'),
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: 'power2.out', delay: 0.3, scrollTrigger: narrTrigger }
       )
 
-      // Grille droite — stagger
       gsap.fromTo(
         narrativeRef.current!.querySelectorAll('.narr-grid-item'),
         { y: 40, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.65, stagger: 0.12, ease: 'power2.out', delay: 0.4, scrollTrigger: narrTrigger }
       )
 
-      // Citation card — scale pop
       gsap.fromTo(
         narrativeRef.current!.querySelector('.narr-quote') as HTMLElement,
         { scale: 0.92, opacity: 0 },
@@ -394,7 +367,7 @@ const About = () => {
         </section>
 
         {/* ══════════════════════════════════════════════════
-            VALEURS
+            VALEURS — améliorées avec traits orange
         ══════════════════════════════════════════════════ */}
         <section ref={valeursRef} className="py-24 bg-surface-container-low px-8 overflow-hidden">
           <div className="max-w-7xl mx-auto">
@@ -414,9 +387,18 @@ const About = () => {
               ].map(v => (
                 <div
                   key={v.title}
-                  className="valeur-card group relative bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer"
+                  className="valeur-card group relative bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer overflow-hidden"
                   style={{ opacity: 0 }}
                 >
+                  {/* Trait orange top */}
+                  <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary/70 to-primary/30 rounded-t-xl" />
+
+                  {/* Trait orange left — visible au hover */}
+                  <div className="absolute top-0 left-0 bottom-0 w-[3px] bg-gradient-to-b from-primary to-primary/10 rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  {/* Coin décoratif bas-droit */}
+                  <div className="absolute bottom-0 right-0 w-20 h-20 bg-primary/5 rounded-tl-full group-hover:bg-primary/10 transition-colors duration-500" />
+
                   <span
                     className="valeur-icon material-symbols-outlined text-5xl text-primary mb-6 block"
                     style={{ display: 'inline-block', opacity: 0 }}
@@ -430,6 +412,8 @@ const About = () => {
                       Explorer <span className="material-symbols-outlined text-base">arrow_right_alt</span>
                     </a>
                   </div>
+
+                  {/* Gradient background hover */}
                   <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
               ))}
@@ -438,7 +422,7 @@ const About = () => {
         </section>
 
         {/* ══════════════════════════════════════════════════
-            ÉQUIPE
+            ÉQUIPE — avec icônes Lucide au lieu d'images
         ══════════════════════════════════════════════════ */}
         <section ref={equipeRef} className="py-24 px-8 max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-16">
@@ -459,48 +443,69 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {[
               {
-                name: 'Dr. Elara Thorne', role: 'Directrice de l\'académie',
+                name: 'Dr. Elara Thorne', role: "Directrice de l'académie",
                 bio: 'Doctorat en linguistique à Oxford. Plus de 20 ans de direction pédagogique sur trois continents.',
                 tags: ['Stratégie', 'Conception de programmes'],
-                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAqx1ybRlEjBupElaburzVy_DHR_uSP4bSKXS04xLP7GUSxxMZK7zPH2zH15zgCNhItOfASX5LYPxDcdC-830epmCzqexCjqRdfmA3Jv6cbrPAUxaPbcc8BYolRrQmw6ivCeGofExNz-m_WJMEyHiy1897K28IoTTMYmpx_04Om7IeuMSiuYD8mG4rB7F3pqq3mT3B9a5sFWStTLrsVjoGvLgGZm8tB8nSHPcHxnNIpisalkixzKDY_9HPFW4c9kVnMwqMyxfgUkKS0',
+                color: 'from-primary/10 to-primary/5',
               },
               {
                 name: 'Marcus Vane', role: 'Responsable technologie',
-                bio: 'Ancien architecte logiciel dans des grandes places technologiques. Spécialisé en éthique de l\'IA.',
+                bio: "Ancien architecte logiciel dans des grandes places technologiques. Spécialisé en éthique de l'IA.",
                 tags: ['Python', 'Systèmes Cloud'],
-                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuByr_oWhqRT1CvdzK9nS1MxdOY8I-zdx2Qe2Y07J1ZJaGkAwvr065anjUXSfE2jIz01SYZCxt_RwgLtmdOlyStwlv6xnu05xG2XrgmyeKyLNFosVKIHHQ8u7tO7YjkDsIMCQJNWGMqM7UZN6LHonNGm7Hx4lbRpO2bxnl_NbLx1qjHWupYh5Lo8po-aoWu-GzQFjdc6kXAV3X5J8gpPJXRTxktGUOcBYKOlcIuuGjMKVhyJXKJTeDZ3w68A18ig6-Yo7ThSusLFRpFP',
+                color: 'from-primary/15 to-primary/5',
               },
               {
                 name: 'Sofia Chen', role: 'Coordinatrice linguistique',
-                bio: 'Experte en méthodologies d\'apprentissage immersif. Parle cinq langues couramment.',
+                bio: "Experte en méthodologies d'apprentissage immersif. Parle cinq langues couramment.",
                 tags: ['Pédagogie', 'Interculturel'],
-                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDoVU1mhHk2oH_HGagkk-mW049CG0BNw3k1jje6vjTYH6TDaUPVqYBCozCF-JAHTPhFBAzRwJyznt_EjDu_a3n9VxM4oINvrZPp0hQ3piVPtQb5PiaWg9UqTCo0NJ3bRP0UwbjiZ86cXim1X1Ng_ymauDqa6azp2HOYE1b6CB8ov5jI32iqxHteZZbCA1bNHtgBGN2iFrMvQpsC5e9gAO7Uz4lR9wM_6WAL__1OoQSI9AUyL9Hc8mGyZqEu9O4HVXbIzv5UL1zvc2JA',
+                color: 'from-primary/10 to-primary/5',
               },
             ].map(m => (
               <div
                 key={m.name}
-                className="membre-card group relative overflow-hidden rounded-xl bg-white"
+                className="membre-card group relative overflow-hidden rounded-xl bg-white border border-outline-variant/30 hover:border-primary/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
                 style={{ opacity: 0 }}
               >
-                <img
-                  className="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-110"
-                  src={m.src} alt={m.name}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-on-surface/90 via-on-surface/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8 text-white">
-                  <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
-                    <p className="text-sm font-body uppercase tracking-widest mb-2 opacity-80">{m.role}</p>
-                    <h4 className="text-3xl font-serif mb-4">{m.name}</h4>
-                    <p className="text-sm leading-relaxed mb-6">{m.bio}</p>
-                    <div className="flex gap-4 flex-wrap">
-                      {m.tags.map(t => (
-                        <span key={t} className="px-3 py-1 bg-white/10 rounded-full text-xs font-body">{t}</span>
-                      ))}
-                    </div>
+                {/* Trait orange top */}
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary/70 to-primary/30 z-10" />
+
+                {/* Zone avatar */}
+                <div className={`relative h-[280px] bg-gradient-to-br ${m.color} flex items-center justify-center overflow-hidden`}>
+                  {/* Cercles décoratifs en arrière-plan */}
+                  <div className="absolute -bottom-8 -right-8 w-40 h-40 rounded-full bg-primary/10 group-hover:scale-125 transition-transform duration-700" />
+                  <div className="absolute -top-6 -left-6 w-28 h-28 rounded-full bg-primary/8 group-hover:scale-110 transition-transform duration-700" />
+
+                  {/* Icône User de Lucide */}
+                  <div className="relative z-10 w-32 h-32 rounded-full bg-white border-4 border-primary/20 group-hover:border-primary/60 shadow-lg flex items-center justify-center transition-all duration-500 group-hover:scale-105">
+                    <User
+                      size={56}
+                      strokeWidth={1.25}
+                      className="text-primary/70 group-hover:text-primary transition-colors duration-300"
+                    />
                   </div>
+
+                  {/* Overlay au hover */}
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-                <div className="p-6 bg-white border-x border-b border-outline-variant/30 group-hover:hidden">
-                  <h4 className="text-xl font-serif">{m.name}</h4>
-                  <p className="text-on-surface-variant text-sm mt-1">{m.role}</p>
+
+                {/* Infos membre */}
+                <div className="p-8 relative">
+                  {/* Trait orange left décoratif */}
+                  <div className="absolute left-0 top-8 bottom-8 w-[3px] bg-gradient-to-b from-primary to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-r-full" />
+
+                  <p className="text-xs font-body uppercase tracking-widest text-primary mb-2">{m.role}</p>
+                  <h4 className="text-2xl font-serif mb-3 group-hover:text-primary transition-colors duration-300">{m.name}</h4>
+                  <p className="text-on-surface-variant text-sm leading-relaxed mb-6">{m.bio}</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {m.tags.map(t => (
+                      <span
+                        key={t}
+                        className="px-3 py-1 bg-primary/8 border border-primary/20 rounded-full text-xs font-body text-primary group-hover:bg-primary/15 transition-colors duration-300"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
@@ -519,17 +524,14 @@ const About = () => {
               </p>
             </div>
 
-            {/* Conteneur ligne + curseur */}
             <div className="relative">
 
-              {/* ── Ligne verticale principale (se dessine au scroll) ── */}
+              {/* ── Ligne verticale principale ── */}
               <div
                 ref={timelineLineRef}
                 className="absolute left-1/2 -translate-x-1/2 top-0 w-px bg-primary/40 hidden md:block"
                 style={{ height: '100%', transformOrigin: 'top center', transform: 'scaleY(0)' }}
               />
-
-
 
               {/* ── Items de la timeline ── */}
               <div className="space-y-24">
@@ -547,7 +549,7 @@ const About = () => {
                   {
                     year: '2018', side: 'left',
                     text: "Obtention de l'accréditation mondiale. L'institut est renommé Elite Academy pour refléter ses normes élevées.",
-                    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRRF0afWOJWpAhepm21JHTyWqGECQPULDLWquvzkfAKFbwuMFHTc6k5PRVRPd1_WxqCNbsyTBZA-ffUflGRKUGNNCsaLf8BhqyXp2ZxwBTMLexsbCLog-Ey61h0isnICcPwNXWMbszfXpNcCDYpeh2e5Nn3rXZSDHtNv8tirYqxvbdPdOcUaLRYLQX28VGvnqZU22nmwwttVrGudu8DXb-kfcvPBtUoVat87VFfhQr4UHNikaeYmBZoKfcMIh1ntvOQhq5hfn5AcTa',
+                    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRRF0afWOJWpAhepm21JHTyWqGECQPULDLWquvzkfAKFbwuMFHTc6k5PRVRPd1_WxqCNbsyTBZA-ffUflGRKUGNNCsaLf8BhqyXp2ZxwBTMLexsbCLog-Ey61h0isnICcPwNXWMbszfXpNcCDYpeh2e5Nn3rXZSDHtNv8tirYqxvbdPdOcUaLRYLQX28VGvnqZU22nmwwttVrGudu8DXb-kfcMIh1ntvOQhq5hfn5AcTa',
                   },
                   {
                     year: "Aujourd'hui", side: 'right',
@@ -579,7 +581,6 @@ const About = () => {
                       className="timeline-dot w-10 h-10 bg-background border-2 border-primary rounded-full relative z-10 hidden md:flex items-center justify-center"
                       style={{ scale: 0 }}
                     >
-                      {/* Point intérieur */}
                       <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                     </div>
 
@@ -605,12 +606,11 @@ const About = () => {
           </div>
 
           {/* ── Ligne voyageuse vers la section narrative ── */}
-          {/* Elle part du bas de la section timeline et descend vers la narrative */}
           <div
             ref={travelingLineRef}
             className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[2px] hidden md:block"
             style={{
-              height: '180px',         // longueur du "pont" entre les deux sections
+              height: '180px',
               background: 'linear-gradient(to bottom, rgba(194,101,42,0.5), rgba(194,101,42,0))',
               transformOrigin: 'top center',
               transform: 'scaleY(0)',
@@ -629,8 +629,7 @@ const About = () => {
         >
           <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 translate-x-20 pointer-events-none" />
 
-          {/* ── Point de réception de la ligne voyageuse ── */}
-          {/* Petit cercle au sommet de la section narrative qui "reçoit" la ligne */}
+          {/* Point de réception de la ligne voyageuse */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden md:block">
             <div className="w-4 h-4 rounded-full bg-primary shadow-[0_0_16px_6px_rgba(194,101,42,0.5)] animate-pulse" />
           </div>
