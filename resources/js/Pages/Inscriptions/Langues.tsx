@@ -1120,14 +1120,10 @@ const InscriptionLangues: React.FC<Props> = ({
                                         <FieldError msg={errors.payment} />
 
                                         {form.payment === 'online' && (
-                                            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
-                                                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
-                                                <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
-                                                <p className="mt-2 text-emerald-800">
-                                                    Apres validation, vous serez redirige vers Payzone pour payer par carte.
-                                                    La banque peut demander un code 3D Secure.
-                                                </p>
-                                            </div>
+                                            <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-6 text-sm">
+                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Paiement online non disponible</p>
+                          <h4 className="mt-1 font-display text-xl font-bold text-on-surface">La methode de payment en ligne va s'ajouté dans le plus proche délai, merci pour votre passion :)</h4>
+                        </div>
                                         )}
 
                                         {form.payment === 'onsite' && (

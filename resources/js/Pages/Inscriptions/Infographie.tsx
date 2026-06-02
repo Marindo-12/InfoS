@@ -18,7 +18,7 @@ ScrollTrigger.config({ limitCallbacks: true, ignoreMobileResize: true });
 
 /* ═══════════════════════════════════════════════════ TYPES */
 type PaymentMode = '' | 'online' | 'onsite';
-type GraphicKey  = 'photoshop' | 'illustrator' | 'indesign';
+type GraphicKey = 'photoshop' | 'illustrator' | 'indesign';
 
 interface FormData {
   nom: string; prenom: string; age: string; email: string; telephone: string;
@@ -39,18 +39,18 @@ interface StripeCardSectionProps {
 
 /* ═══════════════════════════════════════════════════ CONSTANTS */
 const INFOGRAPHIE_OPTIONS: Array<{ value: GraphicKey; label: string; price: number; hours: number; color: string }> = [
-  { value: 'photoshop',   label: 'Adobe Photoshop',   price: 1000, hours: 30, color: '#31A8FF' },
+  { value: 'photoshop', label: 'Adobe Photoshop', price: 1000, hours: 30, color: '#31A8FF' },
   { value: 'illustrator', label: 'Adobe Illustrator', price: 1000, hours: 25, color: '#FF9A00' },
-  { value: 'indesign',    label: 'Adobe InDesign',    price: 900,  hours: 20, color: '#FF3366' },
+  { value: 'indesign', label: 'Adobe InDesign', price: 900, hours: 20, color: '#FF3366' },
 ];
 
 /* ═══════════════════════════════════════════════════ HELPERS */
 const fmtAmount = (n: number) => `${n.toLocaleString('fr-MA')} DH`;
-const okEmail   = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-const okPhone   = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
+const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const okPhone = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
 const secureRef = (prefix: string) => {
   const b = new Uint32Array(2); crypto.getRandomValues(b);
-  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${b[0].toString(36).slice(0,4).toUpperCase()}${b[1].toString(36).slice(0,4).toUpperCase()}`;
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${b[0].toString(36).slice(0, 4).toUpperCase()}${b[1].toString(36).slice(0, 4).toUpperCase()}`;
 };
 
 const FieldError: React.FC<{ msg?: string }> = ({ msg }) =>
@@ -86,9 +86,9 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
   ({ totalAmount, cardError, processing, paymentDone, paymentReference, onCardChange, onPayNow }, ref) => {
     const stripe = useStripe(); const elements = useElements();
     const [numberComplete, setNumberComplete] = useState(false);
-    const [expiryComplete,  setExpiryComplete]  = useState(false);
-    const [cvcComplete,     setCvcComplete]     = useState(false);
-    const [brand,           setBrand]           = useState('unknown');
+    const [expiryComplete, setExpiryComplete] = useState(false);
+    const [cvcComplete, setCvcComplete] = useState(false);
+    const [brand, setBrand] = useState('unknown');
     const allComplete = numberComplete && expiryComplete && cvcComplete;
     const sync = (next: { number?: boolean; expiry?: boolean; cvc?: boolean; hasOwnError: boolean }) =>
       onCardChange(next.hasOwnError || !(next.number ?? numberComplete) || !(next.expiry ?? expiryComplete) || !(next.cvc ?? cvcComplete));
@@ -136,7 +136,7 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
             style={{ background: paymentDone ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#059669,#065f46)' }}>
             {processing ? <><span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>Paiement en cours...</>
               : paymentDone ? <><span className="material-symbols-outlined text-xl leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Paiement effectue</>
-              : <><span className="material-symbols-outlined text-xl leading-none">lock</span>Payer {fmtAmount(totalAmount)}</>}
+                : <><span className="material-symbols-outlined text-xl leading-none">lock</span>Payer {fmtAmount(totalAmount)}</>}
           </button>
           {paymentDone && paymentReference && <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><span className="material-symbols-outlined mt-0.5 text-base text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span><div><p className="text-sm font-semibold text-emerald-800">Paiement effectue avec succes</p><p className="mt-0.5 text-xs text-emerald-700">Reference : <span className="font-mono font-semibold">{paymentReference}</span></p></div></div>}
           <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3"><span className="material-symbols-outlined text-base text-emerald-600">security</span><p className="text-xs leading-relaxed text-emerald-800">Chiffrement <strong>Stripe</strong> PCI-DSS niveau 1. Aucune donnee bancaire sur nos serveurs.</p></div>
@@ -152,15 +152,15 @@ StripeCardSection.displayName = 'StripeCardSection';
    Falls from high above, swings left → right → settles
 ═══════════════════════════════════════════════════ */
 const FallingImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
-  const wrapRef  = useRef<HTMLDivElement>(null);
-  const imgRef   = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLDivElement>(null);
   const shadowRef = useRef<HTMLDivElement>(null);
   const triggered = useRef(false);
 
   useEffect(() => {
-    const wrap  = wrapRef.current;
-    const img   = imgRef.current;
-    const shad  = shadowRef.current;
+    const wrap = wrapRef.current;
+    const img = imgRef.current;
+    const shad = shadowRef.current;
     if (!wrap || !img || !shad) return;
 
     // Start: far above viewport, rotated
@@ -356,8 +356,8 @@ const GeoBg: React.FC = () => (
     <g stroke="rgba(194,101,42,0.20)" strokeWidth="1.5" strokeLinecap="round">
       <line x1="940" y1="130" x2="960" y2="150" /><line x1="960" y1="130" x2="940" y2="150" />
     </g>
-    {[0,1,2,3,4].map((row) => [0,1,2,3,4,5].map((col) => (
-      <circle key={`${row}-${col}`} cx={480+col*52} cy={180+row*52} r="1.5" fill="rgba(194,101,42,0.11)" />
+    {[0, 1, 2, 3, 4].map((row) => [0, 1, 2, 3, 4, 5].map((col) => (
+      <circle key={`${row}-${col}`} cx={480 + col * 52} cy={180 + row * 52} r="1.5" fill="rgba(194,101,42,0.11)" />
     )))}
     <path d="M 80 620 Q 420 400 760 620" fill="none" stroke="rgba(194,101,42,0.07)" strokeWidth="1" strokeDasharray="6 8" />
     <polygon points="1100,440 1140,510 1060,510" fill="none" stroke="rgba(194,101,42,0.09)" strokeWidth="1" />
@@ -378,17 +378,17 @@ const InscriptionInfographie: React.FC<Props> = ({
   const stripeCardRef = useRef<StripeCardHandle>(null);
 
   // ── GSAP refs ──
-  const heroTagRef     = useRef<HTMLSpanElement>(null);
-  const heroH1Ref      = useRef<HTMLHeadingElement>(null);
-  const heroDescRef    = useRef<HTMLParagraphElement>(null);
-  const heroStatsRef   = useRef<HTMLDivElement>(null);
+  const heroTagRef = useRef<HTMLSpanElement>(null);
+  const heroH1Ref = useRef<HTMLHeadingElement>(null);
+  const heroDescRef = useRef<HTMLParagraphElement>(null);
+  const heroStatsRef = useRef<HTMLDivElement>(null);
   const formSectionRef = useRef<HTMLElement>(null);
-  const formTitleRef   = useRef<HTMLDivElement>(null);
-  const formCardRef    = useRef<HTMLDivElement>(null);
-  const fieldsRef      = useRef<HTMLDivElement>(null);
-  const toolsRef       = useRef<HTMLDivElement>(null);
-  const paymentRef     = useRef<HTMLDivElement>(null);
-  const submitRef      = useRef<HTMLDivElement>(null);
+  const formTitleRef = useRef<HTMLDivElement>(null);
+  const formCardRef = useRef<HTMLDivElement>(null);
+  const fieldsRef = useRef<HTMLDivElement>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
+  const paymentRef = useRef<HTMLDivElement>(null);
+  const submitRef = useRef<HTMLDivElement>(null);
 
   // ── Form state ──
   const [form, setForm] = useState<FormData>({
@@ -396,18 +396,18 @@ const InscriptionInfographie: React.FC<Props> = ({
     graphic: 'photoshop', message: '', payment: '',
     acceptTerms: false, acceptPrivacy: false,
   });
-  const [errors,                 setErrors]                 = useState<FormErrors>({});
-  const [cardHasError,           setCardHasError]           = useState(true);
-  const [submitting,             setSubmitting]             = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [cardHasError, setCardHasError] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
-  const [submittedRef,           setSubmittedRef]           = useState('');
-  const [paymentCertificate,     setPaymentCertificate]     = useState<PaymentCertificateData | null>(null);
+  const [submittedRef, setSubmittedRef] = useState('');
+  const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
   const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
 
   const selectedGraphic = useMemo(() => INFOGRAPHIE_OPTIONS.find((i) => i.value === form.graphic) ?? INFOGRAPHIE_OPTIONS[0], [form.graphic]);
-  const totalAmount     = selectedGraphic.price;
-  const defaultPaymentDate = useMemo(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0,10); }, []);
+  const totalAmount = selectedGraphic.price;
+  const defaultPaymentDate = useMemo(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); }, []);
   const clearErr = (f: keyof FormErrors) => setErrors((p) => ({ ...p, [f]: undefined }));
 
   /* ── GSAP orchestration ── */
@@ -545,14 +545,14 @@ const InscriptionInfographie: React.FC<Props> = ({
   /* ── Handlers ── */
   const validateFinal = (): FormErrors => {
     const e: FormErrors = {};
-    if (!form.nom.trim())    e.nom      = 'Le nom est requis.';
-    if (!form.prenom.trim()) e.prenom   = 'Le prenom est requis.';
+    if (!form.nom.trim()) e.nom = 'Le nom est requis.';
+    if (!form.prenom.trim()) e.prenom = 'Le prenom est requis.';
     if (!form.age || Number(form.age) < 15 || Number(form.age) > 60) e.age = 'Age invalide (15–60).';
-    if (!okEmail(form.email))      e.email     = 'Email invalide.';
-    if (!okPhone(form.telephone))  e.telephone = 'Telephone invalide.';
-    if (!form.payment)             e.payment   = 'Choisissez un mode de paiement.';
-    if (!form.acceptTerms)         e.acceptTerms  = 'Acceptez les conditions.';
-    if (!form.acceptPrivacy)       e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
+    if (!okEmail(form.email)) e.email = 'Email invalide.';
+    if (!okPhone(form.telephone)) e.telephone = 'Telephone invalide.';
+    if (!form.payment) e.payment = 'Choisissez un mode de paiement.';
+    if (!form.acceptTerms) e.acceptTerms = 'Acceptez les conditions.';
+    if (!form.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
   };
 
@@ -581,7 +581,7 @@ const InscriptionInfographie: React.FC<Props> = ({
 
   const handleOnlinePayment = async () => {
     const pre: FormErrors = {};
-    if (!form.nom.trim())    pre.nom = 'Le nom est requis.';
+    if (!form.nom.trim()) pre.nom = 'Le nom est requis.';
     if (!form.prenom.trim()) pre.prenom = 'Le prenom est requis.';
     if (!okEmail(form.email)) pre.email = 'Email invalide.';
     if (!okPhone(form.telephone)) pre.telephone = 'Telephone invalide.';
@@ -602,7 +602,7 @@ const InscriptionInfographie: React.FC<Props> = ({
     if (Object.keys(errs).length) { setErrors(errs); document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     setSubmitting(true);
     const certRef = secureRef('PAYCERT');
-    const payRef  = form.payment === 'online' ? undefined : secureRef('PAY');
+    const payRef = form.payment === 'online' ? undefined : secureRef('PAY');
     router.post(route('applications.store'), {
       first_name: form.prenom, last_name: form.nom, email: form.email, phone: form.telephone,
       category: 'Infographie', training_label: selectedGraphic.label,
@@ -680,8 +680,8 @@ const InscriptionInfographie: React.FC<Props> = ({
 
                   <div ref={heroStatsRef} className="flex flex-wrap gap-4">
                     {[
-                      { icon: 'brush',    label: 'Adobe Suite',    sub: 'Ps · Ai · Id' },
-                      { icon: 'schedule', label: '4 Mois',         sub: '75H de formation' },
+                      { icon: 'brush', label: 'Adobe Suite', sub: 'Ps · Ai · Id' },
+                      { icon: 'schedule', label: '4 Mois', sub: '75H de formation' },
                       { icon: 'payments', label: fmtAmount(totalAmount), sub: '/ formation' },
                     ].map(({ icon, label, sub }) => (
                       <div key={label}
@@ -740,11 +740,11 @@ const InscriptionInfographie: React.FC<Props> = ({
                       </h3>
                       <div ref={fieldsRef} className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {[
-                          { name: 'prenom',    label: 'Prenom',    type: 'text',   placeholder: 'Ex: Sarah',             err: errors.prenom },
-                          { name: 'nom',       label: 'Nom',       type: 'text',   placeholder: 'Ex: Mansouri',          err: errors.nom },
-                          { name: 'age',       label: 'Age',       type: 'number', placeholder: '22',                    err: errors.age },
-                          { name: 'email',     label: 'E-mail',    type: 'email',  placeholder: 'sarah@exemple.com',     err: errors.email },
-                          { name: 'telephone', label: 'Telephone', type: 'tel',    placeholder: '+212 6...',              err: errors.telephone },
+                          { name: 'prenom', label: 'Prenom', type: 'text', placeholder: 'Ex: Sarah', err: errors.prenom },
+                          { name: 'nom', label: 'Nom', type: 'text', placeholder: 'Ex: Mansouri', err: errors.nom },
+                          { name: 'age', label: 'Age', type: 'number', placeholder: '22', err: errors.age },
+                          { name: 'email', label: 'E-mail', type: 'email', placeholder: 'sarah@exemple.com', err: errors.email },
+                          { name: 'telephone', label: 'Telephone', type: 'tel', placeholder: '+212 6...', err: errors.telephone },
                         ].map(({ name, label, type, placeholder, err }) => (
                           <div key={name} className="field-item" style={{ opacity: 0 }} data-has-error={err ? 'true' : undefined}>
                             <label className="mb-2 block px-1 text-sm font-semibold text-on-surface-variant">{label}</label>
@@ -820,7 +820,7 @@ const InscriptionInfographie: React.FC<Props> = ({
                       </h3>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2" data-has-error={errors.payment ? 'true' : undefined}>
                         {[
-                          { value: 'online', icon: 'credit_card',    label: 'Paiement en ligne',     sub: 'Redirection securisee Payzone' },
+                          { value: 'online', icon: 'credit_card', label: 'Paiement en ligne', sub: 'Redirection securisee Payzone' },
                           { value: 'onsite', icon: 'calendar_month', label: 'Rendez-vous Presentiel', sub: 'Sur campus Elite Academy' },
                         ].map(({ value, icon, label, sub }) => {
                           const active = form.payment === value;
@@ -847,35 +847,29 @@ const InscriptionInfographie: React.FC<Props> = ({
                       <FieldError msg={errors.payment} />
 
                       {form.payment === 'online' && (
-                        <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm">
-                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
-                          <h4 className="mt-1 text-xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
-                          <p className="mt-2 text-emerald-800">Apres validation, vous serez redirige vers Payzone. La banque peut demander un code 3D Secure.</p>
+                        <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-6 text-sm">
+                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Paiement online non disponible</p>
+                          <h4 className="mt-1 font-display text-xl font-bold text-on-surface">La methode de payment en ligne va s'ajouté dans le plus proche délai, merci pour votre passion :)</h4>
                         </div>
                       )}
 
                       {form.payment === 'onsite' && (
-                        <div className="mt-6 overflow-hidden rounded-3xl border border-primary/20 bg-white shadow-sm">
-                          <div className="h-1 w-full bg-gradient-to-r from-primary to-amber-300" />
-                          <div className="p-6">
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Rendez-vous au centre</p>
-                            <h4 className="mt-1 text-xl font-bold text-on-surface">Informations</h4>
-                            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-                              <div className="rounded-2xl border border-outline-variant/30 bg-[#faf7f4] p-5">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Adresse</p>
-                                <p className="mt-2 text-sm font-semibold text-on-surface">14 avenue Hassan II, 1er etage, Ville Nouvelle, Meknes, Maroc</p>
-                                <a href="https://www.google.com/maps/search/?api=1&query=33.8989909,-5.551918" target="_blank" rel="noreferrer"
-                                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
-                                  <span className="material-symbols-outlined text-base leading-none">north_east</span>Google Maps
-                                </a>
-                              </div>
-                              <div className="rounded-2xl border border-outline-variant/30 bg-[#faf7f4] p-5">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Horaires</p>
-                                <div className="mt-2 space-y-1 text-sm text-on-surface">
-                                  <p>Lundi – Vendredi : 08h00 – 18h00</p>
-                                  <p>Samedi : 09h00 – 13h00</p>
-                                  <p className="text-on-surface-variant">Dimanche : ferme</p>
-                                </div>
+                        <div className="mt-6 rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
+                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Paiement au centre</p>
+                          <h4 className="mt-1 font-display text-xl font-bold text-on-surface">Informations de rendez-vous</h4>
+                          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="rounded-2xl border border-outline-variant/30 bg-[#faf7f4] p-5">
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Adresse</p>
+                              <p className="mt-2 text-sm font-semibold text-on-surface">14 avenue Hassan II, 1er etage, Ville Nouvelle, Meknes, Maroc</p>
+                              <a href="https://www.google.com/maps/search/?api=1&query=33.8989909,-5.551918" target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                                <span className="material-symbols-outlined text-base leading-none">north_east</span>Google Maps
+                              </a>
+                            </div>
+                            <div className="rounded-2xl border border-outline-variant/30 bg-[#faf7f4] p-5">
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">Horaires</p>
+                              <div className="mt-2 space-y-1 text-sm text-on-surface">
+                                <p>Lundi – Vendredi : 08h00 – 18h00</p><p>Samedi : 09h00 – 13h00</p>
+                                <p className="text-on-surface-variant">Dimanche : ferme</p>
                               </div>
                             </div>
                           </div>
@@ -889,7 +883,7 @@ const InscriptionInfographie: React.FC<Props> = ({
                         Conditions &amp; Confidentialite
                       </p>
                       {[
-                        { name: 'acceptTerms',   err: errors.acceptTerms,   checked: form.acceptTerms,   label: <>J'accepte les <a href="/terms" className="font-semibold text-primary underline underline-offset-2">Conditions Generales</a> et le <a href="/reglement" className="font-semibold text-primary underline underline-offset-2">Reglement Interieur</a> de Elite Academy.</> },
+                        { name: 'acceptTerms', err: errors.acceptTerms, checked: form.acceptTerms, label: <>J'accepte les <a href="/terms" className="font-semibold text-primary underline underline-offset-2">Conditions Generales</a> et le <a href="/reglement" className="font-semibold text-primary underline underline-offset-2">Reglement Interieur</a> de Elite Academy.</> },
                         { name: 'acceptPrivacy', err: errors.acceptPrivacy, checked: form.acceptPrivacy, label: "Je confirme que les informations fournies sont exactes et j'autorise Elite Academy a traiter mes donnees personnelles a des fins de gestion administrative et pedagogique." },
                       ].map(({ name, err, checked, label }) => (
                         <div key={name} data-has-error={err ? 'true' : undefined}>

@@ -21,10 +21,10 @@ gsap.registerPlugin(ScrollTrigger);
 /* ═══════════════════════════════════════════════════
    TYPES
 ═══════════════════════════════════════════════════ */
-type PaymentMode    = '' | 'online' | 'onsite';
-type ConcoursKey    = 'medecine' | 'ensa' | 'ensam' | 'encg' | 'iscae' | 'ena';
-type FiliereKey     = '' | 'SM' | 'PC' | 'SVT' | 'ST' | 'SP';
-type TypeLyceeKey   = '' | 'public' | 'prive';
+type PaymentMode = '' | 'online' | 'onsite';
+type ConcoursKey = 'medecine' | 'ensa' | 'ensam' | 'encg' | 'iscae' | 'ena';
+type FiliereKey = '' | 'SM' | 'PC' | 'SVT' | 'ST' | 'SP';
+type TypeLyceeKey = '' | 'public' | 'prive';
 
 interface FormData {
   nom: string; prenom: string; age: string; email: string; telephone: string;
@@ -51,29 +51,29 @@ interface StripeCardSectionProps {
 ═══════════════════════════════════════════════════ */
 const CONCOURS_OPTIONS: Array<{ value: ConcoursKey; label: string; price: number; hours: number }> = [
   { value: 'medecine', label: 'Preparation Medecine', price: 1000, hours: 15 },
-  { value: 'ensa',     label: 'Preparation ENSA',     price: 800,  hours: 12 },
-  { value: 'ensam',    label: 'Preparation ENSAM',    price: 1200, hours: 14 },
-  { value: 'encg',     label: 'Preparation ENCG',     price: 500,  hours: 13 },
-  { value: 'iscae',    label: 'Preparation ISCAE',    price: 1200, hours: 15 },
-  { value: 'ena',      label: 'Preparation ENA',      price: 600,  hours: 10 },
+  { value: 'ensa', label: 'Preparation ENSA', price: 800, hours: 12 },
+  { value: 'ensam', label: 'Preparation ENSAM', price: 1200, hours: 14 },
+  { value: 'encg', label: 'Preparation ENCG', price: 500, hours: 13 },
+  { value: 'iscae', label: 'Preparation ISCAE', price: 1200, hours: 15 },
+  { value: 'ena', label: 'Preparation ENA', price: 600, hours: 10 },
 ];
 const FILIERE_OPTIONS: Array<{ value: FiliereKey; label: string }> = [
-  { value: 'SM',  label: 'SM - Science math' },
-  { value: 'PC',  label: 'PC' },
+  { value: 'SM', label: 'SM - Science math' },
+  { value: 'PC', label: 'PC' },
   { value: 'SVT', label: 'SVT' },
-  { value: 'ST',  label: 'ST' },
-  { value: 'SP',  label: 'SP' },
+  { value: 'ST', label: 'ST' },
+  { value: 'SP', label: 'SP' },
 ];
 
 /* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
 const fmtAmount = (n: number) => `${n.toLocaleString('fr-MA')} DH`;
-const okEmail   = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-const okPhone   = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
-const okGrade   = (v: string) => { const n = Number(v.trim().replace(',', '.')); return v.trim() !== '' && Number.isFinite(n) && n >= 0 && n <= 20; };
-const secureRef = (prefix: string) => { const b = new Uint32Array(2); crypto.getRandomValues(b); return `${prefix}-${Date.now().toString(36).toUpperCase()}-${b[0].toString(36).slice(0,4).toUpperCase()}${b[1].toString(36).slice(0,4).toUpperCase()}`; };
-const inputCls  = (err?: string) => `w-full rounded-lg border bg-surface-bright/80 px-4 py-3 transition-all focus:outline-none focus:ring-2 ${err ? 'border-red-400 bg-red-50/30 focus:ring-red-200' : 'border-outline-variant/60 focus:border-primary focus:ring-primary/20'}`;
+const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const okPhone = (v: string) => /^[+\d\s\-()]{8,}$/.test(v.trim());
+const okGrade = (v: string) => { const n = Number(v.trim().replace(',', '.')); return v.trim() !== '' && Number.isFinite(n) && n >= 0 && n <= 20; };
+const secureRef = (prefix: string) => { const b = new Uint32Array(2); crypto.getRandomValues(b); return `${prefix}-${Date.now().toString(36).toUpperCase()}-${b[0].toString(36).slice(0, 4).toUpperCase()}${b[1].toString(36).slice(0, 4).toUpperCase()}`; };
+const inputCls = (err?: string) => `w-full rounded-lg border bg-surface-bright/80 px-4 py-3 transition-all focus:outline-none focus:ring-2 ${err ? 'border-red-400 bg-red-50/30 focus:ring-red-200' : 'border-outline-variant/60 focus:border-primary focus:ring-primary/20'}`;
 const FieldError: React.FC<{ msg?: string }> = ({ msg }) =>
   msg ? <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-500"><span className="material-symbols-outlined text-sm leading-none">error</span>{msg}</p> : null;
 
@@ -111,8 +111,8 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
     const stripe = useStripe(); const elements = useElements();
     const [numberComplete, setNumberComplete] = useState(false);
     const [expiryComplete, setExpiryComplete] = useState(false);
-    const [cvcComplete,    setCvcComplete]    = useState(false);
-    const [brand,          setBrand]          = useState('unknown');
+    const [cvcComplete, setCvcComplete] = useState(false);
+    const [brand, setBrand] = useState('unknown');
     const allComplete = numberComplete && expiryComplete && cvcComplete;
     const syncCardState = (next: { number?: boolean; expiry?: boolean; cvc?: boolean; hasOwnError: boolean }) => {
       onCardChange(next.hasOwnError || !(next.number ?? numberComplete) || !(next.expiry ?? expiryComplete) || !(next.cvc ?? cvcComplete));
@@ -159,7 +159,7 @@ const StripeCardSection = forwardRef<StripeCardHandle, StripeCardSectionProps>(
           style={{ background: paymentDone ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#059669,#065f46)' }}>
           {processing ? <><span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>Paiement en cours...</>
             : paymentDone ? <><span className="material-symbols-outlined text-xl leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Paiement effectue</>
-            : <><span className="material-symbols-outlined text-xl leading-none">lock</span>Payer {fmtAmount(totalAmount)}</>}
+              : <><span className="material-symbols-outlined text-xl leading-none">lock</span>Payer {fmtAmount(totalAmount)}</>}
         </button>
         {paymentDone && paymentReference && <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><span className="material-symbols-outlined mt-0.5 text-base text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span><div><p className="text-sm font-semibold text-emerald-800">Paiement effectue avec succes</p><p className="mt-0.5 text-xs text-emerald-700">Reference : <span className="font-mono font-semibold">{paymentReference}</span></p></div></div>}
         <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3"><span className="material-symbols-outlined text-base text-emerald-600">security</span><p className="text-xs leading-relaxed text-emerald-800">Vos donnees sont chiffrees par <strong>Stripe</strong> (PCI-DSS niveau 1).</p></div>
@@ -190,9 +190,9 @@ const PuzzleImage: React.FC<PuzzleImageProps> = ({ src, alt, className = '' }) =
   const quadrants = [
     // [row, col] → [startX, startY]
     { row: 0, col: 0, startX: -90, startY: -90 },  // top-left  → comes from top-left
-    { row: 0, col: 1, startX:  90, startY: -90 },  // top-right → comes from top-right
-    { row: 1, col: 0, startX: -90, startY:  90 },  // bot-left  → comes from bot-left
-    { row: 1, col: 1, startX:  90, startY:  90 },  // bot-right → comes from bot-right
+    { row: 0, col: 1, startX: 90, startY: -90 },  // top-right → comes from top-right
+    { row: 1, col: 0, startX: -90, startY: 90 },  // bot-left  → comes from bot-left
+    { row: 1, col: 1, startX: 90, startY: 90 },  // bot-right → comes from bot-right
   ];
 
   useEffect(() => {
@@ -218,7 +218,7 @@ const PuzzleImage: React.FC<PuzzleImageProps> = ({ src, alt, className = '' }) =
         // All 4 pieces animate simultaneously but with very slightly different
         // durations and easings for an organic feel
         pieces.forEach((piece, i) => {
-          const delays   = [0, 0.08, 0.05, 0.12];
+          const delays = [0, 0.08, 0.05, 0.12];
           const durations = [1.4, 1.5, 1.45, 1.55];
 
           tl.to(piece, {
@@ -244,7 +244,7 @@ const PuzzleImage: React.FC<PuzzleImageProps> = ({ src, alt, className = '' }) =
     });
 
     return () => { st.kill(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -262,10 +262,10 @@ const PuzzleImage: React.FC<PuzzleImageProps> = ({ src, alt, className = '' }) =
           className="puzzle-piece absolute"
           style={{
             // Each piece is exactly half of width/height
-            width:  '50%',
+            width: '50%',
             height: '50%',
-            top:    row === 0 ? '0%' : '50%',
-            left:   col === 0 ? '0%' : '50%',
+            top: row === 0 ? '0%' : '50%',
+            left: col === 0 ? '0%' : '50%',
             // overflow:hidden clips the background to this piece
             overflow: 'hidden',
             willChange: 'transform, opacity',
@@ -276,12 +276,12 @@ const PuzzleImage: React.FC<PuzzleImageProps> = ({ src, alt, className = '' }) =
             style={{
               position: 'absolute',
               // Image must be 2x bigger than each piece, positioned so the right quadrant shows
-              width:  '200%',
+              width: '200%',
               height: '200%',
-              top:    row === 0 ? '0%' : '-100%',
-              left:   col === 0 ? '0%' : '-100%',
+              top: row === 0 ? '0%' : '-100%',
+              left: col === 0 ? '0%' : '-100%',
               backgroundImage: `url(${src})`,
-              backgroundSize:  'cover',
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
           />
@@ -319,19 +319,19 @@ const InscriptionConcours: React.FC<Props> = ({
   const stripeCardRef = useRef<StripeCardHandle>(null);
 
   // ── GSAP refs ──
-  const heroLeftRef   = useRef<HTMLDivElement>(null);
-  const heroTagRef    = useRef<HTMLSpanElement>(null);
-  const heroH1Ref     = useRef<HTMLHeadingElement>(null);
-  const heroDescRef   = useRef<HTMLParagraphElement>(null);
-  const heroStatsRef  = useRef<HTMLDivElement>(null);
-  const heroCardsRef  = useRef<HTMLDivElement>(null);
+  const heroLeftRef = useRef<HTMLDivElement>(null);
+  const heroTagRef = useRef<HTMLSpanElement>(null);
+  const heroH1Ref = useRef<HTMLHeadingElement>(null);
+  const heroDescRef = useRef<HTMLParagraphElement>(null);
+  const heroStatsRef = useRef<HTMLDivElement>(null);
+  const heroCardsRef = useRef<HTMLDivElement>(null);
   const sectionTitleRef = useRef<HTMLDivElement>(null);
-  const formCardRef   = useRef<HTMLElement>(null);
-  const sidebarRef    = useRef<HTMLElement>(null);
-  const step1Ref      = useRef<HTMLDivElement>(null);
-  const step2Ref      = useRef<HTMLDivElement>(null);
-  const step3Ref      = useRef<HTMLDivElement>(null);
-  const submitRef     = useRef<HTMLDivElement>(null);
+  const formCardRef = useRef<HTMLElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
+  const submitRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<FormData>({
     nom: '', prenom: '', age: '', email: '', telephone: '',
@@ -339,13 +339,13 @@ const InscriptionConcours: React.FC<Props> = ({
     noteRegional: '', noteNational: '', concours: 'medecine',
     paymentMethod: '', acceptTerms: false, acceptPrivacy: false,
   });
-  const [errors,                 setErrors]                 = useState<FormErrors>({});
-  const [cardHasError,           setCardHasError]           = useState(true);
-  const [submitting,             setSubmitting]             = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [cardHasError, setCardHasError] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [onlinePaymentCompleted, setOnlinePaymentCompleted] = useState(false);
   const [onlinePaymentReference, setOnlinePaymentReference] = useState('');
-  const [submittedReference,     setSubmittedReference]     = useState('');
-  const [paymentCertificate,     setPaymentCertificate]     = useState<PaymentCertificateData | null>(null);
+  const [submittedReference, setSubmittedReference] = useState('');
+  const [paymentCertificate, setPaymentCertificate] = useState<PaymentCertificateData | null>(null);
   const [showPaymentCertificate, setShowPaymentCertificate] = useState(false);
   const defaultPaymentDate = useMemo(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); }, []);
   const selectedConcours = useMemo(() => CONCOURS_OPTIONS.find((i) => i.value === formData.concours) ?? CONCOURS_OPTIONS[0], [formData.concours]);
@@ -471,21 +471,21 @@ const InscriptionConcours: React.FC<Props> = ({
   /* ── Handlers ── */
   const validateFinal = (): FormErrors => {
     const e: FormErrors = {};
-    if (!formData.nom.trim())   e.nom      = 'Le nom est requis.';
-    if (!formData.prenom.trim()) e.prenom  = 'Le prenom est requis.';
+    if (!formData.nom.trim()) e.nom = 'Le nom est requis.';
+    if (!formData.prenom.trim()) e.prenom = 'Le prenom est requis.';
     if (!formData.age || Number(formData.age) < 15 || Number(formData.age) > 30) e.age = 'Age valide requis (15–30).';
-    if (!okEmail(formData.email))      e.email     = 'Adresse email invalide.';
-    if (!okPhone(formData.telephone))  e.telephone = 'Telephone invalide.';
-    if (!formData.filiere)             e.filiere   = 'Selectionnez votre filiere.';
-    if (!formData.lycee.trim())        e.lycee     = 'Indiquez votre lycee.';
-    if (!formData.typeLycee)           e.typeLycee = 'Selectionnez le type de lycee.';
+    if (!okEmail(formData.email)) e.email = 'Adresse email invalide.';
+    if (!okPhone(formData.telephone)) e.telephone = 'Telephone invalide.';
+    if (!formData.filiere) e.filiere = 'Selectionnez votre filiere.';
+    if (!formData.lycee.trim()) e.lycee = 'Indiquez votre lycee.';
+    if (!formData.typeLycee) e.typeLycee = 'Selectionnez le type de lycee.';
     if (!formData.villeResidence.trim()) e.villeResidence = 'Indiquez votre ville.';
     if (!okGrade(formData.noteRegional)) e.noteRegional = 'Note regionale invalide (0–20).';
     if (!okGrade(formData.noteNational)) e.noteNational = 'Note nationale invalide (0–20).';
-    if (!formData.concours)            e.concours  = 'Selectionnez un concours.';
-    if (!formData.paymentMethod)       e.paymentMethod = 'Choisissez un mode de reglement.';
-    if (!formData.acceptTerms)         e.acceptTerms   = 'Acceptez les conditions generales.';
-    if (!formData.acceptPrivacy)       e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
+    if (!formData.concours) e.concours = 'Selectionnez un concours.';
+    if (!formData.paymentMethod) e.paymentMethod = 'Choisissez un mode de reglement.';
+    if (!formData.acceptTerms) e.acceptTerms = 'Acceptez les conditions generales.';
+    if (!formData.acceptPrivacy) e.acceptPrivacy = 'Acceptez la politique de confidentialite.';
     return e;
   };
 
@@ -499,7 +499,7 @@ const InscriptionConcours: React.FC<Props> = ({
 
   const handleOnlinePayment = async () => {
     const pre: FormErrors = {};
-    if (!formData.nom.trim())    pre.nom = 'Le nom est requis.';
+    if (!formData.nom.trim()) pre.nom = 'Le nom est requis.';
     if (!formData.prenom.trim()) pre.prenom = 'Le prenom est requis.';
     if (!okEmail(formData.email)) pre.email = 'Email invalide.';
     if (!okPhone(formData.telephone)) pre.telephone = 'Telephone invalide.';
@@ -526,8 +526,8 @@ const InscriptionConcours: React.FC<Props> = ({
     const fe = validateFinal();
     if (Object.keys(fe).length) { setErrors(fe); document.querySelector('[data-has-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     setSubmitting(true);
-    const reference    = secureRef('PAYCERT');
-    const paymentRef   = formData.paymentMethod === 'online' ? undefined : secureRef('PAY');
+    const reference = secureRef('PAYCERT');
+    const paymentRef = formData.paymentMethod === 'online' ? undefined : secureRef('PAY');
     router.post(route('applications.store'), {
       first_name: formData.prenom, last_name: formData.nom, email: formData.email, phone: formData.telephone,
       category: 'Concours', training_label: selectedConcours.label, amount: totalAmount,
@@ -566,24 +566,24 @@ const InscriptionConcours: React.FC<Props> = ({
         <div className="page-bg-warm">
           {/* ── Geometric SVG background ── */}
           <svg className="page-bg-geo" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="80"   cy="120"  r="160" fill="none" stroke="rgba(194,101,42,0.10)" strokeWidth="1.5"/>
-            <circle cx="80"   cy="120"  r="100" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1"/>
-            <circle cx="1150" cy="780"  r="200" fill="none" stroke="rgba(194,101,42,0.09)" strokeWidth="1.5"/>
-            <circle cx="1150" cy="780"  r="120" fill="none" stroke="rgba(194,101,42,0.06)" strokeWidth="1"/>
-            <circle cx="620"  cy="450"  r="280" fill="none" stroke="rgba(194,101,42,0.05)" strokeWidth="1"/>
-            <line x1="0"   y1="300" x2="200" y2="100" stroke="rgba(194,101,42,0.12)" strokeWidth="1"/>
-            <line x1="20"  y1="320" x2="220" y2="120" stroke="rgba(194,101,42,0.07)" strokeWidth="0.8"/>
-            <line x1="1000" y1="600" x2="1200" y2="800" stroke="rgba(194,101,42,0.10)" strokeWidth="1"/>
+            <circle cx="80" cy="120" r="160" fill="none" stroke="rgba(194,101,42,0.10)" strokeWidth="1.5" />
+            <circle cx="80" cy="120" r="100" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1" />
+            <circle cx="1150" cy="780" r="200" fill="none" stroke="rgba(194,101,42,0.09)" strokeWidth="1.5" />
+            <circle cx="1150" cy="780" r="120" fill="none" stroke="rgba(194,101,42,0.06)" strokeWidth="1" />
+            <circle cx="620" cy="450" r="280" fill="none" stroke="rgba(194,101,42,0.05)" strokeWidth="1" />
+            <line x1="0" y1="300" x2="200" y2="100" stroke="rgba(194,101,42,0.12)" strokeWidth="1" />
+            <line x1="20" y1="320" x2="220" y2="120" stroke="rgba(194,101,42,0.07)" strokeWidth="0.8" />
+            <line x1="1000" y1="600" x2="1200" y2="800" stroke="rgba(194,101,42,0.10)" strokeWidth="1" />
             <g stroke="rgba(194,101,42,0.18)" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="1050" y1="80" x2="1120" y2="80"/><polyline points="1105,66 1120,80 1105,94"/>
+              <line x1="1050" y1="80" x2="1120" y2="80" /><polyline points="1105,66 1120,80 1105,94" />
             </g>
             <g stroke="rgba(194,101,42,0.20)" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="940" y1="140" x2="960" y2="160"/><line x1="960" y1="140" x2="940" y2="160"/>
+              <line x1="940" y1="140" x2="960" y2="160" /><line x1="960" y1="140" x2="940" y2="160" />
             </g>
-            {[0,1,2,3,4].map((row) => [0,1,2,3,4,5].map((col) => (
-              <circle key={`${row}-${col}`} cx={500+col*60} cy={200+row*60} r="1.5" fill="rgba(194,101,42,0.12)" />
+            {[0, 1, 2, 3, 4].map((row) => [0, 1, 2, 3, 4, 5].map((col) => (
+              <circle key={`${row}-${col}`} cx={500 + col * 60} cy={200 + row * 60} r="1.5" fill="rgba(194,101,42,0.12)" />
             )))}
-            <path d="M 100 600 Q 400 400 700 600" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1" strokeDasharray="6 8"/>
+            <path d="M 100 600 Q 400 400 700 600" fill="none" stroke="rgba(194,101,42,0.08)" strokeWidth="1" strokeDasharray="6 8" />
           </svg>
 
           <main className="relative z-10 mx-auto max-w-7xl px-6 py-12 md:py-20">
@@ -696,11 +696,11 @@ const InscriptionConcours: React.FC<Props> = ({
                     </h2>
                     <div ref={step1Ref} className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       {[
-                        { name: 'nom',       label: 'Nom',       type: 'text',   placeholder: 'Entrez votre nom',     err: errors.nom },
-                        { name: 'prenom',    label: 'Prenom',    type: 'text',   placeholder: 'Entrez votre prenom',  err: errors.prenom },
-                        { name: 'age',       label: 'Age',       type: 'number', placeholder: 'Ex: 18',               err: errors.age },
-                        { name: 'email',     label: 'Email',     type: 'email',  placeholder: 'votre@email.com',      err: errors.email },
-                        { name: 'telephone', label: 'Telephone', type: 'tel',    placeholder: '+212 6...',             err: errors.telephone },
+                        { name: 'nom', label: 'Nom', type: 'text', placeholder: 'Entrez votre nom', err: errors.nom },
+                        { name: 'prenom', label: 'Prenom', type: 'text', placeholder: 'Entrez votre prenom', err: errors.prenom },
+                        { name: 'age', label: 'Age', type: 'number', placeholder: 'Ex: 18', err: errors.age },
+                        { name: 'email', label: 'Email', type: 'email', placeholder: 'votre@email.com', err: errors.email },
+                        { name: 'telephone', label: 'Telephone', type: 'tel', placeholder: '+212 6...', err: errors.telephone },
                       ].map(({ name, label, type, placeholder, err }) => (
                         <div key={name} className="field-row" style={{ opacity: 0 }} data-has-error={err ? 'true' : undefined}>
                           <label className="font-label text-sm font-semibold uppercase tracking-wider text-on-surface-variant">{label}</label>
@@ -777,7 +777,7 @@ const InscriptionConcours: React.FC<Props> = ({
                     </h2>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-has-error={errors.paymentMethod ? 'true' : undefined}>
                       {[
-                        { value: 'online', icon: 'payments',     label: 'Paiement en ligne',     sub: 'Redirection securisee Payzone' },
+                        { value: 'online', icon: 'payments', label: 'Paiement en ligne', sub: 'Redirection securisee Payzone' },
                         { value: 'onsite', icon: 'meeting_room', label: 'Rendez-vous Presentiel', sub: "Au campus de l'academie" },
                       ].map(({ value, icon, label, sub }) => (
                         <label key={value} className={`payment-opt relative flex cursor-pointer items-center rounded-xl border-2 p-6 transition-all bg-surface-bright/50 backdrop-blur-sm ${formData.paymentMethod === value ? 'border-primary bg-primary/5' : 'border-outline-variant/40 hover:border-primary/40'}`} style={{ opacity: 0 }}>
@@ -792,10 +792,9 @@ const InscriptionConcours: React.FC<Props> = ({
                     <FieldError msg={errors.paymentMethod} />
 
                     {formData.paymentMethod === 'online' && (
-                      <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
-                        <h4 className="mt-1 font-headline text-2xl font-bold text-on-surface">Redirection vers la page bancaire</h4>
-                        <p className="mt-2 text-emerald-800">Apres validation, vous serez redirige vers Payzone. Un code 3D Secure peut etre demande.</p>
+                      <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-6 text-sm">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Paiement online non disponible</p>
+                        <h4 className="mt-1 font-display text-xl font-bold text-on-surface">La methode de payment en ligne va s'ajouté dans le plus proche délai, merci pour votre passion :)</h4>
                       </div>
                     )}
 
@@ -824,8 +823,8 @@ const InscriptionConcours: React.FC<Props> = ({
                   {/* Terms */}
                   <div ref={submitRef} className="space-y-4 pt-6" style={{ opacity: 0 }}>
                     {[
-                      { name: 'acceptTerms',    err: errors.acceptTerms,    text: "J'accepte les Conditions Generales de Vente et le reglement interieur de l'Elite Academy." },
-                      { name: 'acceptPrivacy',  err: errors.acceptPrivacy,  text: "Je consens au traitement de mes donnees personnelles conformement a la politique de confidentialite." },
+                      { name: 'acceptTerms', err: errors.acceptTerms, text: "J'accepte les Conditions Generales de Vente et le reglement interieur de l'Elite Academy." },
+                      { name: 'acceptPrivacy', err: errors.acceptPrivacy, text: "Je consens au traitement de mes donnees personnelles conformement a la politique de confidentialite." },
                     ].map(({ name, err, text }) => (
                       <div key={name} data-has-error={err ? 'true' : undefined}>
                         <label className="group flex cursor-pointer items-start gap-3">
@@ -862,9 +861,9 @@ const InscriptionConcours: React.FC<Props> = ({
                   <h3 className="mb-6 font-headline text-2xl">Pourquoi nous choisir ?</h3>
                   <ul className="space-y-6">
                     {[
-                      ['verified_user', 'Corps Professeur',   'Docteurs et ingenieurs issus des meilleures ecoles nationales.'],
-                      ['menu_book',     'Supports Exclusifs', 'Polycopies mis a jour avec les annales des 10 dernieres annees.'],
-                      ['timer',         'Simulations',        'Concours blancs hebdomadaires dans des conditions reelles.'],
+                      ['verified_user', 'Corps Professeur', 'Docteurs et ingenieurs issus des meilleures ecoles nationales.'],
+                      ['menu_book', 'Supports Exclusifs', 'Polycopies mis a jour avec les annales des 10 dernieres annees.'],
+                      ['timer', 'Simulations', 'Concours blancs hebdomadaires dans des conditions reelles.'],
                     ].map(([icon, title, text]) => (
                       <li key={title as string} className="flex gap-4">
                         <span className="material-symbols-outlined shrink-0 text-primary">{icon}</span>
