@@ -28,5 +28,18 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
             'password' => Hash::make('admin123'),
         ])->save();
+
+        $student = User::query()->firstOrNew([
+            'email' => 'student@infosaloua.com',
+        ]);
+
+        $student->forceFill([
+            'name' => 'Mohammed Omar',
+            'phone' => null,
+            'role' => 'student',
+            'status' => 'active',
+            'email_verified_at' => now(),
+            'password' => Hash::make('student123'),
+        ])->save();
     }
 }
