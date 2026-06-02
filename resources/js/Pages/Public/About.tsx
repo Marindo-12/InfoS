@@ -440,22 +440,16 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {[
               {
-                name: 'Dr. Elara Thorne', role: 'Directrice de l\'académie',
-                bio: 'Doctorat en linguistique à Oxford. Plus de 20 ans de direction pédagogique sur trois continents.',
-                tags: ['Stratégie', 'Conception de programmes'],
-                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAqx1ybRlEjBupElaburzVy_DHR_uSP4bSKXS04xLP7GUSxxMZK7zPH2zH15zgCNhItOfASX5LYPxDcdC-830epmCzqexCjqRdfmA3Jv6cbrPAUxaPbcc8BYolRrQmw6ivCeGofExNz-m_WJMEyHiy1897K28IoTTMYmpx_04Om7IeuMSiuYD8mG4rB7F3pqq3mT3B9a5sFWStTLrsVjoGvLgGZm8tB8nSHPcHxnNIpisalkixzKDY_9HPFW4c9kVnMwqMyxfgUkKS0',
+                name: 'Mme. Saloua Tazi', role: 'Directrice de centre',
+                bio: 'Infographiste de formation',
+                tags: ['Stratégie', 'Infographie', 'Conception de programmes'],
+                src: '',
               },
               {
-                name: 'Marcus Vane', role: 'Responsable technologie',
-                bio: 'Ancien architecte logiciel dans des grandes places technologiques. Spécialisé en éthique de l\'IA.',
-                tags: ['Python', 'Systèmes Cloud'],
-                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuByr_oWhqRT1CvdzK9nS1MxdOY8I-zdx2Qe2Y07J1ZJaGkAwvr065anjUXSfE2jIz01SYZCxt_RwgLtmdOlyStwlv6xnu05xG2XrgmyeKyLNFosVKIHHQ8u7tO7YjkDsIMCQJNWGMqM7UZN6LHonNGm7Hx4lbRpO2bxnl_NbLx1qjHWupYh5Lo8po-aoWu-GzQFjdc6kXAV3X5J8gpPJXRTxktGUOcBYKOlcIuuGjMKVhyJXKJTeDZ3w68A18ig6-Yo7ThSusLFRpFP',
-              },
-              {
-                name: 'Sofia Chen', role: 'Coordinatrice linguistique',
-                bio: 'Experte en méthodologies d\'apprentissage immersif. Parle cinq langues couramment.',
-                tags: ['Pédagogie', 'Interculturel'],
-                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDoVU1mhHk2oH_HGagkk-mW049CG0BNw3k1jje6vjTYH6TDaUPVqYBCozCF-JAHTPhFBAzRwJyznt_EjDu_a3n9VxM4oINvrZPp0hQ3piVPtQb5PiaWg9UqTCo0NJ3bRP0UwbjiZ86cXim1X1Ng_ymauDqa6azp2HOYE1b6CB8ov5jI32iqxHteZZbCA1bNHtgBGN2iFrMvQpsC5e9gAO7Uz4lR9wM_6WAL__1OoQSI9AUyL9Hc8mGyZqEu9O4HVXbIzv5UL1zvc2JA',
+                name: 'Mme. Latifa', role: 'Responsable technologie',
+                bio: 'Expert en bureautique et systèmes d\'information en plus de 20 ans d\'expérience.',
+                tags: ['Bureautique'],
+                src: '',
               },
             ].map(m => (
               <div
