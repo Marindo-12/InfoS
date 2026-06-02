@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/react'
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import userimage from '../../../../public/images/user1.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -443,13 +444,13 @@ const About = () => {
                 name: 'Mme. Saloua Tazi', role: 'Directrice de centre',
                 bio: 'Infographiste de formation',
                 tags: ['Stratégie', 'Infographie', 'Conception de programmes'],
-                src: '',
+                src: userimage,
               },
               {
                 name: 'Mme. Latifa', role: 'Responsable technologie',
                 bio: 'Expert en bureautique et systèmes d\'information en plus de 20 ans d\'expérience.',
                 tags: ['Bureautique'],
-                src: '',
+                src: userimage,
               },
             ].map(m => (
               <div
