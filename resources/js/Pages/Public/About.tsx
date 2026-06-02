@@ -4,7 +4,6 @@ import { Head, Link } from '@inertiajs/react'
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { User } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -390,14 +389,8 @@ const About = () => {
                   className="valeur-card group relative bg-white p-10 rounded-xl border border-outline-variant/30 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer overflow-hidden"
                   style={{ opacity: 0 }}
                 >
-                  {/* Trait orange top */}
-                  <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary/70 to-primary/30 rounded-t-xl" />
-
                   {/* Trait orange left — visible au hover */}
                   <div className="absolute top-0 left-0 bottom-0 w-[3px] bg-gradient-to-b from-primary to-primary/10 rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  {/* Coin décoratif bas-droit */}
-                  <div className="absolute bottom-0 right-0 w-20 h-20 bg-primary/5 rounded-tl-full group-hover:bg-primary/10 transition-colors duration-500" />
 
                   <span
                     className="valeur-icon material-symbols-outlined text-5xl text-primary mb-6 block"
@@ -405,6 +398,10 @@ const About = () => {
                   >
                     {v.icon}
                   </span>
+
+                  {/* Tiret orange au-dessus du titre */}
+                  <div className="w-8 h-[3px] bg-primary rounded-full mb-3 group-hover:w-12 transition-all duration-300" />
+
                   <h3 className="text-2xl font-serif mb-4 group-hover:text-primary transition-colors duration-300">{v.title}</h3>
                   <p className="text-on-surface-variant leading-relaxed">{v.desc}</p>
                   <div className="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
@@ -443,69 +440,48 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {[
               {
-                name: 'Dr. Elara Thorne', role: "Directrice de l'académie",
+                name: 'Dr. Elara Thorne', role: 'Directrice de l\'académie',
                 bio: 'Doctorat en linguistique à Oxford. Plus de 20 ans de direction pédagogique sur trois continents.',
                 tags: ['Stratégie', 'Conception de programmes'],
-                color: 'from-primary/10 to-primary/5',
+                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAqx1ybRlEjBupElaburzVy_DHR_uSP4bSKXS04xLP7GUSxxMZK7zPH2zH15zgCNhItOfASX5LYPxDcdC-830epmCzqexCjqRdfmA3Jv6cbrPAUxaPbcc8BYolRrQmw6ivCeGofExNz-m_WJMEyHiy1897K28IoTTMYmpx_04Om7IeuMSiuYD8mG4rB7F3pqq3mT3B9a5sFWStTLrsVjoGvLgGZm8tB8nSHPcHxnNIpisalkixzKDY_9HPFW4c9kVnMwqMyxfgUkKS0',
               },
               {
                 name: 'Marcus Vane', role: 'Responsable technologie',
-                bio: "Ancien architecte logiciel dans des grandes places technologiques. Spécialisé en éthique de l'IA.",
+                bio: 'Ancien architecte logiciel dans des grandes places technologiques. Spécialisé en éthique de l\'IA.',
                 tags: ['Python', 'Systèmes Cloud'],
-                color: 'from-primary/15 to-primary/5',
+                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuByr_oWhqRT1CvdzK9nS1MxdOY8I-zdx2Qe2Y07J1ZJaGkAwvr065anjUXSfE2jIz01SYZCxt_RwgLtmdOlyStwlv6xnu05xG2XrgmyeKyLNFosVKIHHQ8u7tO7YjkDsIMCQJNWGMqM7UZN6LHonNGm7Hx4lbRpO2bxnl_NbLx1qjHWupYh5Lo8po-aoWu-GzQFjdc6kXAV3X5J8gpPJXRTxktGUOcBYKOlcIuuGjMKVhyJXKJTeDZ3w68A18ig6-Yo7ThSusLFRpFP',
               },
               {
                 name: 'Sofia Chen', role: 'Coordinatrice linguistique',
-                bio: "Experte en méthodologies d'apprentissage immersif. Parle cinq langues couramment.",
+                bio: 'Experte en méthodologies d\'apprentissage immersif. Parle cinq langues couramment.',
                 tags: ['Pédagogie', 'Interculturel'],
-                color: 'from-primary/10 to-primary/5',
+                src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDoVU1mhHk2oH_HGagkk-mW049CG0BNw3k1jje6vjTYH6TDaUPVqYBCozCF-JAHTPhFBAzRwJyznt_EjDu_a3n9VxM4oINvrZPp0hQ3piVPtQb5PiaWg9UqTCo0NJ3bRP0UwbjiZ86cXim1X1Ng_ymauDqa6azp2HOYE1b6CB8ov5jI32iqxHteZZbCA1bNHtgBGN2iFrMvQpsC5e9gAO7Uz4lR9wM_6WAL__1OoQSI9AUyL9Hc8mGyZqEu9O4HVXbIzv5UL1zvc2JA',
               },
             ].map(m => (
               <div
                 key={m.name}
-                className="membre-card group relative overflow-hidden rounded-xl bg-white border border-outline-variant/30 hover:border-primary/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
+                className="membre-card group relative overflow-hidden rounded-xl bg-white"
                 style={{ opacity: 0 }}
               >
-                {/* Trait orange top */}
-                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary/70 to-primary/30 z-10" />
-
-                {/* Zone avatar */}
-                <div className={`relative h-[280px] bg-gradient-to-br ${m.color} flex items-center justify-center overflow-hidden`}>
-                  {/* Cercles décoratifs en arrière-plan */}
-                  <div className="absolute -bottom-8 -right-8 w-40 h-40 rounded-full bg-primary/10 group-hover:scale-125 transition-transform duration-700" />
-                  <div className="absolute -top-6 -left-6 w-28 h-28 rounded-full bg-primary/8 group-hover:scale-110 transition-transform duration-700" />
-
-                  {/* Icône User de Lucide */}
-                  <div className="relative z-10 w-32 h-32 rounded-full bg-white border-4 border-primary/20 group-hover:border-primary/60 shadow-lg flex items-center justify-center transition-all duration-500 group-hover:scale-105">
-                    <User
-                      size={56}
-                      strokeWidth={1.25}
-                      className="text-primary/70 group-hover:text-primary transition-colors duration-300"
-                    />
+                <img
+                  className="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-110"
+                  src={m.src} alt={m.name}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-on-surface/90 via-on-surface/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8 text-white">
+                  <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
+                    <p className="text-sm font-body uppercase tracking-widest mb-2 opacity-80">{m.role}</p>
+                    <h4 className="text-3xl font-serif mb-4">{m.name}</h4>
+                    <p className="text-sm leading-relaxed mb-6">{m.bio}</p>
+                    <div className="flex gap-4 flex-wrap">
+                      {m.tags.map(t => (
+                        <span key={t} className="px-3 py-1 bg-white/10 rounded-full text-xs font-body">{t}</span>
+                      ))}
+                    </div>
                   </div>
-
-                  {/* Overlay au hover */}
-                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-
-                {/* Infos membre */}
-                <div className="p-8 relative">
-                  {/* Trait orange left décoratif */}
-                  <div className="absolute left-0 top-8 bottom-8 w-[3px] bg-gradient-to-b from-primary to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-r-full" />
-
-                  <p className="text-xs font-body uppercase tracking-widest text-primary mb-2">{m.role}</p>
-                  <h4 className="text-2xl font-serif mb-3 group-hover:text-primary transition-colors duration-300">{m.name}</h4>
-                  <p className="text-on-surface-variant text-sm leading-relaxed mb-6">{m.bio}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {m.tags.map(t => (
-                      <span
-                        key={t}
-                        className="px-3 py-1 bg-primary/8 border border-primary/20 rounded-full text-xs font-body text-primary group-hover:bg-primary/15 transition-colors duration-300"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+                <div className="p-6 bg-white border-x border-b border-outline-variant/30 group-hover:hidden">
+                  <h4 className="text-xl font-serif">{m.name}</h4>
+                  <p className="text-on-surface-variant text-sm mt-1">{m.role}</p>
                 </div>
               </div>
             ))}
