@@ -1089,7 +1089,7 @@ const InscriptionLangues: React.FC<Props> = ({
                                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-has-error={errors.payment ? 'true' : undefined}>
                                             {[
                                                 { value: 'online' as PaymentMode, icon: 'credit_card', label: 'Paiement en ligne', sub: 'Redirection securisee Payzone' },
-                                                { value: 'onsite' as PaymentMode, icon: 'storefront',  label: 'Paiement presentiel', sub: 'Reglement au centre de formation' },
+                                                { value: 'onsite' as PaymentMode, icon: 'storefront',  label: 'Paiement presentiel', sub: 'Reglement au centre' },
                                             ].map(({ value, icon, label, sub }) => {
                                                 const active = form.payment === value
                                                 return (
