@@ -17,16 +17,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $admin = User::query()->firstOrNew([
-            'email' => env('ADMIN_EMAIL', 'admin@infosaloua.com'),
+            'email' => 'admin@infosaloua.com',
         ]);
 
         $admin->forceFill([
-            'name' => env('ADMIN_NAME', 'Admin Info Saloua'),
-            'phone' => env('ADMIN_PHONE'),
+            'name' => 'Admin Info Saloua',
+            'phone' => null,
             'role' => 'admin',
             'status' => 'active',
             'email_verified_at' => now(),
-            'password' => Hash::make(env('ADMIN_PASSWORD', 'ChangeMe123!')),
+            'password' => Hash::make('admin123'),
         ])->save();
     }
 }
