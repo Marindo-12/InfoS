@@ -520,7 +520,7 @@ const About = () => {
                   {
                     year: '2018', side: 'left',
                     text: "Obtention de l'accréditation mondiale. L'institut est renommé Elite Academy pour refléter ses normes élevées.",
-                    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRRF0afWOJWpAhepm21JHTyWqGECQPULDLWquvzkfAKFbwuMFHTc6k5PRVRPd1_WxqCNbsyTBZA-ffUflGRKUGNNCsaLf8BhqyXp2ZxwBTMLexsbCLog-Ey61h0isnICcPwNXWMbszfXpNcCDYpeh2e5Nn3rXZSDHtNv8tirYqxvbdPdOcUaLRYLQX28VGvnqZU22nmwwttVrGudu8DXb-kfcMIh1ntvOQhq5hfn5AcTa',
+                    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRRF0afWOJWpAhepm21JHTyWqGECQPULDLWquvzkfAKFbwuMFHTc6k5PRVRPd1_WxqCNbsyTBZA-ffUflGRKUGNNCsaLf8BhqyXp2ZxwBTMLexsbCLog-Ey61h0isnICcPwNXWMbszfXpNcCDYpeh2e5Nn3rXZSDHtNv8tirYqxvbdPdOcUaLRYLQX28VGvnqZU22nmwwttVrGudu8DXb-kfcvPBtUoVat87VFfhQr4UHNikaeYmBZoKfcMIh1ntvOQhq5hfn5AcTa',
                   },
                   {
                     year: "Aujourd'hui", side: 'right',
