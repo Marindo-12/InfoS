@@ -144,25 +144,25 @@ const CvcIcon: React.FC = () => (
     </svg>
 )
 
-
 // ─── Book Open Image ──────────────────────────────────────────────────────────
-// The image is hidden behind two "cover panels" (left & right halves).
-// On mount they fold open like a book: left panel rotates to -180° (hinged left),
-// right panel rotates to +180° (hinged right), revealing the photo underneath.
-// A spine line and paper-texture overlay sell the depth.
+// CHANGES:
+// - Glass overlay starts very opaque (blur:28px, saturation:0.1, nearly white tint)
+//   so the image is almost invisible when closed
+// - After opening, glass fades to opacity:0 → image is perfectly clear
+// - Decorative outer/inner frames are hidden by default, shown only on hover
 
 interface BookOpenImageProps {
     src: string
     alt: string
-    delay?: number   // seconds before the book starts opening
+    delay?: number
 }
 
 const BOOK_IMG_SRC = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpb1pZr6F79ywjJsuRb1GMNTp6vIOmXQ-o6lPwVPuhbOEExLYEv5mkNGMjBue6r7kjBAEoI64JwwlBj4xhlqXHYdnpuC2ofFWNZuWvkpx9mte141KaQ3OIVnkFn44bjp-vLpFy-m4pc94bqzo48QRJLe7-OzpYhAeK81v2c0wZ60vFyNk4TpHZDz8pCtT-Wc_LkTo6BoOyXmpe10Q1TsxJ8_K2itPhL_87k9LZJ-JXNVXUNcQZy20qG_fXDMuP7jWhtMZCYBhuW0OH'
 
 const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) => {
-    const bookRef    = useRef<HTMLDivElement>(null)
-    const leftRef    = useRef<HTMLDivElement>(null)
-    const rightRef   = useRef<HTMLDivElement>(null)
+    const bookRef         = useRef<HTMLDivElement>(null)
+    const leftRef         = useRef<HTMLDivElement>(null)
+    const rightRef        = useRef<HTMLDivElement>(null)
     const spineRef        = useRef<HTMLDivElement>(null)
     const glassOverlayRef = useRef<HTMLDivElement>(null)
     const badgeRef        = useRef<HTMLDivElement>(null)
@@ -173,19 +173,17 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
         const right = rightRef.current
         const spine = spineRef.current
         const badge = badgeRef.current
-        // glassOverlayRef used inline below
         if (!book || !left || !right || !spine) return
 
-        // Initial state: panels closed flat over the image
-        gsap.set(left,  { rotationY: 0,   transformOrigin: 'left center',  transformPerspective: 1200 })
-        gsap.set(right, { rotationY: 0,   transformOrigin: 'right center', transformPerspective: 1200 })
+        gsap.set(left,  { rotationY: 0, transformOrigin: 'left center',  transformPerspective: 1200 })
+        gsap.set(right, { rotationY: 0, transformOrigin: 'right center', transformPerspective: 1200 })
         gsap.set(spine, { opacity: 1, scaleX: 1 })
         gsap.set(book,  { opacity: 1 })
         if (badge) gsap.set(badge, { opacity: 0, y: 16 })
 
         const tl = gsap.timeline({ delay })
 
-        // 1. Book slides in from right (whole unit enters viewport)
+        // 1. Book slides in
         tl.fromTo(book,
             { opacity: 0, x: 60, scale: 0.94 },
             { opacity: 1, x: 0,  scale: 1, duration: 0.7, ease: 'power3.out' },
@@ -195,50 +193,27 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
         // 2. Brief pause — let viewer notice the closed cover
         tl.to({}, { duration: 0.3 }, 0.7)
 
-        // 3. Left panel opens (rotates away to the left)
-        tl.to(left, {
-            rotationY: -180,
-            duration: 1.4,
-            ease: 'power2.inOut',
-        }, 1.0)
+        // 3. Left panel opens
+        tl.to(left, { rotationY: -180, duration: 1.4, ease: 'power2.inOut' }, 1.0)
 
-        // 4. Right panel opens simultaneously (rotates away to the right)
-        tl.to(right, {
-            rotationY: 180,
-            duration: 1.4,
-            ease: 'power2.inOut',
-        }, 1.0)
+        // 4. Right panel opens simultaneously
+        tl.to(right, { rotationY: 180, duration: 1.4, ease: 'power2.inOut' }, 1.0)
 
-        // 5. Spine fades out as panels fully open
-        tl.to(spine, {
-            opacity: 0,
-            scaleX: 0,
-            duration: 0.4,
-            ease: 'power2.in',
-        }, 1.6)
+        // 5. Spine fades out
+        tl.to(spine, { opacity: 0, scaleX: 0, duration: 0.4, ease: 'power2.in' }, 1.6)
 
-        // 5b. Glass frost dissolves progressively as the book opens
+        // 5b. Glass frost fades out completely → image becomes fully clear
         const glassOverlay = glassOverlayRef.current
         if (glassOverlay) {
-            tl.fromTo(glassOverlay,
-                { opacity: 1, backdropFilter: 'blur(18px) saturate(0.4)' },
-                {
-                    opacity: 0,
-                    duration: 1.0,
-                    ease: 'power2.out',
-                },
-                1.2  // starts mid-open
+            tl.to(glassOverlay,
+                { opacity: 0, duration: 1.1, ease: 'power2.out' },
+                1.0  // starts as soon as panels begin opening
             )
         }
 
-        // 6. Badge slides up once image is revealed
+        // 6. Badge slides up
         if (badge) {
-            tl.to(badge, {
-                opacity: 1,
-                y: 0,
-                duration: 0.5,
-                ease: 'back.out(1.7)',
-            }, 2.0)
+            tl.to(badge, { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.7)' }, 2.0)
         }
 
         return () => { tl.kill() }
@@ -251,149 +226,111 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
             style={{ opacity: 0 }}
             aria-label={alt}
         >
-            {/* ── Spinning decorative frame behind the image ── */}
-            {/* Outer ring — spins full 360° on hover, slow & smooth */}
-            {/* Outer frame — tilted 12° by default, rotates 360° on hover from that base */}
+            {/* ── Decorative frames — hidden by default, revealed on hover ── */}
+            {/* Outer ring */}
             <div
-                className="book-frame-outer absolute rounded-3xl"
+                className="book-frame-outer absolute rounded-3xl opacity-0 group-hover:opacity-100"
                 style={{
                     inset: '-14px',
                     background: 'linear-gradient(135deg, #c2652a 0%, #e8a56a 35%, #fdf0dc 50%, #e8a56a 65%, #c2652a 100%)',
                     transform: 'rotate(12deg)',
-                    transition: 'transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'opacity 0.5s ease, transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: -1,
                 }}
             />
-            {/* Inner frame — tilted -8° (opposite lean), counter-spins on hover */}
+            {/* Inner frame */}
             <div
-                className="book-frame-inner absolute rounded-2xl"
+                className="book-frame-inner absolute rounded-2xl opacity-0 group-hover:opacity-100"
                 style={{
                     inset: '-7px',
                     background: 'linear-gradient(315deg, #3a302a 0%, #6b4c30 30%, #c2652a 50%, #6b4c30 70%, #3a302a 100%)',
                     transform: 'rotate(-8deg)',
-                    transition: 'transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'opacity 0.5s ease, transform 1.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: -1,
                 }}
             />
 
-            {/* ── Book container — perspective applied here ── */}
+            {/* ── Book container ── */}
             <div
                 className="relative h-[580px] overflow-hidden rounded-2xl shadow-2xl"
                 style={{ perspective: '1200px', perspectiveOrigin: 'center center' }}
             >
-                {/* ── The actual photo underneath ── */}
+                {/* The actual photo */}
                 <img
                     src={src}
                     alt={alt}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                {/* Dark gradient overlay on photo */}
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,20,16,0.38) 0%, transparent 50%)' }} />
+                {/* Subtle dark gradient on photo (bottom only, light) */}
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,20,16,0.30) 0%, transparent 50%)' }} />
 
-                {/* ── Glass frost overlay — covers photo when book is closed, fades as it opens ── */}
-                {/* GSAP animates opacity 1→0 during the open sequence */}
+                {/* ── Glass frost overlay — very opaque when closed, fades to 0 on open ── */}
+                {/* High blur + near-zero saturation + strong white tint = image is very hard to see */}
                 <div
                     ref={glassOverlayRef}
                     className="absolute inset-0 z-[9]"
                     style={{
-                        backdropFilter: 'blur(18px) saturate(0.4)',
-                        WebkitBackdropFilter: 'blur(18px) saturate(0.4)',
-                        background: 'rgba(253,240,220,0.22)',
+                        backdropFilter: 'blur(28px) saturate(0.1) brightness(1.15)',
+                        WebkitBackdropFilter: 'blur(28px) saturate(0.1) brightness(1.15)',
+                        background: 'rgba(253,240,220,0.55)',
                     }}
                 />
 
-                {/* ── Left cover panel (hinged on its LEFT edge) ── */}
+                {/* ── Left cover panel ── */}
                 <div
                     ref={leftRef}
                     className="absolute inset-y-0 left-0 w-1/2"
-                    style={{
-                        transformOrigin: 'left center',
-                        transformStyle: 'preserve-3d',
-                        zIndex: 10,
-                    }}
+                    style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d', zIndex: 10 }}
                 >
-                    {/* Front face — cover with image left-half + warm overlay */}
-                    <div
-                        className="absolute inset-0 overflow-hidden"
-                        style={{ backfaceVisibility: 'hidden' }}
-                    >
-                        {/* Mirror the image on the cover (left half) */}
-                        <div
-                            style={{
-                                position: 'absolute',
-                                inset: 0,
-                                backgroundImage: `url(${src})`,
-                                backgroundSize: '200% 100%',
-                                backgroundPosition: 'left center',
-                            }}
-                        />
-                        {/* Warm parchment tint */}
+                    <div className="absolute inset-0 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                        <div style={{
+                            position: 'absolute', inset: 0,
+                            backgroundImage: `url(${src})`,
+                            backgroundSize: '200% 100%',
+                            backgroundPosition: 'left center',
+                        }} />
                         <div className="absolute inset-0" style={{ background: 'rgba(194,101,42,0.18)' }} />
-                        {/* Subtle linen texture lines */}
                         <div className="absolute inset-0" style={{
                             backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px)',
                         }} />
-                        {/* Edge shadow (right side of left panel = spine area) */}
                         <div className="absolute right-0 top-0 h-full w-8"
                             style={{ background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.18))' }} />
                     </div>
-
-                    {/* Back face — shows when panel is past 90° (inside of cover) */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            backfaceVisibility: 'hidden',
-                            transform: 'rotateY(180deg)',
-                            background: 'linear-gradient(135deg, #f5ede0 0%, #ede0cc 100%)',
-                        }}
-                    />
+                    <div className="absolute inset-0" style={{
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                        background: 'linear-gradient(135deg, #f5ede0 0%, #ede0cc 100%)',
+                    }} />
                 </div>
 
-                {/* ── Right cover panel (hinged on its RIGHT edge) ── */}
+                {/* ── Right cover panel ── */}
                 <div
                     ref={rightRef}
                     className="absolute inset-y-0 right-0 w-1/2"
-                    style={{
-                        transformOrigin: 'right center',
-                        transformStyle: 'preserve-3d',
-                        zIndex: 10,
-                    }}
+                    style={{ transformOrigin: 'right center', transformStyle: 'preserve-3d', zIndex: 10 }}
                 >
-                    {/* Front face */}
-                    <div
-                        className="absolute inset-0 overflow-hidden"
-                        style={{ backfaceVisibility: 'hidden' }}
-                    >
-                        <div
-                            style={{
-                                position: 'absolute',
-                                inset: 0,
-                                backgroundImage: `url(${src})`,
-                                backgroundSize: '200% 100%',
-                                backgroundPosition: 'right center',
-                            }}
-                        />
+                    <div className="absolute inset-0 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                        <div style={{
+                            position: 'absolute', inset: 0,
+                            backgroundImage: `url(${src})`,
+                            backgroundSize: '200% 100%',
+                            backgroundPosition: 'right center',
+                        }} />
                         <div className="absolute inset-0" style={{ background: 'rgba(194,101,42,0.18)' }} />
                         <div className="absolute inset-0" style={{
                             backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px)',
                         }} />
-                        {/* Edge shadow (left side of right panel = spine area) */}
                         <div className="absolute left-0 top-0 h-full w-8"
                             style={{ background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.18))' }} />
                     </div>
-
-                    {/* Back face */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            backfaceVisibility: 'hidden',
-                            transform: 'rotateY(180deg)',
-                            background: 'linear-gradient(135deg, #ede0cc 0%, #f5ede0 100%)',
-                        }}
-                    />
+                    <div className="absolute inset-0" style={{
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                        background: 'linear-gradient(135deg, #ede0cc 0%, #f5ede0 100%)',
+                    }} />
                 </div>
 
-                {/* ── Spine / binding line at the center ── */}
+                {/* ── Spine ── */}
                 <div
                     ref={spineRef}
                     className="absolute inset-y-0 left-1/2 z-20 w-[3px] -translate-x-1/2"
@@ -403,7 +340,7 @@ const BookOpenImage: React.FC<BookOpenImageProps> = ({ src, alt, delay = 0.5 }) 
                     }}
                 />
 
-                {/* ── Badge revealed after opening ── */}
+                {/* ── Badge ── */}
                 <div
                     ref={badgeRef}
                     className="absolute bottom-6 left-6 right-6 z-30 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur-md"
@@ -576,9 +513,7 @@ StripeCardSection.displayName = 'StripeCardSection'
 const StepBadge: React.FC<{ n: number; label: string }> = ({ n, label }) => (
     <div className="step-header mb-8 flex items-center gap-4">
         <div className="hidden h-px w-14 shrink-0 bg-primary/60 sm:block" />
-        <span
-            className="step-number-3d flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-white"
-        >
+        <span className="step-number-3d flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-white">
             {n}
         </span>
         <h3 className="font-display text-2xl text-on-surface">{label}</h3>
@@ -603,21 +538,20 @@ const InscriptionLangues: React.FC<Props> = ({
     const stripeCardRef = useRef<StripeCardHandle>(null)
 
     // ── Refs for GSAP ──
-    const heroRef     = useRef<HTMLElement>(null)
-    const heroTagRef  = useRef<HTMLSpanElement>(null)
-    const heroH1Ref   = useRef<HTMLHeadingElement>(null)
-    const heroDescRef = useRef<HTMLParagraphElement>(null)
-    const heroStatsRef = useRef<HTMLDivElement>(null)
-    const heroFeatsRef = useRef<HTMLDivElement>(null)
-    const heroImgRef  = useRef<HTMLDivElement>(null)
-    const dividerRef  = useRef<HTMLElement>(null)
+    const heroRef        = useRef<HTMLElement>(null)
+    const heroTagRef     = useRef<HTMLSpanElement>(null)
+    const heroH1Ref      = useRef<HTMLHeadingElement>(null)
+    const heroDescRef    = useRef<HTMLParagraphElement>(null)
+    const heroStatsRef   = useRef<HTMLDivElement>(null)
+    const heroFeatsRef   = useRef<HTMLDivElement>(null)
+    const heroImgRef     = useRef<HTMLDivElement>(null)
+    const dividerRef     = useRef<HTMLElement>(null)
     const formSectionRef = useRef<HTMLElement>(null)
-    const formCardRef = useRef<HTMLDivElement>(null)
-    const step1Ref    = useRef<HTMLElement>(null)
-    const step2Ref    = useRef<HTMLElement>(null)
-    const step3Ref    = useRef<HTMLElement>(null)
-    const submitRef   = useRef<HTMLDivElement>(null)
-    // decorative count-up number refs
+    const formCardRef    = useRef<HTMLDivElement>(null)
+    const step1Ref       = useRef<HTMLElement>(null)
+    const step2Ref       = useRef<HTMLElement>(null)
+    const step3Ref       = useRef<HTMLElement>(null)
+    const submitRef      = useRef<HTMLDivElement>(null)
     const priceDisplayRef = useRef<HTMLSpanElement>(null)
 
     // ── Form state ──
@@ -647,28 +581,23 @@ const InscriptionLangues: React.FC<Props> = ({
                 scrollTrigger: { scrub: true },
             })
 
-            // ── Hero master timeline ──
             const heroTl = gsap.timeline({ defaults: { ease: 'expo.out' } })
 
-            // Tag line slides in
             heroTl.fromTo(heroTagRef.current,
                 { opacity: 0, y: 20, letterSpacing: '0.6em' },
                 { opacity: 1, y: 0, letterSpacing: '0.2em', duration: 0.8 },
                 0.2
             )
-            // H1 — clip-path wipe up
             heroTl.fromTo(heroH1Ref.current,
                 { opacity: 0, clipPath: 'inset(100% 0% 0% 0%)', y: 40 },
                 { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)', y: 0, duration: 1 },
                 0.5
             )
-            // Description fade
             heroTl.fromTo(heroDescRef.current,
                 { opacity: 0, x: -30 },
                 { opacity: 1, x: 0, duration: 0.7 },
                 0.9
             )
-            // Stats grid stagger
             if (heroStatsRef.current) {
                 heroTl.fromTo(
                     heroStatsRef.current.querySelectorAll('.stat-item'),
@@ -677,7 +606,6 @@ const InscriptionLangues: React.FC<Props> = ({
                     1.1
                 )
             }
-            // Features stagger
             if (heroFeatsRef.current) {
                 heroTl.fromTo(
                     heroFeatsRef.current.querySelectorAll('.feat-item'),
@@ -686,9 +614,7 @@ const InscriptionLangues: React.FC<Props> = ({
                     1.3
                 )
             }
-            // Hero image: animation handled inside BookOpenImage component
 
-            // ── Count-up price animation ──
             if (priceDisplayRef.current) {
                 const obj = { val: 0 }
                 heroTl.to(obj, {
@@ -702,7 +628,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 }, 1.1)
             }
 
-            // ── Divider section ──
             if (dividerRef.current) {
                 ScrollTrigger.create({
                     trigger: dividerRef.current,
@@ -723,7 +648,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 })
             }
 
-            // ── Form card entrance ──
             if (formCardRef.current) {
                 ScrollTrigger.create({
                     trigger: formCardRef.current,
@@ -737,7 +661,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 })
             }
 
-            // ── Step 1: personal fields stagger ──
             if (step1Ref.current) {
                 ScrollTrigger.create({
                     trigger: step1Ref.current,
@@ -757,7 +680,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 })
             }
 
-            // ── Step 2: language cards ──
             if (step2Ref.current) {
                 ScrollTrigger.create({
                     trigger: step2Ref.current,
@@ -777,7 +699,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 })
             }
 
-            // ── Step 3: payment options ──
             if (step3Ref.current) {
                 ScrollTrigger.create({
                     trigger: step3Ref.current,
@@ -792,7 +713,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 })
             }
 
-            // ── Submit section ──
             if (submitRef.current) {
                 ScrollTrigger.create({
                     trigger: submitRef.current,
@@ -806,7 +726,6 @@ const InscriptionLangues: React.FC<Props> = ({
                 })
             }
 
-            // ── Decorative blobs parallax ──
             gsap.utils.toArray<Element>('.deco-blob').forEach((el, i) => {
                 gsap.to(el, {
                     yPercent: i % 2 === 0 ? -25 : 25,
@@ -819,23 +738,14 @@ const InscriptionLangues: React.FC<Props> = ({
         return () => ctx.revert()
     }, [])
 
-    // ── Language card select animation ──
     const animateCardSelect = (el: HTMLElement) => {
-        gsap.fromTo(el,
-            { scale: 0.96 },
-            { scale: 1, duration: 0.35, ease: 'back.out(2.5)' }
-        )
+        gsap.fromTo(el, { scale: 0.96 }, { scale: 1, duration: 0.35, ease: 'back.out(2.5)' })
     }
 
-    // ── Payment mode toggle animation ──
     const animatePaymentSelect = (el: HTMLElement) => {
-        gsap.fromTo(el,
-            { x: -6, opacity: 0.7 },
-            { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
-        )
+        gsap.fromTo(el, { x: -6, opacity: 0.7 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' })
     }
 
-    // ── Form helpers ──
     const clearErr  = (field: keyof FormErrors) => setErrors((p) => ({ ...p, [field]: undefined }))
 
     const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -856,7 +766,6 @@ const InscriptionLangues: React.FC<Props> = ({
             setOnlinePaymentReference('')
             clearErr('card')
         }
-        // animate the selected element
         const card = e.target.closest('.lang-card, .payment-option') as HTMLElement | null
         if (card) {
             if (e.target.name === 'language') animateCardSelect(card)
@@ -978,17 +887,15 @@ const InscriptionLangues: React.FC<Props> = ({
 
                     {/* ══════════════════ HERO ══════════════════ */}
                     <section ref={heroRef} className="relative overflow-hidden pt-20 pb-28">
-                        {/* Decorative blobs */}
                         <div className="deco-blob pointer-events-none absolute -right-32 -top-32 h-[520px] w-[520px] rounded-full"
                             style={{ background: 'radial-gradient(circle, rgba(194,101,42,0.08) 0%, transparent 70%)' }} />
                         <div className="deco-blob pointer-events-none absolute -left-24 bottom-0 h-[380px] w-[380px] rounded-full"
                             style={{ background: 'radial-gradient(circle, rgba(194,101,42,0.05) 0%, transparent 70%)' }} />
-                        {/* Grid overlay */}
                         <div className="pointer-events-none absolute inset-0"
                             style={{ backgroundImage: 'linear-gradient(rgba(194,101,42,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(194,101,42,0.03) 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
 
                         <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 px-8 lg:grid-cols-2">
-                            {/* Left */}
+                            {/* Left — text */}
                             <div>
                                 <span ref={heroTagRef}
                                     className="mb-5 block text-xs font-bold uppercase tracking-[0.2em] text-primary"
@@ -1011,7 +918,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                     Certifiez vos competences dans un cadre d'excellence.
                                 </p>
 
-                                {/* Stats */}
                                 <div ref={heroStatsRef} className="mb-12 grid grid-cols-2 gap-8">
                                     {[
                                         { icon: 'schedule', label: 'Duree', value: '3–6 mois flexible' },
@@ -1033,7 +939,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                     ))}
                                 </div>
 
-                                {/* Features */}
                                 <div ref={heroFeatsRef} className="flex flex-col gap-4 border-l-2 border-primary/30 pl-6">
                                     {['Native teachers & Expert Pedagogy', 'Certification internationale incluse'].map((text) => (
                                         <div key={text} className="feat-item flex items-center gap-3" style={{ opacity: 0 }}>
@@ -1071,7 +976,6 @@ const InscriptionLangues: React.FC<Props> = ({
 
                     {/* ══════════════════ FORM SECTION ══════════════════ */}
                     <section ref={formSectionRef} className="relative overflow-hidden py-24">
-                        {/* Decorative background */}
                         <div className="pointer-events-none absolute inset-0"
                             style={{ backgroundImage: 'radial-gradient(rgba(194,101,42,0.04) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
                         <div className="deco-blob pointer-events-none absolute right-[8%] top-20 h-[380px] w-[380px] rounded-full opacity-60"
@@ -1091,7 +995,7 @@ const InscriptionLangues: React.FC<Props> = ({
 
                                 <form onSubmit={handleSubmit} noValidate className="relative z-10 space-y-14">
 
-                                    {/* ── Step 1: Personal info ── */}
+                                    {/* ── Step 1 ── */}
                                     <section ref={step1Ref} className="space-y-8">
                                         <StepBadge n={1} label="Informations Personnelles" />
                                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -1121,7 +1025,7 @@ const InscriptionLangues: React.FC<Props> = ({
                                         </div>
                                     </section>
 
-                                    {/* ── Step 2: Language choice ── */}
+                                    {/* ── Step 2 ── */}
                                     <section ref={step2Ref} className="space-y-8 border-t border-outline-variant/20 pt-6">
                                         <StepBadge n={2} label="Choix de la Formation" />
                                         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -1138,7 +1042,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                                         }`}
                                                             style={{ background: active ? 'rgba(194,101,42,0.04)' : 'white' }}
                                                         >
-                                                            {/* Flag bg */}
                                                             <div className="pointer-events-none absolute inset-0 bg-cover bg-left"
                                                                 style={{
                                                                     backgroundImage: `url('${FLAG_URLS[value]}')`,
@@ -1146,7 +1049,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                                                     maskImage: 'linear-gradient(to right, rgba(0,0,0,0.14) 0%, transparent 65%)',
                                                                 }}
                                                             />
-                                                            {/* Active indicator */}
                                                             {active && (
                                                                 <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                                                                     <span className="material-symbols-outlined text-xs text-white" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>check</span>
@@ -1165,7 +1067,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                             })}
                                         </div>
 
-                                        {/* Recap */}
                                         <div className="recap-block rounded-2xl border border-outline-variant/40 bg-[#faf7f4] p-5" style={{ opacity: 0 }}>
                                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
@@ -1182,7 +1083,7 @@ const InscriptionLangues: React.FC<Props> = ({
                                         </div>
                                     </section>
 
-                                    {/* ── Step 3: Payment mode ── */}
+                                    {/* ── Step 3 ── */}
                                     <section ref={step3Ref} className="space-y-8 border-t border-outline-variant/20 pt-6">
                                         <StepBadge n={3} label="Mode de Paiement" />
                                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-has-error={errors.payment ? 'true' : undefined}>
@@ -1218,7 +1119,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                         </div>
                                         <FieldError msg={errors.payment} />
 
-                                        {/* Online info */}
                                         {form.payment === 'online' && (
                                             <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
                                                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Paiement securise Payzone</p>
@@ -1230,7 +1130,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                             </div>
                                         )}
 
-                                        {/* Onsite info */}
                                         {form.payment === 'onsite' && (
                                             <div className="rounded-3xl border border-primary/20 bg-white p-6 shadow-sm">
                                                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Paiement au centre</p>
@@ -1304,7 +1203,6 @@ const InscriptionLangues: React.FC<Props> = ({
                                             className="group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-primary py-5 text-base font-bold tracking-wide text-on-primary shadow-lg transition-all duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                                             style={{ boxShadow: '0 8px 32px rgba(194,101,42,0.25)' }}
                                         >
-                                            {/* Hover shimmer */}
                                             <span className="absolute inset-0 -translate-x-full bg-white/10 transition-transform duration-500 group-hover:translate-x-full" />
                                             {submitting ? (
                                                 <><span className="material-symbols-outlined animate-spin text-xl leading-none">progress_activity</span>Traitement en cours...</>
@@ -1368,18 +1266,18 @@ const InscriptionLangues: React.FC<Props> = ({
                     .material-symbols-outlined {
                         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
                     }
-                    /* Book spinning frames — hover adds 360° to the default tilt */
+
+                    /* Frames spin on hover (only visible on hover via opacity-0 → opacity-100 in Tailwind) */
                     .group:hover .book-frame-outer {
-                        transform: rotate(372deg);   /* 12° base + 360° spin */
+                        transform: rotate(372deg);
                     }
                     .group:hover .book-frame-inner {
-                        transform: rotate(-368deg);  /* -8° base - 360° spin */
+                        transform: rotate(-368deg);
                     }
 
                     @keyframes spin { to { transform: rotate(360deg); } }
                     .animate-spin { animation: spin 0.8s linear infinite; display: inline-block; }
 
-                    /* Book panels — hardware accelerate the 3D transforms */
                     [style*="transformStyle: preserve-3d"],
                     [style*="transform-style: preserve-3d"] {
                         will-change: transform;
