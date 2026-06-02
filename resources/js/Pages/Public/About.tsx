@@ -359,7 +359,7 @@ const About = () => {
               <div className="absolute -inset-4 bg-primary/5 rounded-xl -rotate-2 group-hover:rotate-0 transition-transform duration-500" />
               <img
                 className="relative z-10 w-full h-[600px] object-cover rounded-xl shadow-lg"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAohhUjkOm8R1NlZvl8GWCf9Gxoxl7CabaEmWFR7GrZIVOTqNe4LOCAWmjhxxmjTAaYNWiOYGHws-F0d2feMJ3yB6N3n4cw2FdmL_grs9lyJdqTTc3uI3raLoU1ruJphSwwr6bFJrTdGR_1EEc1bKozrtv9VhT0qTo1SZPLeuYrKP2J302NyEpWtiOXzUjLkmL2X8Dfn0s2PZl8FoW6Be8EfYGKgPtSyimli_vZXvNqkLR3bkxKrSiakF3-3YmkF63pKj58S9vvYXb1"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGa9KhmF_5qUNVD1YF0ivOHyvMstOqdn5bOZbqjP_-nKts5YeVX61xJA1s7ThE4ialG1PhniymZRuM30-zp5jyIWA8uOk6pZKInFt_L1D1MsHEcOtnLXg6m8q9vPACwJorX4fXVZvv8cy9B1H_7pzu1kxEQZNdIG4CgkByN6HXXAiWoKQ53NRE9XFIwIoYRL_Knwy37s4QiaHNQFWxqn-QBg8hvXiHysoiloauRUNNEjZAw8Ki8XgTx9CTNQuI3w5Wz30aaKDK85W_"
                 alt="groupe diversifié d'étudiants professionnels"
               />
             </div>
