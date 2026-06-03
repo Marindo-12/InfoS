@@ -41,8 +41,6 @@ const NAV_MAIN: NavItem[] = [
 
 const NAV_FINANCE: NavItem[] = [
   { label: 'Paiements',   icon: <I.Payments />,     route: route('student.payment'),  routeName: 'student.payment'  },
-  { label: 'Certificats', icon: <I.Certificates />, route: route('dashboard'),         routeName: 'certificates'     },
-  { label: 'Documents',   icon: <I.Documents />,    route: route('dashboard'),         routeName: 'documents'        },
 ]
 
 const NAV_ACCOUNT: NavItem[] = [
