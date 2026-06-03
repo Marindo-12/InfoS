@@ -95,25 +95,7 @@ export default function Edit({
                 [.al-dark_&]:text-[#d5c8bc]">{user.phone || user.city || 'Coordonnées à compléter'}</small>
             </div>
           </div>
-        </section>
-
-        {/* Summary */}
-        <section className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3.5" aria-label="Résumé du profil">
-          {profileSummary.map(item => (
-            <article
-              key={item.label}
-              className="bg-white border border-[rgba(216,208,200,.72)] rounded-xl shadow-[0_2px_16px_rgba(58,48,42,.045)] p-5
-                [.al-dark_&]:bg-[#241f1a] [.al-dark_&]:border-white/10 [.al-dark_&]:shadow-black/20
-                [.a-root--dark_&]:bg-[#201f1f] [.a-root--dark_&]:border-white/10 [.a-root--dark_&]:shadow-black/20"
-            >
-              <span className="block text-[#605850] text-[.68rem] font-black uppercase tracking-[.1em]
-                [.al-dark_&]:text-[#d5c8bc] [.a-root--dark_&]:text-[#dbc1b5]">{item.label}</span>
-              <strong className="block font-['EB_Garamond',serif] text-4xl font-semibold leading-none mt-3">{item.value}</strong>
-              <small className="block text-[#605850] text-[.78rem] mt-2
-                [.al-dark_&]:text-[#d5c8bc] [.a-root--dark_&]:text-[#dbc1b5]">{item.sub}</small>
-            </article>
-          ))}
-        </section>
+        </section>        
 
         {/* Profile Form Card */}
         <div className="bg-white rounded-2xl border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden
