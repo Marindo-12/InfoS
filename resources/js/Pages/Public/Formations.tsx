@@ -543,7 +543,6 @@ const Formations = () => {
                 {[
                   { icon: 'grid_view', color: 'blue', bg: 'bg-blue-50', text: 'text-blue-600', title: 'Pack Office Expert', sub: 'Excel VBA, Word, PowerPoint', price: '800 dh' },
                   { icon: 'brush', color: 'red', bg: 'bg-red-50', text: 'text-red-600', title: 'Design Graphique', sub: 'Photoshop, Illustrator, Branding', price: '1200 dh' },
-                  { icon: 'devices', color: 'primary', bg: 'bg-primary/10', text: 'text-primary', title: 'Web Design & UX', sub: 'Figma, HTML/CSS, UI Design', price: '1500 dh' },
                 ].map(row => (
                   <div
                     key={row.title}
