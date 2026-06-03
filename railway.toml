@@ -1,0 +1,6 @@
+[build]
+builder = "railpack"
+buildCommand = "npm ci && npm run build"
+
+[deploy]
+preDeployCommand = ["chmod +x ./railway/init-app.sh && sh ./railway/init-app.sh"]
