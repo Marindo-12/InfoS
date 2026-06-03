@@ -452,16 +452,23 @@ const Formations = () => {
                 </div>
               </div>
 
-              {/* Études à l'étranger */}
-              <div className="concours-card bg-surface-container-highest p-8 rounded-2xl border border-dashed border-outline flex flex-col justify-center items-center text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 text-primary">
-                  <span className="material-symbols-outlined text-4xl">flight_takeoff</span>
+              {/* ENA */}
+              <div className="concours-card bg-surface-container-low p-8 rounded-2xl border border-outline-variant flex flex-col justify-between group hover:border-primary transition-colors">
+                <div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-6 shadow-sm text-primary">
+                    <span className="material-symbols-outlined text-3xl">account_balance</span>
+                  </div>
+                  <span className="text-primary font-bold text-[10px] tracking-widest uppercase mb-4 block">Administration</span>
+                  <h4 className="text-xl font-serif mb-6">ENA</h4>
+                  <ul className="space-y-2 mb-8 text-sm text-secondary font-light">
+                    <li className="flex items-center gap-2"><span className="w-1 h-1 bg-primary rounded-full" /> Culture generale</li>
+                    <li className="flex items-center gap-2"><span className="w-1 h-1 bg-primary rounded-full" /> Methodologie concours</li>
+                  </ul>
                 </div>
-                <h4 className="text-xl font-serif mb-3">Études à l'Étranger</h4>
-                <p className="text-secondary text-sm font-light mb-6">Dossier Campus &amp; Orientation internationale</p>
-                <button className="w-full py-3 bg-on-background text-surface rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">
-                  Consulter
-                </button>
+                <div className="pt-6 border-t border-outline-variant/30 flex items-center justify-between">
+                  <span className="font-serif text-lg text-on-background">600 dh</span>
+                  <Link href={route('inscriptions.concours')} className="text-primary font-bold text-xs uppercase underline">Réserver</Link>
+                </div>
               </div>
             </div>
           </div>
