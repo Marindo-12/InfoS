@@ -1,7 +1,7 @@
 [build]
 builder = "railpack"
-buildCommand = "composer install --no-interaction --prefer-dist --no-progress && npm ci && npm run build"
+buildCommand = "composer install --no-interaction --prefer-dist --no-progress && npm install --include=dev --ignore-scripts --no-audit --no-fund && npm run build"
 
 [deploy]
 startCommand = "php artisan serve --host 0.0.0.0 --port $PORT"
-preDeployCommand = ["php artisan config:cache && php artisan route:cache && php artisan view:cache && chmod +x ./railway/init-app.sh && sh ./railway/init-app.sh"]
+preDeployCommand = ["chmod +x ./railway/init-app.sh && sh ./railway/init-app.sh && php artisan config:cache && php artisan route:cache && php artisan view:cache"]
