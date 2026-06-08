@@ -143,7 +143,7 @@ const Footer = () => {
                     </p>
                     <div className="flex flex-col items-center gap-2 text-xs text-stone-500 sm:flex-row">
                         <span className="font-light">
-                            Cree par <span className="font-semibold text-stone-700">Douakh Mohammed</span>
+                            Cree par <span className="ms-4 font-semibold text-stone-700">Douakh Mohammed</span>
                         </span>
                         <div className="flex items-center gap-2" aria-label="Liens du createur">
                             {creatorLinks.map(({ label, href, icon: Icon }) => (
