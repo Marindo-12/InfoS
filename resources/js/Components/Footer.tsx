@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react'
-import { BadgeCheck, MapPin } from 'lucide-react'
+import { Mail, MapPin } from 'lucide-react'
 import type { SVGProps } from 'react'
 
 function FacebookIcon(props: SVGProps<SVGSVGElement>) {
@@ -34,6 +34,22 @@ function WhatsAppIcon(props: SVGProps<SVGSVGElement>) {
     )
 }
 
+function GithubIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+            <path d="M12 .5A12 12 0 0 0 8.2 23.88c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.92 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23A11.5 11.5 0 0 1 12 6.31c1.02 0 2.04.14 3 .41 2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.62-5.48 5.92.43.37.81 1.1.81 2.22v3.28c0 .32.22.7.82.58A12 12 0 0 0 12 .5Z" />
+        </svg>
+    )
+}
+
+function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+            <path d="M20.45 20.45h-3.56v-5.58c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.68H9.34V8.98h3.42v1.57h.05a3.75 3.75 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.29ZM5.32 7.41a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12Zm1.78 13.04H3.54V8.98H7.1v11.47ZM22.23 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.21 0 22.23 0Z" />
+        </svg>
+    )
+}
+
 const socialLinks = [
     { name: 'Facebook', href: 'https://www.facebook.com/', icon: FacebookIcon, color: '#1877F2', hoverClass: 'hover:border-[#1877F2] hover:text-[#1877F2]' },
     { name: 'Instagram', href: 'https://www.instagram.com/', icon: InstagramIcon, color: '#E4405F', hoverClass: 'hover:border-[#E4405F] hover:text-[#E4405F]' },
@@ -53,6 +69,12 @@ const usefulLinks = [
     { label: 'Terms', href: route('terms') },
     { label: 'A propos', href: route('about') },
     { label: 'Contact', href: route('contact') },
+]
+
+const creatorLinks = [
+    { label: 'GitHub', href: 'https://github.com/marindo-12', icon: GithubIcon },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mohammed-douakh-32595b3ab/', icon: LinkedInIcon },
+    { label: 'Email', href: 'mailto:douakhmohamed83@gmail.com', icon: Mail },
 ]
 
 const Footer = () => {
@@ -115,10 +137,30 @@ const Footer = () => {
             </div>
 
             <div className="border-t border-stone-200 py-6">
-                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-8 text-center md:flex-row md:text-left">
+                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-8 text-center md:flex-row md:text-left">
                     <p className="text-xs font-light tracking-[0.25em] text-stone-400">
                         CENTRE INFORMATIQUE • MEKNES • MAROC
                     </p>
+                    <div className="flex flex-col items-center gap-2 text-xs text-stone-500 sm:flex-row">
+                        <span className="font-light">
+                            Cree par <span className="font-semibold text-stone-700">Douakh Mohammed</span>
+                        </span>
+                        <div className="flex items-center gap-2" aria-label="Liens du createur">
+                            {creatorLinks.map(({ label, href, icon: Icon }) => (
+                                <a
+                                    key={label}
+                                    href={href}
+                                    target={href.startsWith('mailto:') ? undefined : '_blank'}
+                                    rel={href.startsWith('mailto:') ? undefined : 'noreferrer'}
+                                    aria-label={label}
+                                    title={label}
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 transition-colors hover:border-orange-500 hover:text-orange-600"
+                                >
+                                    <Icon className="h-[15px] w-[15px]" />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                     <a
                         href="https://www.google.com/maps/search/?api=1&query=33.8989909,-5.551918"
                         target="_blank"
