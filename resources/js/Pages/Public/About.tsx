@@ -508,23 +508,23 @@ const About = () => {
               <div className="space-y-24">
                 {[
                   {
-                    year: '1994', side: 'left',
-                    text: 'Création de « The Language Loft » dans un petit studio urbain avec 3 salles de classe.',
+                    year: '2010', side: 'left',
+                    text: 'Ouverture du centre avec deux salles équipées en micro‑informatique. Premières formations en bureautique (Word, Excel) et en langues (anglais, français).',
                     src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBch4qoGNCdCkd6Uu69rB197I5OR4DQgucbtstZKD2WYm31zjbQbSexUbqVexvHrOZK5J7KVff4FcR3gwldNoSC0bkMWPwQHT3SI1xQl6FLwsc3rlDUt9tb86IwApv4AdD5QMmWV3NiokNJNEgciMlOlY0kdOliRbgM3TM93BK9NCpXGsqwG2rV84qY7WNHagRsfz2W8NyUby9h4YKeiC-lZOex82YbqUWo08B3lknQ8-VzhPa3cTvwd-X_CqK1fHGqtOYWlbTx1lAV',
                   },
                   {
-                    year: '2005', side: 'right',
-                    text: "Expansion vers les technologies de l'information. Lancement du premier programme « Coding for Leaders ».",
+                    year: '2015', side: 'right',
+                    text: "Développement de l'offre : ajout des modules infographie (Photoshop, Illustrator) et des premières préparations aux concours administratifs et examens nationaux.",
                     src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBDfJBExsnuQRG_Mer-Odmw1TCL-skOXqL0n6_eouykDsY8dtYGvh10lPJl9pjqpEoiVoOexVWqoJTyuUC3AOYy2ITtytDpHG4aWSNHp954i2phad9e8HAKIwZq6B-rwRze4fONAm8JKTOByEa2y34lDpBkgfUNcXI1F-yxfrpevCXDB-PeM3OstPU689mqdi7T3wZuLIBfrHE1tFOF_tpXO1_lMy8DnlJwEuvKdeVAom5jwfONV8Ape8O7-SzcY_dA9PT-m1QSXQ2',
                   },
                   {
                     year: '2018', side: 'left',
-                    text: "Obtention de l'accréditation mondiale. L'institut est renommé Elite Academy pour refléter ses normes élevées.",
+                    text: "Agrandissement des locaux et labellisation par un organisme de formation professionnelle. Le centre devient une référence régionale pour la bureautique et l'infographie.",
                     src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRRF0afWOJWpAhepm21JHTyWqGECQPULDLWquvzkfAKFbwuMFHTc6k5PRVRPd1_WxqCNbsyTBZA-ffUflGRKUGNNCsaLf8BhqyXp2ZxwBTMLexsbCLog-Ey61h0isnICcPwNXWMbszfXpNcCDYpeh2e5Nn3rXZSDHtNv8tirYqxvbdPdOcUaLRYLQX28VGvnqZU22nmwwttVrGudu8DXb-kfcvPBtUoVat87VFfhQr4UHNikaeYmBZoKfcMIh1ntvOQhq5hfn5AcTa',
                   },
                   {
                     year: "Aujourd'hui", side: 'right',
-                    text: "Un pôle mondial pour la recherche en IA et les études linguistiques avancées, avec 12 000 anciens élèves.",
+                    text: "Plus de 5000 apprenants formés. Le centre propose également des cours en ligne et un accompagnement personnalisé pour les concours et la certification en langues.",
                     src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCU9fxgrdjOcAV7qRM_0v-p1srNV3T08SW2nYlC76tJMb1F9fwtvC9D2LnhlExTPZ6QfoIgUkcje4cBEAzQ451RRmxayZ4bkU_mTOwRzRG5Pgnu0JWqOmFPrv_b_cVyB2ZcXh2OtSd9js06Fpq2cTfrIKc8THIPIIuI01rhH9UOcqsNgtZvPUieOfXOvMs-NQpkMWpRGJnKOxnK1g48Whd9cYwJkU5CqSqZkbazdTmcm6k1q4AiAQin7Y7ZUSFvLwmVWqwNNA6QBt3e',
                   },
                 ].map((ev, i) => (
