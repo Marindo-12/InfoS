@@ -1,4 +1,5 @@
 import AboutHero from '@/Components/about/AboutHero'
+import ApplicationChooser from '@/Components/ApplicationChooser'
 import Navbar from '@/Components/Navbar'
 import { Head, Link } from '@inertiajs/react'
 import React, { useEffect, useRef } from 'react'
@@ -693,9 +694,11 @@ const About = () => {
               </div>
               <div className="space-y-8">
                 <h5 className="font-body font-bold text-xs uppercase tracking-widest text-white/80">Admissions</h5>
-                <a href={route('inscriptions')} className="w-full bg-primary text-white py-4 rounded-xl font-body font-bold text-sm hover:opacity-90 transition-opacity inline-block text-center">
-                  Commencer votre candidature
-                </a>
+                <ApplicationChooser
+                  buttonClassName="w-full bg-primary text-white py-4 rounded-xl font-body font-bold text-sm hover:opacity-90 transition-opacity inline-block text-center"
+                  buttonLabel="Commencer votre candidature"
+                  dark
+                />
               </div>
             </div>
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-[0.3em] text-white/30 border-t border-white/5 pt-8">

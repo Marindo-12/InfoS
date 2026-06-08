@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Link } from '@inertiajs/react'
+import ApplicationChooser from '@/Components/ApplicationChooser'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -241,13 +241,10 @@ const Cta = () => {
 
         {/* ── Boutons ── */}
         <div ref={btnsRef} className="flex flex-wrap justify-center gap-6">
-          <Link
-            href="/inscriptions"
-            className="btn-primary px-12 py-5 bg-primary text-on-primary rounded-lg font-bold text-lg shadow-lg active:scale-95 transition-none"
-            style={{ opacity: 0 }}
-          >
-            Déposer ma candidature
-          </Link>
+          <ApplicationChooser
+            buttonClassName="btn-primary px-12 py-5 bg-primary text-on-primary rounded-lg font-bold text-lg shadow-lg active:scale-95 transition-none"
+            buttonLabel="Déposer ma candidature"
+          />
           <a
             href="/contact"
             className="btn-secondary px-12 py-5 border-2 border-primary text-primary rounded-lg font-bold text-lg hover:bg-primary hover:text-on-primary transition-colors inline-flex items-center gap-2 group"
