@@ -654,8 +654,8 @@ const About = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center font-serif text-primary italic">S</div>
                     <div>
-                      <p className="text-sm font-bold uppercase tracking-wide">Sarah Jenkins</p>
-                      <p className="text-xs text-white/40">Ancienne élève '19, Responsable produit senior chez Vertex</p>
+                      <p className="text-sm font-bold uppercase tracking-wide">Sarah Alami</p>
+                      <p className="text-xs text-white/40">Ancienne élève '19</p>
                     </div>
                   </div>
                 </div>
