@@ -381,5 +381,3 @@ This project is open-sourced software licensed under the [MIT license](https://o
 - [ ] Explore the codebase in `app/` and `resources/js/`
 
 ---
-
-**Made with ❤️ for building amazing information systems**
