@@ -1,6 +1,6 @@
 # 📊 InfoS - Information System Dashboard
 
-A modern full-stack web application built with **Laravel** (backend) and **React** (frontend) for building and managing comprehensive information systems dashboards. Features real-time data visualization, user authentication with Google OAuth, PDF export capabilities, and payment integration.
+A modern full-stack web application built with **Laravel** (backend) and **React** (frontend) for building and managing comprehensive information systems dashboards. Features real-time data visualization, user authentication with Google OAuth and PDF export capabilities.
 
 ## 🎯 Overview
 
