@@ -44,7 +44,6 @@ Perfect for creating custom dashboards, reports, and information systems with a 
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Modern build tool
 - **Recharts** - React charting library
-- **Lucide React** - Beautiful icons
 
 ### Infrastructure
 - **PostgreSQL** - Database
