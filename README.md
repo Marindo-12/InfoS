@@ -11,7 +11,7 @@ A modern full-stack web application built with **Laravel** (backend) and **React
 - **Styling**: Tailwind CSS with modern UI components
 - **Features**: Authentication, Stripe payments, data visualization, PDF generation
 
-Perfect for creating custom dashboards, reports, and information systems with a beautiful, responsive interface.
+Perfect for creating custom dashboards, reports, and information systems with a beautiful, responsive interface, but you need to be good enough.
 
 ---
 
